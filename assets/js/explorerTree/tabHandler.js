@@ -26,6 +26,7 @@ import {
     EditorAdapter
 } from "../lib.js"
 import { BottomWindow, closeAllWindows } from "../handlers/BottomWindowHandler.js"
+import { bindImageZoomHandlers } from "../handlers/imageZoomHandler.js"
 import { enableSmoothScroll } from "../../plugins/aceSmoothScroller/index.js"
 import { Setting } from "../settings.js"
 import {
@@ -649,7 +650,10 @@ function initExtensionEditorAPIEvents({ editor }) {
 }
 
 export async function openTab(path, content, extension, name, pathContext, isNew = false, settings = {}) {
-    closeAllWindows()
+    let language = Languages.get(extension)
+    const isImage = language.name == "Image" || extension == "svg"
+
+    closeAllWindows(isImage ? "imagePreview" : null)
     setAppTitle(name)
 
     currentContent = content
@@ -663,16 +667,12 @@ export async function openTab(path, content, extension, name, pathContext, isNew
     pane.id = id;
     editorWrapper.appendChild(pane);
 
-    let language = Languages.get(extension)
-    let languageIcon = await Languages.getIconPath(extension)
-
     let fileNameInfo = Filenames.get(name)
-    let fileNameInfoIcon = await Filenames.getIconPath(name)
 
     const codeMirrorView = window.CodeMirror.create(
         document.getElementById(id),
         {
-            value: content
+            value: isImage ? "" : content
         }
     )
 
@@ -686,12 +686,8 @@ export async function openTab(path, content, extension, name, pathContext, isNew
     const imagePreviewWindow = new BottomWindow("imagePreview", { title: "Preview" })
     imagePreviewWindow.removeClose()
 
-    if (language.name == "Image") {
-        disableSave()
-        const escapedPath = escapeHtml(path);
-        imagePreviewWindow.set(`<div class="image-preview"><img src="${escapedPath}"></div>`)
-        imagePreviewWindow.fullscreen()
-        imagePreviewWindow.show()
+    if (isImage) {
+        renderImagePreview(imagePreviewWindow, path)
     }
     else {
         enableSave()
@@ -816,13 +812,13 @@ export async function openTab(path, content, extension, name, pathContext, isNew
     });
 
     if (cached) {
-        editor.setValue(cached.content ?? "", -1);
+        if (!isImage) editor.setValue(cached.content ?? "", -1);
         editor.resetUndoManager();
         setErrors(editor.getAnnotations())
         if (cached.cursor) editor.moveCursorTo(cached.cursor.row, cached.cursor.column);
         if (typeof cached.scrollTop === "number") editor.setScrollTop(cached.scrollTop);
     } else {
-        editor.setValue(content ?? "", -1);
+        if (!isImage) editor.setValue(content ?? "", -1);
         editor.resetUndoManager();
         setErrors(editor.getAnnotations())
     }
@@ -906,6 +902,7 @@ export async function openTab(path, content, extension, name, pathContext, isNew
         paneEl: pane,
         ErrorsHistoryWindow: ErrorsHistoryWindow,
         language: language,
+        isImage: isImage,
         new: isNew,
         fileName: name,
         color: language.color,
@@ -1061,6 +1058,11 @@ export function closeTab(path) {
 
     const stillHas = !!tabsBar.querySelector(".code-tab");
     if (!stillHas) {
+        const imagePreviewWindow = BottomWindow.get("imagePreview");
+        if (imagePreviewWindow) {
+            imagePreviewWindow.fullscreen(false);
+            imagePreviewWindow.hide();
+        }
         startScreen?.classList.remove("hidden");
         toggleCodeFooter(false)
         tabsBar.classList.add("hidden");
@@ -1084,6 +1086,21 @@ export async function reopenLastClosed() {
     const name = path.split(/[\\/]/).pop();
 
     openTab(path, state.content, extension, name, path, false, settings);
+}
+
+function renderImagePreview(imagePreviewWindow, realPath) {
+    disableSave();
+    const escapedPath = escapeHtml(realPath);
+    imagePreviewWindow.set(`
+        <div class="image-preview">
+            <div class="image-preview-stage">
+                <img src="${escapedPath}" alt="preview">
+            </div>
+        </div>
+    `);
+    imagePreviewWindow.fullscreen();
+    imagePreviewWindow.show();
+    bindImageZoomHandlers(imagePreviewWindow.winContent);
 }
 
 export function activateTab(tabEl) {
@@ -1126,6 +1143,15 @@ export function activateTab(tabEl) {
 
     if (rec && rec.language) {
         updateVisibleOnElements(ext, rec.language);
+    }
+
+    const imagePreviewWindow = BottomWindow.get("imagePreview") || new BottomWindow("imagePreview", { title: "Preview" });
+    if (rec.isImage) {
+        renderImagePreview(imagePreviewWindow, realPath);
+    } else {
+        enableSave();
+        imagePreviewWindow.fullscreen(false);
+        imagePreviewWindow.hide();
     }
 }
 
