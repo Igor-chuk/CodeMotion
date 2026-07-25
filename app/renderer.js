@@ -54,10 +54,6 @@ export function enableSave() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    ace.config.set("basePath", "../ace/src-noconflict");
-    ace.config.set("modePath", "../ace/src-noconflict");
-    ace.config.set("workerPath", "../ace/src-noconflict");
-
     const gls = await GLS.init()
     
     localStorage.setItem("gls.current", gls.currentLang)

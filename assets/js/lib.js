@@ -817,29 +817,6 @@ export function eventLog(...args) {
     console.warn(`[EVENT LOG] -----------\n`, ...args)
 }
 
-export function loadAceModule(moduleName, callback) {
-    try {
-        const mod = ace.require(moduleName)
-        callback(mod);
-    } catch (e) {
-        const script = document.createElement("script");
-        script.src = `../ace/src-noconflict/${moduleName}.js`;
-
-        if(callback) {
-            script.onload = () => {
-                callback(ace.require(moduleName));
-            };
-        }
-        document.head.appendChild(script);
-    }
-}
-export const loadAceModuleAsync = (moduleName) => {
-    return new Promise((resolve) => {
-        loadAceModule(moduleName)
-        resolve()
-    })
-}
-
 const CODE_WINDOW_VISUALS_TABS = document.querySelector(".code-tabs")
 const CODE_WINDOW_VISUALS_FOOTER = document.querySelector(".code-footer")
 

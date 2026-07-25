@@ -1,7 +1,6 @@
-import { Options, Languages, Dirs, escapeHtml, loadAceModule, createNotify, TopBarElement, idify } from "../lib.js"
+import { Options, Languages, Dirs, escapeHtml, createNotify, TopBarElement, idify } from "../lib.js"
 import { optionsThemeButtonHandler } from "../handlers/themesHandler.js"
 import { themeEditors } from "../explorerTree/tabHandler.js"
-import { registerAceLanguage } from "../../../helpers/aceRegisterLanguage.js"
 import { bus, sendEvent } from "../../js/bus.js"
 import { disableErrors, enableErrors } from "../handlers/bottomTabHandler.js"
 

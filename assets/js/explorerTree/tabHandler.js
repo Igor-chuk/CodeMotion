@@ -12,15 +12,12 @@ import {
     getTheme,
     SideBarIconManager,
     Languages,
-    loadAceModule,
-    loadAceModuleAsync,
     showCodeWindowVisuals,
     Filenames,
     idify,
     CodeTemplates,
     dedent,
     GLS,
-    fitAceHeight,
     setAppTitle,
     setTabName,
     EditorAdapter
@@ -53,10 +50,6 @@ import { setEditorContext } from "./helpers/setEditorContext.js"
 import { Modal } from "../modalsHandler/engine.js"
 import { electronAPI } from "../global.js"
 import { closeConfirmModal } from "../modals/closeConfirm.js"
-
-ace.require("ace/ext/language_tools");
-ace.require("ace/ext/beautify");
-ace.config.setModuleUrl("ace/mode/gomod", "../app/main/tools/go/gomod-mode.js");
 
 export const recentlyClosed = new Map();
 export const tabsByPath = new Map();
@@ -925,6 +918,19 @@ export async function openTab(path, content, extension, name, pathContext, isNew
     tab.addEventListener("click", (ev) => {
         ev.preventDefault();
         activateTab(tab);
+    });
+    tab.addEventListener("auxclick", async (ev) => {
+        if (ev.button === 1) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const isModified = tab.classList.contains("not-saved");
+            const settings = await window.electron.readSettings();
+            if (isModified && settings?.editor?.confirmCloseTab !== false) {
+                showCloseConfirmModal(path, editor);
+            } else {
+                closeTab(path);
+            }
+        }
     });
     tab.querySelector("#tab-close").addEventListener("click", async (ev) => {
         ev.stopPropagation();
