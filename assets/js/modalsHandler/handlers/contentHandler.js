@@ -1,4 +1,4 @@
-import { valid, validArray, validHTTPS, validBool } from "../engine.js"
+import { valid, validArray, validHTTPS, validBool, validObject } from "../engine.js"
 
 import { renderSwitch } from "../components/switch.js"
 import { renderRange } from "../components/range.js"
@@ -13,6 +13,8 @@ import { renderDivider } from "../components/divider.js"
 import { renderImage } from "../components/image.js"
 import { renderDropdown } from "../components/dropdown.js"
 import { renderList } from "../components/list.js"
+import { renderGithubRepos } from "../components/githubRepos.js"
+import { renderInfoBlocks } from "../components/infoBlocks.js"
 
 const types = {
     columns: (wrapper, data) => {
@@ -178,12 +180,16 @@ function contentItemsHandler(element, itemsData) {
             const id = valid(item.id) ?? false
             const title = valid(item.title) ?? false
             const description = valid(item.description) ?? false
+            const titleBadge = valid(item.titleBadge) ?? false
+            const link = valid(item.link) ?? false
 
             const placeholderElement = renderPlaceholder(
                 {
                     id: id,
                     title: title,
-                    description: description
+                    description: description,
+                    titleBadge: titleBadge,
+                    link: link
                 }
             )
 
@@ -229,7 +235,7 @@ function contentItemsHandler(element, itemsData) {
             const id = valid(item.id) ?? false
             const name = valid(item.name) ?? "Unnamed"
             const description = valid(item.description) ?? "No description provided"
-            const website = validHTTPS(item.website) ?? false
+            const website = valid(item.website) ?? false
             const columns = validArray(item.columns) ?? []
             const badgeOwner = validBool(item.badgeOwner) ?? false
             const badgeVerified = validBool(item.badgeVerified) ?? false
@@ -391,6 +397,36 @@ function contentItemsHandler(element, itemsData) {
             element.appendChild(listElement)
 
             appendGlobalProperties(item, listElement)
+        }
+        if (type == "githubRepos") {
+            const id = valid(item.id) ?? false
+            const urls = validArray(item.urls) ?? []
+
+            const githubReposElement = renderGithubRepos(
+                {
+                    id: id,
+                    urls: urls
+                }
+            )
+
+            element.appendChild(githubReposElement)
+
+            appendGlobalProperties(item, githubReposElement)
+        }
+        if (type == "infoBlocks") {
+            const id = valid(item.id) ?? false
+            const blocks = validArray(item.blocks) ?? []
+
+            const infoBlocksElement = renderInfoBlocks(
+                {
+                    id: id,
+                    blocks: blocks
+                }
+            )
+
+            element.appendChild(infoBlocksElement)
+
+            appendGlobalProperties(item, infoBlocksElement)
         }
     })
 }

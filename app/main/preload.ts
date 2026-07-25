@@ -39,12 +39,14 @@ contextBridge.exposeInMainWorld('electron', {
     keyboardAction: (callback: any) => ipcRenderer.on("keyboard_action", (_: any, data: any) => callback(data)),
 
     getCurrentUserDataFromAPI: () => ipcRenderer.invoke("get-user-data-from-api"),
+    getUser: (userid: number) => ipcRenderer.invoke("get-user", userid),
     getOrgDataFromAPI: (orgid: number) => ipcRenderer.invoke("get-org-data-from-api", orgid),
     removeOrg: (orgid: number) => ipcRenderer.invoke("remove-org", orgid),
     joinOrg: (inviteCode: string) => ipcRenderer.invoke("join-org", inviteCode),
     resetOrgInviteCode: (orgid: number) => ipcRenderer.invoke("reset-org-invite-code", orgid),
     uploadOrgAvatar: (orgid: number) => ipcRenderer.invoke("upload-org-avatar", orgid),
     setOrgGithubRepos: (orgid: number, repos: object) => ipcRenderer.invoke("set-github-repos", orgid, repos),
+    searchOrg: (orgname: string) => ipcRenderer.invoke("search-orgs", orgname),
 
     close: () => ipcRenderer.send("close"),
     minimize: () => ipcRenderer.send("minimize"),

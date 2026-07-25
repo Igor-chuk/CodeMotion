@@ -13,6 +13,13 @@
     font-weight: 600;
     margin-bottom: 5px;
     background: none;
+    opacity: .5;
+}
+.modal-wrapper .modal.window .modal-body.modal-body-sidebar .modal-sidebar .modal-sidebar__item.title .avatar {
+    width: 18px;
+    height: 18px;
+    object-fit: cover;
+    border-radius: 3px;
 }
 .modal-wrapper .modal.window .modal-body.modal-body-sidebar .modal-sidebar .modal-sidebar__item {
     display: flex;
@@ -111,6 +118,10 @@
 .modal-body__sidebar-content.modal-row.modal-row__clear .modal-category__item {
     border-bottom: 0px;
     padding-bottom: 0px;
+}
+.modal-body__sidebar-content.modal-row.modal-row__clear .modal-category__item a {
+    color: var(--link-color);
+    text-decoration: none;
 }
 .modal-body__sidebar-content.background {
     background: var(--block-divider-border-color);

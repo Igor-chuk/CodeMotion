@@ -11,6 +11,8 @@
 @import url("modals/centered.css");
 @import url("modals/placeholder.css");
 @import url("modals/list.css");
+@import url("modals/githubrepos.css");
+@import url("modals/infoBlocks.css");
 
 .modal-wrapper {
     position: absolute;

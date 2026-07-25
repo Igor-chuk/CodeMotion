@@ -116,7 +116,7 @@ export function renderOrganization(properties = {}) {
     }
 
     if(website) {
-        let url = new URL(website)
+        let url = website.startsWith("https://") ? new URL(website) : new URL("https://" + website)
         let urlPreview = url.host
 
         if (url.pathname != "/") {
@@ -127,7 +127,7 @@ export function renderOrganization(properties = {}) {
         secondSectionIconText.classList.add("modal-org-icontext")
 
         const secondSectionIconTextIcon = createIcon("link_2")
-        const secondSectionIconTextLink = createLink(website)
+        const secondSectionIconTextLink = createLink(url.href)
         secondSectionIconTextLink.textContent = urlPreview
 
         secondSectionIconText.appendChild(secondSectionIconTextIcon)

@@ -50,3 +50,11 @@ export function replaceVars(text, vars) {
         return key in vars ? String(vars[key]) : _;
     });
 }
+export async function svgToElement(url) {
+    const parser = new DOMParser()
+
+    const res = await fetch(url)
+    const svg = parser.parseFromString(await res.text(), "image/svg+xml")
+
+    return svg.documentElement
+}

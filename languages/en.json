@@ -115,7 +115,6 @@
             "title": "Me",
             "installedExtensions": "Installed extensions",
             "yourOrganizations": "Organizations",
-            "createOrganization": "Create organization",
             "login": "Login",
             "logout": "Logout"
         }
@@ -256,6 +255,38 @@
                 },
                 "errorNotification": {
                     "title": "Error attempting to join an organization"
+                }
+            },
+            "search": {
+                "title": "Search",
+                "description": "Enter the name of the organization to view public information about it",
+                "inputs": {
+                    "search": "Enter organization name"
+                },
+                "noResults": {
+                    "text": "No organizations were found for the search term \"%{name}\""
+                }
+            },
+            "orgPage": {
+                "about": {
+                    "title": "About",
+                    "page": {
+                        "title": "Organization \"%{name}\"",
+                        "description": "Public Information About the Organization",
+
+                        "website": {
+                            "title": "Organization website"
+                        },
+                        "githubRepos": {
+                            "title": "Repositories"
+                        },
+                        "info": {
+                            "owner": "Owner",
+                            "createdAt": "Date created",
+                            "members": "Members",
+                            "repos": "Github repo's"
+                        }
+                    }
                 }
             }
         },

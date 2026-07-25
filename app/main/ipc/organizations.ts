@@ -173,9 +173,6 @@ ipcMain.handle("upload-org-avatar", async (_: IpcMainInvokeEvent, orgid: number)
 });
 ipcMain.handle('set-github-repos', async (_: IpcMainInvokeEvent, orgid: number, repos: object) => {
     const userToken = await getUserToken()
-    const formData = new FormData();
-    formData.append('orgid', orgid);
-    formData.append('repos', repos);
 
     try {
         const response = await fetch(`${API}/org/setGithubRepos`, {
@@ -187,6 +184,28 @@ ipcMain.handle('set-github-repos', async (_: IpcMainInvokeEvent, orgid: number, 
                 orgid: orgid,
                 repos: repos
             })
+        });
+
+        const data: any = await response.json()
+
+        if (data.success) {
+            return { success: true, msg: data.result }
+        } else {
+            return { success: false, msg: data.result }
+        }
+    } catch (error) {
+        return { success: false, msg: error }
+    }
+})
+ipcMain.handle('search-orgs', async (_: IpcMainInvokeEvent, orgname: string) => {
+    const userToken = await getUserToken()
+
+    try {
+        const response = await fetch(`${API}/org/search?name=${orgname}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
         });
 
         const data: any = await response.json()

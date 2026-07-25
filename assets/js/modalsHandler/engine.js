@@ -42,6 +42,15 @@ export function validBool(boolean) {
     if(typeof boolean == "boolean") return boolean
     else return undefined
 }
+// for objects
+export function validObject(object) {
+    if(object !== null && typeof object === 'object' && !Array.isArray(object)) {
+        return object
+    }
+    else {
+        return undefined
+    }
+}
 
 export function err(text) {
     throw new Error(`[CodeMotion.Modals] ${text}`)
@@ -79,6 +88,7 @@ export class Modal {
         const isHiddenOnSpawn = valid(config.show) ?? true
         const modalClassList = validArray(config.modalClassList) ?? []
         const title = valid(config.title) ?? false
+        const titleAvatar = valid(config.titleAvatar) ?? false
         const pages = valid(config.pages) ?? {}
         const content = valid(config.content) ?? {}
         const size = valid(config.size) ?? "default"
@@ -88,6 +98,7 @@ export class Modal {
             isHiddenOnSpawn: isHiddenOnSpawn,
             modalClassList: modalClassList,
             title: title,
+            titleAvatar: titleAvatar,
             pages: pages,
             content: content,
             size: size
