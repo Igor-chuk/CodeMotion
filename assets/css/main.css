@@ -746,6 +746,8 @@ body.explorer-resizing {
     height: 42px;
     background: var(--body-color);
     border-bottom: 1px solid var(--block-divider-border-color);
+    position: relative;
+    z-index: 20;
 }
 .code-tabs::-webkit-scrollbar {
     display: none;
