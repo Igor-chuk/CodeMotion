@@ -44,3 +44,9 @@ export function createBadge(icon) {
 export function createSpan() {
     return document.createElement("span")
 }
+
+export function replaceVars(text, vars) {
+    return text.replace(/\%\((.*?)\)/g, (_, key) => {
+        return key in vars ? String(vars[key]) : _;
+    });
+}

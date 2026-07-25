@@ -1,4 +1,5 @@
 .modal-wrapper .modal.window .modal-body.modal-body-sidebar .modal-sidebar {
+    min-width: 200px;
     width: 200px;
     background: var(--body-color-solid);
     padding: 10px;
@@ -75,7 +76,8 @@
     margin-top: 20px;
     margin-bottom: 20px;
     max-width: 100%;
-    width: calc(100% - 40%);
+    padding-right: 50px;
+    width: 100%;
     position: relative;
 }
 .modal-body__sidebar-content.modal-columns {
@@ -117,6 +119,7 @@
     border-radius: 10px;
     overflow-y: auto;
     overflow-x: hidden;
+    width: 60%;
 }
 .modal-body__sidebar-content.background::-webkit-scrollbar-track {
     background: var(--bg-color);

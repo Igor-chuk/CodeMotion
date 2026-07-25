@@ -5,6 +5,7 @@ export function renderInput(properties = {}) {
     const title = properties.title
     const description = properties.description
     const placeholder = properties.placeholder
+    const prefix = properties.prefix
 
     const wrapper = document.createElement("div")
     wrapper.classList.add("modal-category__item")
@@ -25,6 +26,11 @@ export function renderInput(properties = {}) {
     input.spellcheck = "false"
     input.id = id
 
+    if(prefix) {
+        input.classList.add("focused")
+        input.value = prefix
+    }
+
     const inputName = createSpan()
     inputName.classList.add("form-label")
     inputName.textContent = placeholder
@@ -39,13 +45,23 @@ export function renderInput(properties = {}) {
     wrapper.appendChild(inputWrapper)
 
     input.addEventListener("input", (e) => {
-        if (e.target.value.length > 0) {
-            input.classList.add("focused")
+        if(prefix) {
+            if (!e.target.value.startsWith(prefix)) {
+                e.target.value = prefix;
+            }
+
+            input.classList.toggle(
+                "focused",
+                input.value.length > prefix.length
+            );
         }
         else {
-            input.classList.remove("focused")
+            input.classList.toggle(
+                "focused",
+                input.value.length > 0
+            ); 
         }
-    })
+    });
 
     return wrapper
 }

@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld('electron', {
     joinOrg: (inviteCode: string) => ipcRenderer.invoke("join-org", inviteCode),
     resetOrgInviteCode: (orgid: number) => ipcRenderer.invoke("reset-org-invite-code", orgid),
     uploadOrgAvatar: (orgid: number) => ipcRenderer.invoke("upload-org-avatar", orgid),
+    setOrgGithubRepos: (orgid: number, repos: object) => ipcRenderer.invoke("set-github-repos", orgid, repos),
 
     close: () => ipcRenderer.send("close"),
     minimize: () => ipcRenderer.send("minimize"),

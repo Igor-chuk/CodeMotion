@@ -12,6 +12,7 @@ import { renderCentered } from "../components/centered.js"
 import { renderDivider } from "../components/divider.js"
 import { renderImage } from "../components/image.js"
 import { renderDropdown } from "../components/dropdown.js"
+import { renderList } from "../components/list.js"
 
 const types = {
     columns: (wrapper, data) => {
@@ -233,6 +234,7 @@ function contentItemsHandler(element, itemsData) {
             const badgeOwner = validBool(item.badgeOwner) ?? false
             const badgeVerified = validBool(item.badgeVerified) ?? false
             const avatar = valid(item.avatar) ?? false
+            const repos = validArray(item.repos) ?? []
 
             const organizationElement = renderOrganization(
                 {
@@ -243,7 +245,8 @@ function contentItemsHandler(element, itemsData) {
                     columns: columns,
                     badgeOwner: badgeOwner,
                     badgeVerified: badgeVerified,
-                    avatar: avatar
+                    avatar: avatar,
+                    repos: repos
                 }
             )
 
@@ -256,13 +259,21 @@ function contentItemsHandler(element, itemsData) {
             const title = valid(item.title) ?? false
             const description = valid(item.description) ?? false
             const placeholder = valid(item.placeholder) ?? false
+            const prefix = valid(item.prefix) ?? false
+            const values = validArray(item.values) ?? []
+            const valuesReadOnly = validBool(item.valuesReadOnly) ?? false
+            const onAdd = valid(item.onAdd) ?? false
 
             const inputElement = renderInput(
                 {
                     id: id,
                     title: title,
                     description: description,
-                    placeholder: placeholder
+                    placeholder: placeholder,
+                    prefix: prefix,
+                    values: values,
+                    valuesReadOnly: valuesReadOnly,
+                    onAdd: onAdd
                 }
             )
 
@@ -357,6 +368,29 @@ function contentItemsHandler(element, itemsData) {
             element.appendChild(dropdownElement)
 
             appendGlobalProperties(item, dropdownElement)
+        }
+        if (type == "list") {
+            const id = valid(item.id) ?? false
+            const maxElements = valid(item.maxElements) ?? 10
+            const renderType = valid(item.renderType) ?? "immediately"
+            const placeholders = validArray(item.placeholders) ?? []
+            const placeholderAll = valid(item.placeholderAll) ?? false
+            const placeholderPrefix = valid(item.placeholderPrefix) ?? false
+
+            const listElement = renderList(
+                {
+                    id: id,
+                    maxElements: maxElements,
+                    renderType: renderType,
+                    placeholders: placeholders,
+                    placeholderAll: placeholderAll,
+                    placeholderPrefix: placeholderPrefix
+                }
+            )
+
+            element.appendChild(listElement)
+
+            appendGlobalProperties(item, listElement)
         }
     })
 }

@@ -10,6 +10,7 @@
 @import url("modals/buttons.css");
 @import url("modals/centered.css");
 @import url("modals/placeholder.css");
+@import url("modals/list.css");
 
 .modal-wrapper {
     position: absolute;

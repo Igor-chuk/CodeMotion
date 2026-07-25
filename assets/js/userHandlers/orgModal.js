@@ -77,6 +77,10 @@ export async function createUserOrgsModalStructure({ gls, userOrgs, userJSON, ro
                 preparedData["avatar"] = orgAvatar
             }
 
+            if("github_repos" in organizationData) {
+                preparedData["repos"] = organizationData.github_repos
+            }
+
             if(!roleVisible) {
                 delete preparedData["columns"][1]
             }
