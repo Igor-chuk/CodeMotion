@@ -46,6 +46,7 @@ import { markdown } from "@codemirror/lang-markdown";
 
 import { colorComments, colorCommentsTheme } from "./plugins/colorComments";
 import { fromVSCodeSnippets } from "./plugins/snippets";
+import { suggestionField, suggestionTheme, suggestPlugin, suggestUpdateListener, acceptSuggestion, dismissSuggestion, initSuggestListener } from "./plugins/suggest";
 import { atomoneOverride, vscodeDarkOverride } from "./themes/overrides";
 import { indentationMarkers } from "@replit/codemirror-indentation-markers";
 import { color } from "@uiw/codemirror-extensions-color";
@@ -148,6 +149,8 @@ export const TabSizes = {
 };
 
 const insertTab = (view) => {
+    if (acceptSuggestion(view)) return true;
+
     if (completionStatus(view.state) !== null) {
         return acceptCompletion(view);
     }
@@ -167,6 +170,11 @@ const insertTab = (view) => {
     );
 
     return true;
+};
+
+const escapeHandler = (view) => {
+    if (dismissSuggestion(view)) return true;
+    return false;
 };
 
 window.CodeMirror = {
@@ -207,6 +215,10 @@ window.CodeMirror = {
                             key: "Tab",
                             run: insertTab
                         },
+                        {
+                            key: "Escape",
+                            run: escapeHandler
+                        },
                         ...defaultKeymap,
                         ...historyKeymap
                     ]),
@@ -223,6 +235,11 @@ window.CodeMirror = {
                     autocompletion(),
 
                     updateListener,
+
+                    suggestionField,
+                    suggestionTheme,
+                    suggestPlugin,
+                    suggestUpdateListener,
 
                     colorComments,
                     colorCommentsTheme,
@@ -243,6 +260,8 @@ window.CodeMirror = {
             state: createState(options.value ?? ""),
             parent
         });
+
+        initSuggestListener();
 
         return {
             view,

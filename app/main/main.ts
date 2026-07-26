@@ -32,6 +32,7 @@ require("./ipc/updaters")
 require("./ipc/misc")
 require("./ipc/organizations")
 require("./ipc/bugs")
+require("./ipc/suggest")
 
 // ext
 require("../sandbox/regs/language")
