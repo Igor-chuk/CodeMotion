@@ -41,7 +41,7 @@
     max-width: 250px;
     display: flex;
     flex-direction: column;
-    z-index: 10;
+    z-index: 99;
     transition: .2s;
     border-radius: 10px;
     border: 1px solid var(--block-divider-border-color);
