@@ -46,6 +46,15 @@
     line-height: 18px;
     word-wrap: break-word;
 }
+.modal-org .modal-org-description .tag {
+    background: var(--default-badge-bg);
+    color: var(--default-badge-text);
+    padding: 2px 4px;
+    border-radius: 5px;
+    border: 1px solid var(--default-badge-bg);
+    font-size: 12px;
+    font-weight: 500;
+}
 .modal-org .modal-org__section {
     display: flex;
     flex-direction: column;

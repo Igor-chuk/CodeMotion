@@ -1,6 +1,6 @@
 import { generateAvatar, GLS, idify, truncateString } from "../../lib.js"
 import { valid } from "../engine.js"
-import { createDIV, createParagraph, createIcon, createLink, createBadge, createSpan } from "../handlers/helpers.js"
+import { createDIV, createParagraph, createIcon, createLink, createBadge, createSpan, wrapTags } from "../handlers/helpers.js"
 
 export function renderOrganization(properties = {}) {
     const gls = GLS.initLocal()
@@ -93,7 +93,10 @@ export function renderOrganization(properties = {}) {
     const secondSectionInfoComponentTitle = createParagraph(name, true)
     secondSectionInfoComponentTitle.classList.add("modal-org__title")
 
-    const secondSectionInfoComponentDesc = createParagraph(truncateString(description, 400))
+    const secondSectionInfoComponentDesc = createParagraph(
+        wrapTags(
+            truncateString(description, 400)
+        ), false, true)
     secondSectionInfoComponentDesc.classList.add("modal-org-description")
 
     secondSectionInfoComponent.appendChild(secondSectionInfoComponentTitle)

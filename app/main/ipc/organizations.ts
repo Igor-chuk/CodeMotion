@@ -197,11 +197,11 @@ ipcMain.handle('set-github-repos', async (_: IpcMainInvokeEvent, orgid: number, 
         return { success: false, msg: error }
     }
 })
-ipcMain.handle('search-orgs', async (_: IpcMainInvokeEvent, orgname: string) => {
+ipcMain.handle('search-orgs', async (_: IpcMainInvokeEvent, query: string) => {
     const userToken = await getUserToken()
 
     try {
-        const response = await fetch(`${API}/org/search?name=${orgname}`, {
+        const response = await fetch(`${API}/org/search?q=${encodeURIComponent(query)}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${userToken}`

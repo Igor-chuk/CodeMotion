@@ -48,6 +48,8 @@ export function searchModalHandle({ modal, element, lgls }) {
 
         const res = await window.electron.searchOrg(value)
 
+        console.log(res)
+
         if(res.success) {
             const results = res.msg
 
