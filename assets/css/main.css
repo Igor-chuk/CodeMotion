@@ -4,6 +4,7 @@
 @import url("auth.css");
 @import url("xterm-custom.css");
 @import url("editor/screenshot.css");
+@import url("editor/suggest.css");
 @import url("extensions/elementWrapper.css");
 @import url("codemirror.css");
 

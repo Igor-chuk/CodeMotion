@@ -126,6 +126,13 @@ contextBridge.exposeInMainWorld('electron', {
     typescriptAST: (code: string, language?: string) => ipcRenderer.invoke("typescript-ast", code, language),
     golangAST: (code: string) => ipcRenderer.invoke("golang-ast", code),
 
+    sendCodeSuggestRequest: (data: any) => ipcRenderer.send("code-suggest-request", data),
+    onCodeSuggestResult: (callback: any) => {
+        const listener = (_event: any, result: any) => callback(result);
+        ipcRenderer.on("code-suggest-result", listener);
+        return () => ipcRenderer.removeListener("code-suggest-result", listener);
+    },
+
     // for extensions
 
     ext: {
