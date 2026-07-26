@@ -7,7 +7,7 @@ import {
     closeBrackets, autocompletion, completionKeymap, completeFromList, 
     acceptCompletion, completionStatus
 } from "@codemirror/autocomplete";
-import { indentUnit } from "@codemirror/language";
+import { indentUnit, language } from "@codemirror/language";
 import { linter, lintGutter, forceLinting } from "@codemirror/lint";
 
 // commands
@@ -50,11 +50,15 @@ import { atomoneOverride, vscodeDarkOverride } from "./themes/overrides";
 import { indentationMarkers } from "@replit/codemirror-indentation-markers";
 import { color } from "@uiw/codemirror-extensions-color";
 
-// 
+// javascript & typescript snippet support
 
 import javascriptSnippetsJSON from "./snippets/js/snippets.json"
 import javascriptGlobalsJSON from "./snippets/js/globals.json"
 import { identifierJavaScriptCompletionSource } from "./snippets/js/source";
+
+// json snippet support
+
+import { identifierJSONCompletionSource } from "./snippets/json/source";
 
 // external
 
@@ -67,22 +71,31 @@ export const javascriptGlobals = completeFromList(
     javascriptGlobalsJSON.map(label => ({ label, type: "variable" }))
 );
 
+function forLanguage(name, source) {
+    return (context) => {
+        const active = context.state.facet(language);
+        if (!active || active.name !== name) return null;
+        return typeof source === "function" ? source(context) : null;
+    };
+}
+
 const javascriptLang = javascript({ jsx: true, typescript: false });
 const typescriptLang = javascript({ jsx: true, typescript: true });
 const htmlLang = html({ matchClosingTags: true, selfClosingTags: true, autoCloseTags: true })
+const jsonLang = json()
 
 export const Languages = {
     javascript: [
         javascriptLang,
-        javascriptLang.language.data.of({ autocomplete: completeFromList(javascriptSnippets) }),
-        javascriptLang.language.data.of({ autocomplete: javascriptGlobals }),
-        javascriptLang.language.data.of({ autocomplete: identifierJavaScriptCompletionSource })
+        javascriptLang.language.data.of({ autocomplete: forLanguage("javascript", completeFromList(javascriptSnippets)) }),
+        javascriptLang.language.data.of({ autocomplete: forLanguage("javascript", javascriptGlobals) }),
+        javascriptLang.language.data.of({ autocomplete: forLanguage("javascript", identifierJavaScriptCompletionSource) })
     ],
     typescript: [
         typescriptLang,
-        typescriptLang.language.data.of({ autocomplete: completeFromList(javascriptSnippets) }),
-        typescriptLang.language.data.of({ autocomplete: javascriptGlobals }),
-        typescriptLang.language.data.of({ autocomplete: identifierJavaScriptCompletionSource })
+        typescriptLang.language.data.of({ autocomplete: forLanguage("typescript", completeFromList(javascriptSnippets)) }),
+        typescriptLang.language.data.of({ autocomplete: forLanguage("typescript", javascriptGlobals) }),
+        typescriptLang.language.data.of({ autocomplete: forLanguage("typescript", identifierJavaScriptCompletionSource) })
     ],
     html: [
         htmlLang,
@@ -92,7 +105,10 @@ export const Languages = {
         css(),
         color
     ],
-    json: json(),
+    json: [
+        jsonLang,
+        jsonLang.language.data.of({ autocomplete: forLanguage("json", identifierJSONCompletionSource) })
+    ],
     php: php(),
     go: go(),
     yaml: yaml(),
@@ -195,7 +211,7 @@ window.CodeMirror = {
                         ...historyKeymap
                     ]),
 
-                    languageCompartment.of(Languages.javascript),
+                    languageCompartment.of([]),
                     themeCompartment.of(Themes.vscodeDark),
                     tabSizeCompartment.of(EditorState.tabSize.of(4)),
                     wordWrapCompartment.of([]),

@@ -696,6 +696,21 @@ export async function openTab(path, content, extension, name, pathContext, isNew
     initializeChangeTabSizeButton(settings)
     updateVisibleOnElements(extension, language)
 
+    // chached value set
+    if (cached) {
+        if (!isImage) editor.setValue(cached.content ?? "", -1);
+        editor.resetUndoManager();
+
+        setErrors(editor.getAnnotations())
+        if (cached.cursor) editor.moveCursorTo(cached.cursor.row, cached.cursor.column);
+        if (typeof cached.scrollTop === "number") editor.setScrollTop(cached.scrollTop);
+    } else {
+        if (!isImage) editor.setValue(content ?? "", -1);
+        editor.resetUndoManager();
+        
+        setErrors(editor.getAnnotations())
+    }
+
     editor.setLanguage(fileNameInfo == false ? extension : fileNameInfo.mode);
     editor.setOptions({
         enableBasicAutocompletion: false,
@@ -740,17 +755,7 @@ export async function openTab(path, content, extension, name, pathContext, isNew
         }, 100)
     }
 
-    // 
-
-    if ("editor" in settings && "smoothScroll" in settings.editor) {
-        if (settings.editor.smoothScroll) {
-            try {
-                enableSmoothScroll(editor)
-            } catch (e) {
-                console.warn("Smooth scroll not supported for current editor adapter:", e)
-            }
-        }
-    }
+    //
 
     editor.onWheel((e) => {
         if (!e.ctrlKey && !e.metaKey) return
@@ -808,19 +813,7 @@ export async function openTab(path, content, extension, name, pathContext, isNew
             settings: settings
         })
     });
-
-    if (cached) {
-        if (!isImage) editor.setValue(cached.content ?? "", -1);
-        editor.resetUndoManager();
-        setErrors(editor.getAnnotations())
-        if (cached.cursor) editor.moveCursorTo(cached.cursor.row, cached.cursor.column);
-        if (typeof cached.scrollTop === "number") editor.setScrollTop(cached.scrollTop);
-    } else {
-        if (!isImage) editor.setValue(content ?? "", -1);
-        editor.resetUndoManager();
-        setErrors(editor.getAnnotations())
-    }
-
+    
     const tab = document.createElement("div");
 
     tab.className = "code-tab";
