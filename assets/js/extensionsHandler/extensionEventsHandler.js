@@ -91,45 +91,4 @@ export function handleExtensionEvents() {
             }
         })
     })
-
-    // dynamic editor change
-
-    // function refreshEditorHighlight() {
-    //     if (!currentEditor) return
-
-    //     const mode = currentEditor.getCurrentMode()
-    //     const startRules = mode.$highlightRules.$rules.start
-
-    //     mode.$highlightRules.$rules.start = startRules.filter(
-    //         rule => !rule._dynamicId
-    //     )
-
-    //     for (const [id, rule] of contexts[currentEditor.id]) {
-    //         mode.$highlightRules.$rules.start.unshift({
-    //             ...rule,
-    //             _dynamicId: id
-    //         })
-    //     }
-
-    //     mode.$tokenizer = null
-
-    //     const tokenizer = mode.getTokenizer()
-
-    //     currentEditor.session.bgTokenizer.setTokenizer(tokenizer)
-    //     currentEditor.session.bgTokenizer.start(0)
-    // }
-
-    // bus.addEventListener("ace-mode-changed", (d) => {
-    //     currentEditor = d.detail.editor
-    //     refreshEditorHighlight()
-    // })
-    // bus.addEventListener("ace-mode-clicked", (d) => {
-    //     currentEditor = d.detail.editor
-    //     refreshEditorHighlight()
-    // })
-    // bus.addEventListener("file-opened-event", (d) => {
-    //     currentEditor = d.detail.editor
-    //     contexts[currentEditor.id] = new Map()
-    //     refreshEditorHighlight()
-    // })
 }

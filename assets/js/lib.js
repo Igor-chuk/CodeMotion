@@ -558,11 +558,6 @@ export function clearRuntimeErrors() {
     runtimeErrors = []
     runtimeErrorsCount = 0
 
-    const items = document.querySelectorAll(".runtime-item#runTimeErrorItem")
-    items.forEach(i => {
-        console.log(i)
-    })
-
     addRuntimeError(
         {
             isNull: true,

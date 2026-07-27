@@ -1,31 +1,31 @@
-import { EditorState, Compartment, EditorSelection } from "@codemirror/state";
-import { 
-    EditorView, keymap, lineNumbers, highlightActiveLine, 
+import { EditorState, Compartment, EditorSelection, Prec } from "@codemirror/state";
+import {
+    EditorView, keymap, lineNumbers, highlightActiveLine,
     highlightActiveLineGutter
 } from "@codemirror/view";
-import { 
-    closeBrackets, autocompletion, completionKeymap, completeFromList, 
+import {
+    closeBrackets, autocompletion, completionKeymap, completeFromList,
     acceptCompletion, completionStatus
 } from "@codemirror/autocomplete";
 import { indentUnit, language } from "@codemirror/language";
 import { linter, lintGutter, forceLinting } from "@codemirror/lint";
 
 // commands
-
-import { 
+import {
     defaultKeymap, indentWithTab, history, historyKeymap,
-    selectAll, undo, redo, toggleComment 
+    selectAll, undo, redo, toggleComment
 } from "@codemirror/commands";
-
-// 
-
 import {
     openSearchPanel, closeSearchPanel, findNext,
     findPrevious
 } from "@codemirror/search";
+// 
 
-import { vscodeDark, vscodeLight, atomone } from '@uiw/codemirror-themes-all';
+// themes
+import { vscodeDark, vscodeLight, atomone, githubDark } from '@uiw/codemirror-themes-all';
+// 
 
+// languages
 import { javascript } from "@codemirror/lang-javascript";
 import { html } from "@codemirror/lang-html";
 import { css } from "@codemirror/lang-css";
@@ -41,30 +41,36 @@ import { wast } from "@codemirror/lang-wast";
 import { java } from "@codemirror/lang-java";
 import { vue } from "@codemirror/lang-vue";
 import { markdown } from "@codemirror/lang-markdown";
+// 
 
 // extensions
-
 import { colorComments, colorCommentsTheme } from "./plugins/colorComments";
 import { fromVSCodeSnippets } from "./plugins/snippets";
 import { suggestionField, suggestionTheme, suggestPlugin, suggestUpdateListener, acceptSuggestion, dismissSuggestion, initSuggestListener } from "./plugins/suggest";
-import { atomoneOverride, vscodeDarkOverride } from "./themes/overrides";
+import { atomoneOverride, githubDarkOverride, vscodeDarkOverride } from "./themes/overrides";
 import { indentationMarkers } from "@replit/codemirror-indentation-markers";
 import { color } from "@uiw/codemirror-extensions-color";
+// 
 
 // javascript & typescript snippet support
-
 import javascriptSnippetsJSON from "./snippets/js/snippets.json"
 import javascriptGlobalsJSON from "./snippets/js/globals.json"
 import { identifierJavaScriptCompletionSource } from "./snippets/js/source";
+// 
 
 // json snippet support
-
 import { identifierJSONCompletionSource } from "./snippets/json/source";
+// 
 
 // external
-
 import { toPng, toBlob } from "html-to-image";
+//
 
+// lang-reg
+import { Registry } from "vscode-textmate";
+import { loadWASM, OnigScanner, OnigString } from "vscode-oniguruma";
+import { textMateHighlighter } from "./plugins/textmate/highlighter.js";
+import { textMateBaseTheme } from "./plugins/textmate/theme.js";
 // 
 
 export const javascriptSnippets = fromVSCodeSnippets(javascriptSnippetsJSON);
@@ -85,31 +91,34 @@ const typescriptLang = javascript({ jsx: true, typescript: true });
 const htmlLang = html({ matchClosingTags: true, selfClosingTags: true, autoCloseTags: true })
 const jsonLang = json()
 
+const javascriptHighlight = javascriptLang;
+const javascriptAutocomplete = [
+    javascriptLang.language.data.of({ autocomplete: forLanguage("javascript", completeFromList(javascriptSnippets)) }),
+    javascriptLang.language.data.of({ autocomplete: forLanguage("javascript", javascriptGlobals) }),
+    javascriptLang.language.data.of({ autocomplete: forLanguage("javascript", identifierJavaScriptCompletionSource) })
+];
+
+const typescriptHighlight = typescriptLang;
+const typescriptAutocomplete = [
+    typescriptLang.language.data.of({ autocomplete: forLanguage("typescript", completeFromList(javascriptSnippets)) }),
+    typescriptLang.language.data.of({ autocomplete: forLanguage("typescript", javascriptGlobals) }),
+    typescriptLang.language.data.of({ autocomplete: forLanguage("typescript", identifierJavaScriptCompletionSource) })
+];
+
+const htmlHighlight = [htmlLang, color];
+const cssHighlight = [css(), color];
+
+const jsonHighlight = jsonLang;
+const jsonAutocomplete = [
+    jsonLang.language.data.of({ autocomplete: forLanguage("json", identifierJSONCompletionSource) })
+];
+
 export const Languages = {
-    javascript: [
-        javascriptLang,
-        javascriptLang.language.data.of({ autocomplete: forLanguage("javascript", completeFromList(javascriptSnippets)) }),
-        javascriptLang.language.data.of({ autocomplete: forLanguage("javascript", javascriptGlobals) }),
-        javascriptLang.language.data.of({ autocomplete: forLanguage("javascript", identifierJavaScriptCompletionSource) })
-    ],
-    typescript: [
-        typescriptLang,
-        typescriptLang.language.data.of({ autocomplete: forLanguage("typescript", completeFromList(javascriptSnippets)) }),
-        typescriptLang.language.data.of({ autocomplete: forLanguage("typescript", javascriptGlobals) }),
-        typescriptLang.language.data.of({ autocomplete: forLanguage("typescript", identifierJavaScriptCompletionSource) })
-    ],
-    html: [
-        htmlLang,
-        color
-    ],
-    css: [
-        css(),
-        color
-    ],
-    json: [
-        jsonLang,
-        jsonLang.language.data.of({ autocomplete: forLanguage("json", identifierJSONCompletionSource) })
-    ],
+    javascript: [javascriptHighlight, ...javascriptAutocomplete],
+    typescript: [typescriptHighlight, ...typescriptAutocomplete],
+    html: htmlHighlight,
+    css: cssHighlight,
+    json: [jsonHighlight, ...jsonAutocomplete],
     php: php(),
     go: go(),
     yaml: yaml(),
@@ -124,6 +133,31 @@ export const Languages = {
     markdown: markdown()
 };
 
+export const LanguageHighlighters = {
+    javascript: javascriptHighlight,
+    typescript: typescriptHighlight,
+    html: htmlHighlight,
+    css: cssHighlight,
+    json: jsonHighlight,
+    php: Languages.php,
+    go: Languages.go,
+    yaml: Languages.yaml,
+    python: Languages.python,
+    sass: Languages.sass,
+    rust: Languages.rust,
+    xml: Languages.xml,
+    wast: Languages.wast,
+    java: Languages.java,
+    vue: Languages.vue,
+    markdown: Languages.markdown
+};
+
+export const LanguageAutocompletes = {
+    javascript: javascriptAutocomplete,
+    typescript: typescriptAutocomplete,
+    json: jsonAutocomplete
+};
+
 export const Themes = {
     vscodeDark: [
         vscodeDark,
@@ -133,6 +167,10 @@ export const Themes = {
     atomone: [
         atomone,
         atomoneOverride
+    ],
+    githubDark: [
+        githubDark,
+        githubDarkOverride
     ]
 };
 
@@ -176,6 +214,36 @@ const escapeHandler = (view) => {
     if (dismissSuggestion(view)) return true;
     return false;
 };
+
+let onigReady = null;
+let tmRegistry = null;
+const rawGrammars = new Map();
+const grammarInstances = new Map();
+
+async function getTextMateRegistry() {
+    if (tmRegistry) return tmRegistry;
+
+    onigReady ??= fetch(
+        "../codemirror/node_modules/vscode-oniguruma/release/onig.wasm"
+    ).then(r => r.arrayBuffer()).then(loadWASM);
+
+    await onigReady;
+
+    tmRegistry = new Registry({
+        onigLib: Promise.resolve({
+            createOnigScanner(patterns) {
+                return new OnigScanner(patterns);
+            },
+            createOnigString(text) {
+                return new OnigString(text);
+            }
+        }),
+
+        loadGrammar: async (scopeName) => rawGrammars.get(scopeName) ?? null
+    });
+
+    return tmRegistry;
+}
 
 window.CodeMirror = {
     create(parent, options = {}) {
@@ -314,5 +382,47 @@ window.CodeMirror = {
     Languages: Languages,
     Themes: Themes,
     ThemeParents: ThemeParents,
-    TabSizes: TabSizes
+    TabSizes: TabSizes,
+
+    async registerLanguage({ id, grammar, extends: inherits = {} }) {
+        const scopeName = `source.${id}`;
+        rawGrammars.set(scopeName, grammar);
+
+        const registry = await getTextMateRegistry();
+        const tmGrammar = await registry.loadGrammar(scopeName);
+
+        if (!tmGrammar) {
+            throw new Error(`registerLanguage(${id}): grammar failed to load`);
+        }
+
+        grammarInstances.set(id, tmGrammar);
+
+        const extension = [];
+
+        if (inherits.highlight) {
+            const base = LanguageHighlighters[inherits.highlight];
+            if (!base) {
+                console.warn(`registerLanguage(${id}): unknown highlight base "${inherits.highlight}"`);
+            } else {
+                extension.push(base);
+            }
+        }
+
+        extension.push(Prec.highest([
+            textMateHighlighter(tmGrammar),
+            textMateBaseTheme
+        ]));
+
+        if (inherits.autocomplete) {
+            const auto = LanguageAutocompletes[inherits.autocomplete];
+            if (!auto) {
+                console.warn(`registerLanguage(${id}): unknown autocomplete base "${inherits.autocomplete}"`);
+            } else {
+                extension.push(...auto);
+            }
+        }
+
+        Languages[id] = extension;
+        return extension;
+    }
 };

@@ -219,7 +219,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     else {
         getCurrentUserDataFromAPI(gls).then((e) => {
-            console.log(e)
             if (!e.success) {
                 const errEl = loader?.querySelector(".loader-msg");
                 if (errEl) {

@@ -24,7 +24,6 @@ import {
 } from "../lib.js"
 import { BottomWindow, closeAllWindows } from "../handlers/BottomWindowHandler.js"
 import { bindImageZoomHandlers } from "../handlers/imageZoomHandler.js"
-import { enableSmoothScroll } from "../../plugins/aceSmoothScroller/index.js"
 import { Setting } from "../settings.js"
 import { getFileIconUrl } from "../iconRegistry.js"
 import {
@@ -46,7 +45,7 @@ import { bus, sendEvent } from "../bus.js"
 
 import { renderPyMsgSuccess, renderPyMsgErr } from "../terminalRenderer/PyRuntimeHandler.js"
 
-import { triggerAceChanged, triggerAceClicked } from "./triggers.js"
+import { triggerEditorChanged, triggerEditorClicked } from "./triggers.js"
 import { TopWindowList, destroyAllTopWindowLists } from "../topWindowHandler/topWindowList.js"
 import { setEditorContext } from "./helpers/setEditorContext.js"
 import { Modal } from "../modalsHandler/engine.js"
@@ -243,6 +242,7 @@ export class themeEditors {
     }
 
     apply(id) {
+        this.current = id
         this.editor.setTheme(themeEditors.themes[id])
     }
 }
@@ -672,8 +672,6 @@ export async function openTab(path, content, extension, name, pathContext, isNew
 
     const editor = new EditorAdapter(codeMirrorView);
 
-    addThemeModificator(editor)
-
     const ErrorsHistoryWindow = new BottomWindow("errorsHistory", { title: "Errors history" })
     clearRuntimeErrors()
 
@@ -721,6 +719,8 @@ export async function openTab(path, content, extension, name, pathContext, isNew
         fixedWidthGutter: true
     });
 
+    addThemeModificator(editor)
+
     window.electron.triggers.sendFileOpened(
         {
             path: path,
@@ -741,7 +741,7 @@ export async function openTab(path, content, extension, name, pathContext, isNew
 
     // trigger first ace mode changed
 
-    triggerAceChanged({ editor: editor, extension: extension, language: language })
+    triggerEditorChanged({ editor: editor, extension: extension, language: language })
     initExtensionEditorAPIEvents({ editor: editor })
 
     let cursorChangeTimer = null
@@ -751,7 +751,7 @@ export async function openTab(path, content, extension, name, pathContext, isNew
 
         clearTimeout(cursorChangeTimer)
         cursorChangeTimer = setTimeout(() => {
-            triggerAceClicked({ editor: editor, extension: extension, language: language })
+            triggerEditorClicked({ editor: editor, extension: extension, language: language })
         }, 100)
     }
 
@@ -950,7 +950,7 @@ export async function openTab(path, content, extension, name, pathContext, isNew
             settings: settings
         })
 
-        triggerAceChanged({ editor: editor, extension: extension, language: language })
+        triggerEditorChanged({ editor: editor, extension: extension, language: language })
     });
 
     activateTab(tab);

@@ -231,8 +231,8 @@ contextBridge.exposeInMainWorld('electron', {
     
     triggers: {
         sendFileOpened: (data: any) => ipcRenderer.send("file-opened-event", data),
-        sendAceChanged: (data: any) => ipcRenderer.send("ace-changed-event", data),
-        sendAceClicked: (data: any) => ipcRenderer.send("ace-clicked-event", data),
+        sendEditorChanged: (data: any) => ipcRenderer.send("editor-changed-event", data),
+        sendEditorClicked: (data: any) => ipcRenderer.send("editor-clicked-event", data),
     },
 
     // 
