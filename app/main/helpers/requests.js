@@ -207,7 +207,7 @@ async function readFileContent(filePath, encoding = 'utf8') {
     return data;
 }
 function updateLocalAppData(newData) {
-    const filePath = path.join(__dirname, "local.json");
+    const filePath = LOCAL_FILE_PATH;
 
     let currentData = {};
     if (fs.existsSync(filePath)) {
