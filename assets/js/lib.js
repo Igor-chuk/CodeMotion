@@ -17,6 +17,7 @@ import { _Filenames } from "./libClasses/fillenames.js"
 import { _CodeTemplates } from "./libClasses/codeTemplates.js"
 import { _EditorAdapter } from "./libClasses/EditorAdapter.js"
 import { _GetOrgAvatar } from "./libClasses/avatar.js"
+import { _Task } from "./libClasses/task.js"
 
 let runtimeErrors = []
 let runtimeErrorsCount = 0
@@ -36,6 +37,7 @@ export const Loader = _Loader
 export const GLS = _GLS
 export const CodeTemplates = _CodeTemplates
 export const EditorAdapter = _EditorAdapter
+export const Task = _Task
 
 export const GetOrgAvatar = _GetOrgAvatar
 
@@ -721,6 +723,13 @@ export function idify(string) {
     return btoa(binary).replaceAll("=", "");
 }
 
+export function linkify(text) {
+    return text.replace(
+        /(https?:\/\/[^\s<]+)/g,
+        '<a href="$1" target="_blank" rel="noopener noreferrer"><span>$1</span></a>'
+    );
+}
+
 export function splitCamelCase(str) {
     return str
         .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -927,6 +936,21 @@ export function fitAceHeight(editor, minHeight = 50, maxHeight = 800) {
 }
 export function setAppTitle(title) {
     window.electron.setAppTitle(title)
+}
+
+export async function getGithubToken() {
+    const localData = await window.electron.getLocal()
+
+    if (
+        localData &&
+        typeof localData === "object" &&
+        typeof localData.githubToken === "string" &&
+        localData.githubToken.length > 0
+    ) {
+        return localData.githubToken
+    }
+
+    return false
 }
 
 window.Notificator = Notificator

@@ -269,6 +269,7 @@ function contentItemsHandler(element, itemsData) {
             const values = validArray(item.values) ?? []
             const valuesReadOnly = validBool(item.valuesReadOnly) ?? false
             const onAdd = valid(item.onAdd) ?? false
+            const inputType = valid(item.inputType) ?? false
 
             const inputElement = renderInput(
                 {
@@ -279,7 +280,8 @@ function contentItemsHandler(element, itemsData) {
                     prefix: prefix,
                     values: values,
                     valuesReadOnly: valuesReadOnly,
-                    onAdd: onAdd
+                    onAdd: onAdd,
+                    inputType: inputType
                 }
             )
 
@@ -401,11 +403,13 @@ function contentItemsHandler(element, itemsData) {
         if (type == "githubRepos") {
             const id = valid(item.id) ?? false
             const urls = validArray(item.urls) ?? []
+            const forkable = validBool(item.forkable) ?? false
 
             const githubReposElement = renderGithubRepos(
                 {
                     id: id,
-                    urls: urls
+                    urls: urls,
+                    forkable: forkable
                 }
             )
 

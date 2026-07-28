@@ -115,7 +115,8 @@ export async function renderAboutPage(lgls, data = {}) {
             {
                 type: "githubRepos",
                 id: "orgPageGithubRepos",
-                urls: repos
+                urls: repos,
+                forkable: true
             }
         ) 
     }
