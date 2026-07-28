@@ -700,6 +700,18 @@ body.explorer-resizing {
     cursor: pointer;
 }
 
+.collapse-all-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+.collapse-all-button svg {
+    width: 16px;
+    height: 16px;
+}
+
 .explorer-elements {
     box-sizing: border-box;
     padding: 15px;
