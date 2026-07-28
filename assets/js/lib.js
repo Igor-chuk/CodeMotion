@@ -216,7 +216,7 @@ export function addToHistory({ id, actionType, value, desc, today }) {
 
 export function addToBug({ id, priority, value, desc, today, isSelf, org, resolved, author, assignedTo, type }) {
     const bugID = id != undefined ? id : Object.keys(bugsObject).length + 1
-    const bugPriority = priority != undefined ? priority : 0
+    const bugPriority = (priority != undefined && !Number.isNaN(priority)) ? priority : 0
     const bugDesc = desc != undefined ? desc : "No description provided"
     const bugToday = today != undefined ? today : new Date().format("H:i")
     const bugIsSelf = isSelf != undefined ? isSelf : false
@@ -224,7 +224,8 @@ export function addToBug({ id, priority, value, desc, today, isSelf, org, resolv
     const bugAuthor = author != undefined ? author : false
     const bugAssignedTo = assignedTo != undefined ? assignedTo : {}
 
-    addToHistory({ actionType: "bug-added", value: value, desc: `Bug "${value}" added with ${priorityClasses[String(priority)].name} priority` });
+    const priorityInfo = priorityClasses[String(bugPriority)] || priorityClasses["0"]
+    addToHistory({ actionType: "bug-added", value: value, desc: `Bug "${value}" added with ${priorityInfo.name} priority` });
 
     bugsObject[bugID] = {
         id: bugID,
