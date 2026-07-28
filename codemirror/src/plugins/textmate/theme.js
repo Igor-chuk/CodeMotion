@@ -2,7 +2,7 @@ import { EditorView } from "@codemirror/view";
 
 export const textMateBaseTheme = EditorView.theme({
     ".cm-tm-keyword": { color: "#c586c0" },
-    ".cm-tm-operator": { color: "#a06acd" },
+    ".cm-tm-operator": { color: "#bc85e9" },
     ".cm-tm-comment": { color: "#525252" },
     ".cm-tm-string": { color: "#ce9178" },
     ".cm-tm-number": { color: "#b5cea8" },
