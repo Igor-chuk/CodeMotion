@@ -28,6 +28,7 @@ import { initActions } from "../assets/js/actions.js"
 
 import { handleHistoryTab } from "../assets/js/explorerTabsHandlers/history.js"
 import { handleBugsTab } from "../assets/js/explorerTabsHandlers/bugs.js"
+import { getFolderIconUrl } from "../assets/js/iconRegistry.js"
 import { electronAPI, getDirname, readSettings } from "../assets/js/global.js"
 import { closeAllTabs } from "../assets/js/explorerTree/tabHandler.js"
 
@@ -198,9 +199,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (localData.nonAccountMode) {
         loader?.classList.add("hidden");
 
-        yourOrganizationsPopupItem.classList.add("disabled")
-        logoutPopupItem.classList.add("disabled")
-        createOrgPopupItem.classList.add("disabled")
+        yourOrganizationsPopupItem?.classList.add("disabled")
+        logoutPopupItem?.classList.add("disabled")
+        createOrgPopupItem?.classList.add("disabled")
 
         topbarCenterUserData.querySelector("#username").textContent = gls.get("notAuth")
         topbarCenterUserData.querySelector("#current_hours").classList.add("v-hidden")
@@ -438,6 +439,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelectorAll("#close_folder").forEach(btn => {
         btn.addEventListener("click", () => {
             closeFolder();
+        })
+    })
+
+    document.querySelectorAll("#collapse_all").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const filesPanel = document.querySelector(".explorer-elements[data-tab='files']");
+            if (!filesPanel) return;
+            const expandedDirs = filesPanel.querySelectorAll(".dir.expanded");
+            expandedDirs.forEach(dir => {
+                dir.classList.remove("expanded");
+                const folderImg = dir.querySelector(".dir-title .folder-icon");
+                if (folderImg) {
+                    const folderName = dir.querySelector(".dir-title .explorer-name")?.textContent || "";
+                    folderImg.src = getFolderIconUrl(folderName, false);
+                }
+            });
         })
     })
 })
