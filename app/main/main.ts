@@ -185,7 +185,11 @@ async function createWindow() {
 
     ipcMain.on("fullscreen", () => {
         if (mainWindow) {
-            mainWindow.maximize();
+            if (mainWindow.isMaximized()) {
+                mainWindow.unmaximize();
+            } else {
+                mainWindow.maximize();
+            }
         }
     });
 
