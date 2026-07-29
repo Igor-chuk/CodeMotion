@@ -5,8 +5,8 @@ const bus = require("../../helpers/eventBus.js")
 const { APP_PATH } = require("../main/helpers/paths.js")
 const ErrorStackParser = require("error-stack-parser")
 
-const { 
-    getType, 
+const {
+    getType,
     createNativeImageFromUrl,
     checkType,
     ok,
@@ -25,7 +25,7 @@ const vm = require("vm");
 const { config } = require("process")
 
 const EXTENSIONS_DIR = path.resolve(
-    app.isPackaged ? process.resourcesPath : app.getAppPath(), 
+    app.isPackaged ? process.resourcesPath : app.getAppPath(),
     "extensions"
 )
 
@@ -248,7 +248,7 @@ ipcMain.handle("run-extension", async (event, code, permissions, meta) => {
         message += `\n\tat line: ${lineNumber - 3}`
         message += `\n\tat column: ${columnNumber}`
 
-        return { 
+        return {
             success: false,
             error: String(err)
         };

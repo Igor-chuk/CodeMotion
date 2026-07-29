@@ -454,5 +454,4 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         });
     })
-    })
 })
