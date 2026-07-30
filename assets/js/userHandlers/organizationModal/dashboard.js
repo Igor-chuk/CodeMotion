@@ -2,6 +2,7 @@ import { sendEvent } from "../../bus.js"
 import { createNotify, truncateString, Options, formatUnix, GetOrgAvatar, GLS } from "../../lib.js"
 import { renderList } from "../../modalsHandler/components/list.js"
 import { Modal } from "../../modalsHandler/engine.js"
+import { renderEditMoreModal } from "./editMoreModal.js"
 
 function encodeInviteCode(code) {
     if(!code) {
@@ -116,6 +117,12 @@ export function dashboardModalObject({ lgls }) {
                         id: "dashboardOrgEditUploadAvatar",
                         container: "#dashboardOrgEditZoneButtons"
                     },
+                    {
+                        type: "button",
+                        title: "More",
+                        id: "dashboardOrgEditMore",
+                        container: "#dashboardOrgEditZoneButtons"
+                    },
 
                     {
                         type: "divider"
@@ -228,6 +235,7 @@ export async function dashboardModalHandle({ userOrgs, element, orgModal }) {
     const editButtons = element.querySelector("#dashboardOrgEditZoneButtons")
     const editResetInvite = element.querySelector("#dashboardOrgEditResetInvite")
     const editUploadAvatar = element.querySelector("#dashboardOrgEditUploadAvatar")
+    const editMore = element.querySelector("#dashboardOrgEditMore")
 
     const dangerZoneSwitch = element.querySelector("#dashboardOrgDangerZoneSwitch")
     const dangerZoneTitle = element.querySelector("#dashboardOrgDangerZoneTitle")
@@ -258,13 +266,28 @@ export async function dashboardModalHandle({ userOrgs, element, orgModal }) {
 
     dashboardOrgSelect.on("click", async (e) => {
         async function render(data) {
+            const id = data.id
+            const name = data.name
+            const description = data.description
             const isOwner = data.is_owner
             const maxGithubRepos = 8
             const inviteCodeResetAt = data.invite_reset_at
             const githubRepos = data.github_repos
 
+            editMore.onclick = async () => {
+                const editMoreModal = await renderEditMoreModal({
+                    name: name,
+                    id: id,
+                    description: description,
+                    parentModal: orgModal
+                })
+
+                orgModal.close()
+                editMoreModal.open()
+            }
+
             githubLinksTitle.textContent = lgls("githubRepos.title", 
-                { 
+                {
                     current: githubRepos.length, 
                     max: maxGithubRepos
                 }

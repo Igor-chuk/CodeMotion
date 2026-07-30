@@ -320,6 +320,26 @@
                         }
                     }
                 }
+            },
+            "editOrgMore": {
+                "title": "\"%{name}\" organization edit",
+                "body": {
+                    "title": "Are you planning to rename the organization?",
+                    "description": "Click the \"{{modals.organizations.editOrgMore.buttons.ok}}\" button when you're ready"
+                },
+                "buttons": {
+                    "ok": "Change",
+                    "cancel": "Cancel"
+                },
+                "inputs": {
+                    "name": {
+                        "value": "Name"
+                    },
+                    "description": {
+                        "value": "Description",
+                        "note": "You can use #hashtags in description to make it easier for people to find you"
+                    }
+                }
             }
         },
 
@@ -442,7 +462,8 @@
                         }
                     },
                     "buttons": {
-                        "view": "View"
+                        "view": "View",
+                        "getToken": "Get Github token"
                     }
                 },
                 "notifications": {

@@ -1,7 +1,7 @@
 import { createDIV } from "../handlers/helpers.js"
 
 export function renderButton(properties = {}) {
-    const classes = ["default", "danger"]
+    const classes = ["default", "danger", "secondary"]
     const id = properties.id
     const title = properties.title
     const container = properties.container

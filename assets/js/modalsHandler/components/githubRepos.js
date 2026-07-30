@@ -50,7 +50,7 @@ export function renderGithubRepos(properties = {}) {
 
             forkBtn.onclick = async () => {
                 const currentModal = Modal.get("orgPage")
-                currentModal.close()
+                currentModal.close({ ignoreEvents: true })
 
                 const task = new Task("githubFork")
                 task.title(lgls("waiting.title", { name: repo }))

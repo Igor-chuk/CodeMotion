@@ -7,6 +7,8 @@ export function renderInput(properties = {}) {
     const placeholder = properties.placeholder
     const prefix = properties.prefix
     const inputType = properties.inputType
+    const value = properties.value
+    const maxSymbols = properties.maxSymbols
 
     const wrapper = document.createElement("div")
     wrapper.classList.add("modal-category__item")
@@ -31,10 +33,19 @@ export function renderInput(properties = {}) {
         input.classList.add("focused")
         input.value = prefix
     }
+    if(value) {
+        input.classList.add("focused")
+        input.value = value
+    }
 
     const inputName = createSpan()
     inputName.classList.add("form-label")
     inputName.textContent = placeholder
+
+    if(maxSymbols > 0) {
+        input.setAttribute("maxlength", maxSymbols)
+        inputName.innerHTML += `<span class="max-symbols"><span id="current-symbols">${value.length > 0 ? value.length : 0}</span>/${maxSymbols}</span>`
+    }
 
     inputWrapper.appendChild(input)
     inputWrapper.appendChild(inputName)
@@ -46,6 +57,8 @@ export function renderInput(properties = {}) {
     wrapper.appendChild(inputWrapper)
 
     input.addEventListener("input", (e) => {
+        e.target.parentElement.querySelector("#current-symbols").textContent = e.target.value.length
+
         if(prefix) {
             if (!e.target.value.startsWith(prefix)) {
                 e.target.value = prefix;

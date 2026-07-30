@@ -1,4 +1,4 @@
-import { showBackdrop, hideBackdrop } from "../engine.js"
+import { showBackdrop, hideBackdrop, Modal } from "../engine.js"
 import { sideBarHandler } from "../handlers/sidebarHandler.js"
 import { defaultContentHandler } from "../handlers/contentHandler.js"
 
@@ -57,14 +57,12 @@ export function renderModalBase(options = {}) {
 
     // events
     modalHeaderCloseBtn.addEventListener("click", () => {
-        modalWrapper.classList.add("hidden")
-        hideBackdrop()
+        Modal.get(id).close()
     })
     modalWrapper.addEventListener("click", (event) => {
         if (event.target !== modalWrapper) return
 
-        modalWrapper.classList.add("hidden")
-        hideBackdrop()
+        Modal.get(id).close()
     })
 
     if(typeof pages == "object" && pages.length > 0) {

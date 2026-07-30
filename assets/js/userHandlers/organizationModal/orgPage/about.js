@@ -6,6 +6,10 @@ export async function renderAboutPage(lgls, data = {}) {
     const desc = data.description
     const isVerified = data.verified
     const ownerID = data.ownerID
+    const members_count = data.members_count
+    const created_at = data.created_at
+    const github_repos = data.github_repos
+    const website = data.website
 
     const ownerRes = await window.electron.getUser(ownerID)
     const additionalInfoBlocks = []
@@ -66,21 +70,21 @@ export async function renderAboutPage(lgls, data = {}) {
                 ...additionalInfoBlocks,
                 {
                     title: lgls("about.page.info.members"),
-                    description: data.members_count
+                    description: members_count
                 },
                 {
                     title: lgls("about.page.info.createdAt"),
-                    description: formatUnix(data.created_at, "{dd}.{mm}.{yyyy}, {hh}:{ii}")
+                    description: formatUnix(created_at, "{dd}.{mm}.{yyyy}, {hh}:{ii}")
                 },
                 {
                     title: lgls("about.page.info.repos"),
-                    description: data.github_repos.length
+                    description: github_repos.length
                 },
             ]
         }
     ]
 
-    if(data.website) {
+    if(website) {
         about.push(
             {
                 type: "divider"
@@ -90,12 +94,10 @@ export async function renderAboutPage(lgls, data = {}) {
             {
                 type: "placeholder",
                 title: lgls("about.page.website.title"),
-                link: data.website
+                link: website
             }
         )
     }
-
-    console.log(data)
 
     if(data.github_repos && data.github_repos.length > 0) {
         const repos = data.github_repos

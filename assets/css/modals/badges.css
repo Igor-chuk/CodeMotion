@@ -1,3 +1,5 @@
+@import url("../variables.css");
+
 /* .modal-badge {
     display: flex;
     align-items: center;
@@ -18,7 +20,7 @@
     align-items: center;
     font-size: 12px;
     gap: 3px;
-    background: var(--calendar-day-bg);
+    background: var(--default-badge-bg);
     color: var(--default-badge-text);
     font-weight: 600;
     width: fit-content;
@@ -34,8 +36,8 @@
     color: #2f77ff;
 } */
 .modal-verified__badge {
-    background: #2f77ff;
-    color: #ffffff;
+    background: var(--verified-bagde-bg);
+    color: var(--verified-badge-text);
 }
 /* .modal-verified__badge span[class^="material-symbols"] {
     font-size: 14px;
@@ -55,7 +57,7 @@
 .modal-owner__badge {
     clip-path: none;
     background: transparent;
-    color: #ff742f;
+    color: var(--owner-badge);
 }
 .modal-owner__badge span[class^="material-symbols"] {
     font-size: 14px;

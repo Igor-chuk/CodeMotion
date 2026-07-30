@@ -48,8 +48,6 @@ export function searchModalHandle({ modal, element, lgls }) {
 
         const res = await window.electron.searchOrg(value)
 
-        console.log(res)
-
         if(res.success) {
             const results = res.msg
 
@@ -63,7 +61,19 @@ export function searchModalHandle({ modal, element, lgls }) {
                     render.onclick = async () => {
                         modal.close()
 
-                        const orgPageModal = await createOrgPage(org)
+                        const orgPageModal = await createOrgPage({
+                            id: org.id,
+                            name: org.name,
+                            avatarID: org.avatarID,
+                            description: org.description,
+                            verified: org.verified,
+                            ownerID: org.ownerID,
+                            members_count: org.members_count,
+                            created_at: org.created_at,
+                            github_repos: org.github_repos,
+                            website: org.website,
+                            parentModal: modal
+                        })
                         orgPageModal.open()
                     }
                 })

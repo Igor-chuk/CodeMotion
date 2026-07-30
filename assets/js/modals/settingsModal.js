@@ -318,14 +318,29 @@ export async function getSettingsModal({ platform }) {
                                 id: "setting_githubAccessKey"
                             },
                             {
-                                type: "button",
-                                title: lgls("gitGithub.integration.buttons.view"),
-                                id: "setting_githubAccessKeyView"
+                                type: "container",
+                                id: "githubAccessKeyButtonsContainer"
                             },
+
                             {
                                 type: "button",
                                 title: gls.get("save"),
-                                id: "setting_githubAccessKeySave"
+                                id: "setting_githubAccessKeySave",
+                                container: "#githubAccessKeyButtonsContainer"
+                            },
+                            {
+                                type: "button",
+                                title: lgls("gitGithub.integration.buttons.view"),
+                                id: "setting_githubAccessKeyView",
+                                class: "secondary",
+                                container: "#githubAccessKeyButtonsContainer"
+                            },
+                            {
+                                type: "button",
+                                title: lgls("gitGithub.integration.buttons.getToken"),
+                                id: "setting_githubAccessKeyGet",
+                                class: "secondary",
+                                container: "#githubAccessKeyButtonsContainer"
                             }
                         ]
                     }
@@ -333,6 +348,17 @@ export async function getSettingsModal({ platform }) {
             }
         ]
     })
+
+    const element = appearanceModal.el
+
+    element.querySelector("#setting_githubAccessKeyGet").onclick = () => {
+        const a = document.createElement("a")
+        a.href = "https://github.com/settings/personal-access-tokens"
+        a.target = "_blank"
+
+        a.click()
+        a.remove()
+    }
 
     return appearanceModal
 }

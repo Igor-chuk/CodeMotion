@@ -63,7 +63,16 @@ export async function getCurrentUserDataFromAPI(properties = {}) {
 
     spawnSideBarOrganizationsButton({ userOrgs: userOrgs })
 
-    Modal.destroy("organizations")
+    const orgModalInstance = Modal.get("organizations")
+
+    if(orgModalInstance) {
+        orgModalInstance.close()
+
+        setTimeout(() => {
+            orgModalInstance.destroy()
+        }, 100)
+    }
+
     const organizationsModal = await createUserOrgModal(
         {
             userOrgs: userOrgs,

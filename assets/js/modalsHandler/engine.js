@@ -48,6 +48,15 @@ export function validObject(object) {
         return undefined
     }
 }
+// for numbers
+export function validNumber(num) {
+    if(Number.isInteger(num)) {
+        return num
+    }
+    else {
+        return undefined
+    }
+}
 
 export function err(text) {
     throw new Error(`[CodeMotion.Modals] ${text}`)
@@ -103,6 +112,7 @@ export class Modal {
         let pendingContent = null
         let pendingTitleText = null
         let openListeners = []
+        let closeListeners = []
 
         function build() {
             if (modalBase) return modalBase
@@ -174,7 +184,7 @@ export class Modal {
         function activate() {
             mount()
 
-            requestAnimationFrame(() => { 
+            requestAnimationFrame(() => {
                 wrapper.classList.remove("hidden")
                 showBackdrop()
             })
@@ -242,11 +252,32 @@ export class Modal {
                 }
             },
 
-            close: () => {
+            onClose: (callback, options = {}) => {
+                if (typeof callback !== "function") return () => {}
+
+                const once = validBool(options.once) ?? false
+                const listener = { callback, once }
+
+                closeListeners.push(listener)
+
+                return () => {
+                    closeListeners = closeListeners.filter(l => l !== listener)
+                }
+            },
+
+            close: (properties = {}) => {
+                const ignoreEvents = "ignoreEvents" in properties ? properties.ignoreEvents : false
+
                 if (!modalBase) return
 
                 hideBackdrop()
                 wrapper.classList.add("hidden")
+                
+                if (!ignoreEvents && closeListeners.length) {
+                    const listeners = closeListeners.slice()
+                    listeners.forEach(l => l.callback(api))
+                    closeListeners = closeListeners.filter(l => !l.once)
+                }
             },
 
             destroy: () => {
@@ -261,6 +292,7 @@ export class Modal {
                 titleEl = null
                 sidebarPages = null
                 openListeners = []
+                closeListeners = []
 
                 delete Modal.list[id]
             },

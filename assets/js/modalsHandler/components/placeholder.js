@@ -34,12 +34,25 @@ export function renderPlaceholder(properties = {}) {
     }
 
     if(link) {
-        const url = link.startsWith("https") ? new URL(link) : new URL(`https://${link}`)
+        if(typeof link == "string") {
+            const url = link.startsWith("https") ? new URL(link) : new URL(`https://${link}`)
 
-        const linkEl = createLink(url.href)
-        linkEl.textContent = url.host
+            const linkEl = createLink(url.href)
+            linkEl.textContent = url.host
 
-        wrapper.appendChild(linkEl)
+            wrapper.appendChild(linkEl)
+        }
+        else if(typeof link == "object" && !Array.isArray(link)) {
+            const linkURL = "url" in link ? link.url : "https://google.com"
+            const linkTitle = "title" in link ? link.title : "Untitled"
+
+            const url = linkURL.startsWith("https") ? new URL(linkURL) : new URL(`https://${linkURL}`)
+
+            const linkEl = createLink(url.href)
+            linkEl.textContent = linkTitle
+
+            wrapper.appendChild(linkEl)
+        }
     }
 
     return wrapper

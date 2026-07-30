@@ -1,4 +1,4 @@
-import { valid, validArray, validHTTPS, validBool, validObject } from "../engine.js"
+import { valid, validArray, validHTTPS, validBool, validObject, validNumber } from "../engine.js"
 
 import { renderSwitch } from "../components/switch.js"
 import { renderRange } from "../components/range.js"
@@ -270,6 +270,8 @@ function contentItemsHandler(element, itemsData) {
             const valuesReadOnly = validBool(item.valuesReadOnly) ?? false
             const onAdd = valid(item.onAdd) ?? false
             const inputType = valid(item.inputType) ?? false
+            const value = valid(item.value) ?? false
+            const maxSymbols = validNumber(item.maxSymbols) ?? 0
 
             const inputElement = renderInput(
                 {
@@ -281,7 +283,9 @@ function contentItemsHandler(element, itemsData) {
                     values: values,
                     valuesReadOnly: valuesReadOnly,
                     onAdd: onAdd,
-                    inputType: inputType
+                    inputType: inputType,
+                    value: value,
+                    maxSymbols: maxSymbols
                 }
             )
 

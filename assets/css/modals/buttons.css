@@ -19,3 +19,10 @@
     font-weight: 400;
     border: 1px solid #ff5b5b14;
 }
+
+.modal-button.secondary {
+    background: transparent;
+}
+.modal-button.secondary:hover {
+    background-color: var(--block-divider-border-color);
+}

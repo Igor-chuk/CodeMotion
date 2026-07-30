@@ -1,0 +1,71 @@
+:root {
+    --body-color: #141414;
+    --body-color-solid: #0a0a0a;
+    --body-color-transparent: #121212bd;
+    --topbar-color: #141414;
+    --block-divider-border-color: #1c1c1c;
+    --text-color: white;
+    --text-color-muted: #7b7b7b;
+    --topbar-menu-item-hover-bg: #ffffff1f;
+    --explorer-padding: 0px 15px;
+
+    --code-background: #101010;
+
+    --switch-bg-default: #292929;
+    --switch-bg-active: #ffffff;
+    --switch-inner-default: #fff;
+    --switch-inner-active: #232121;
+
+    --explorer-tabs-bg: linear-gradient(0deg, transparent, #ffffff14);
+    --explorer-tabs-border: radial-gradient(#ffffff4a, transparent);
+    --explorer-tabs-color: white;
+
+    --default-badge-bg: #e5903624;
+    --default-badge-text: #e59036;
+
+    --segment-bg: #0d0d0d;
+    --segment-label: #1a1a1a;
+
+    --danger: #ff4949;
+    --warning: #e59036;
+    --success: #3785ff;
+
+    --editor-font-size: 15px;
+
+    --code-footer-bg: #1c1c1ccf;
+
+    --switch-checkbox-active: #3f6cf7;
+    --switch-checkbox: #999999;
+
+    --context-body: #161616c7;
+    --context-border: #ffffff17;
+
+    --slim-font-weight: 400;
+    --default-font-weight: 500;
+    --medium-font-weight: 600;
+    --bold-font-weight: 700;
+
+    --link-color: #4165f1;
+
+    --expanded-line: #434343;
+
+    --main-font: "Inter", sans-serif;
+    --code-font: "JetBrainsMono", monospace;
+
+    --uib-color: var(--text-color)!important;
+
+    --ui-scale: 1;
+
+    --sidebar-width: 70px;
+
+    --bug-priority-medium: #ffc72361;
+    --bug-priority-high: #ff232361;
+
+    --taskprogress-bg: #51f77518;
+    --taskprogress-text: #49a861;
+    --taskprogress-bg-second: #64ee8228;
+
+    --verified-bagde-bg: #2f77ff;
+    --verified-bagde-text: white;
+    --owner-badge: #ff742f;
+}
