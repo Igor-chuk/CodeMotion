@@ -923,6 +923,9 @@ body.explorer-resizing {
     gap: 5px;
     min-height: 28px;
 }
+.explorer-elements .dir-title:hover {
+    cursor: pointer;
+}
 .explorer-elements .explorer-name {
     font-size: 13px;
     opacity: 1;
