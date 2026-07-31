@@ -448,6 +448,10 @@ input~span {
     cursor: pointer;
     opacity: .5;
 }
+.topbar-action span[class^="material-symbols"] {
+    font-size: 14px;
+    transform: translateY(2px);
+}
 
 .main-wrapper {
     display: flex;
@@ -755,6 +759,12 @@ body.explorer-resizing {
 .code-tab.active .file-name {
     color: var(--text-color);
 }
+.code-tab.preview .file-name {
+    font-style: italic;
+}
+.code-tab.preview.active {
+    border-bottom-color: var(--text-color-muted);
+}
 .code-tab span {
     font-size: 15px;
     height: 15px;
@@ -918,6 +928,9 @@ body.explorer-resizing {
     align-items: center;
     gap: 5px;
     min-height: 28px;
+}
+.explorer-elements .dir-title:hover {
+    cursor: pointer;
 }
 .explorer-elements .explorer-name {
     font-size: 13px;
