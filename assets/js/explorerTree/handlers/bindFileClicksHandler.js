@@ -39,7 +39,7 @@ export function bindFileClicks({ scopeEl, tabsByPath, recentlyClosed, pathContex
                     }
 
                     await openFile(filePath, true);
-                }, 250);
+                }, 50);
             }
         });
 

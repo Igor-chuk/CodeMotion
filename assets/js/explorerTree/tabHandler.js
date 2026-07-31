@@ -720,6 +720,14 @@ export async function openTab(path, content, extension, name, pathContext, isNew
         fixedWidthGutter: true
     });
 
+    await setEditorContext({}, {
+        editor: editor,
+        language: language,
+        updateEditorData: updateEditorData,
+        path: path,
+        settings: settings
+    })
+
     addThemeModificator(editor)
 
     window.electron.triggers.sendFileOpened(

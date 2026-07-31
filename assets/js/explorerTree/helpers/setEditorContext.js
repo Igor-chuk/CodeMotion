@@ -53,6 +53,8 @@ function showDiagnostics(diagnostics, { editor, path }) {
 
     editor.setDiagnostics(list)
 
+    console.log(list)
+
     diagnostics.forEach(item => {
         addRuntimeError({
             msg: item.message,

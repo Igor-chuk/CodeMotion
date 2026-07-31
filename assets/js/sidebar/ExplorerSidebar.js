@@ -1,5 +1,4 @@
 const explorerSidebar = document.querySelector(".explorer")
-const sidebarHideBottomBtn = document.querySelector("#sidebar-hide")
 
 const localStorageKey = "codemotion.explorerSidebarVisible"
 
@@ -19,13 +18,11 @@ export class ExplorerSidebar {
         localStorage.setItem(localStorageKey, false)
 
         explorerSidebar.classList.add("zero-width")
-        sidebarHideBottomBtn.classList.remove("active")
     }
     static setDefaultWidth() {
         localStorage.setItem(localStorageKey, true)
 
         explorerSidebar.classList.remove("zero-width")
-        sidebarHideBottomBtn.classList.add("active")
     }
     static isToggled() {
         return explorerSidebar.classList.contains("zero-width")

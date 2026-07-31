@@ -4,15 +4,15 @@ import { fromJSONToTextMate } from "../../../app/dist-esm/textmate/compile.js"
 export class _EditorAdapter {
     constructor(
         { 
-            view, compartments, setOnChange, commands, recreateState, editorView,
-            editorState, tools
+            view, compartments, setDiagnostics, setOnChange, commands, 
+            recreateState, editorView, editorState, tools
         }
     ) {
         this.instance = view
         this.languageCompartment = compartments.languageCompartment;
         this.themeCompartment = compartments.themeCompartment;
         this.tabSizeCompartment = compartments.tabSizeCompartment
-        this.setDiagnosticsInternal = compartments.setDiagnostics;
+        this.setDiagnosticsInternal = setDiagnostics;
         this.wordWrapCompartment = compartments.wordWrapCompartment
         this.scrollCompartment = compartments.scrollCompartment
         this.readOnlyCompartment = compartments.readOnlyCompartment
@@ -254,7 +254,7 @@ export class _EditorAdapter {
     }
 
     setDiagnostics(list) {
-        this.setDiagnosticsInternal(list);
+        this.setDiagnosticsInternal(list)
     }
 
     setOption(name, value) {
