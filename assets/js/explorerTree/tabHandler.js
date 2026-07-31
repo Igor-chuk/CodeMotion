@@ -57,6 +57,7 @@ export const tabsByPath = new Map();
 
 export let currentContent = ""
 export let currentPath = null;
+export let previewTabPath = null;
 
 export const tabsBar = document.querySelector(".code-tabs");
 export const editorWrapper = document.querySelector(".code-inner__wrapper");
@@ -643,7 +644,7 @@ function initExtensionEditorAPIEvents({ editor }) {
     })
 }
 
-export async function openTab(path, content, extension, name, pathContext, isNew = false, settings = {}) {
+export async function openTab(path, content, extension, name, pathContext, isNew = false, settings = {}, isPreview = false) {
     let language = Languages.get(extension)
     const isImage = language.name == "Image" || extension == "svg"
 
@@ -816,7 +817,7 @@ export async function openTab(path, content, extension, name, pathContext, isNew
     
     const tab = document.createElement("div");
 
-    tab.className = "code-tab";
+    tab.className = "code-tab" + (isPreview ? " preview" : "");
     tab.setAttribute("data-id", id);
     tab.setAttribute("data-path", path);
 
@@ -885,7 +886,9 @@ export async function openTab(path, content, extension, name, pathContext, isNew
         tab.classList.add("not-saved")
     }
 
-    // 
+    if (isPreview) {
+        previewTabPath = path;
+    }
 
     tabsByPath.set(path, {
         id: id,
@@ -896,6 +899,7 @@ export async function openTab(path, content, extension, name, pathContext, isNew
         language: language,
         isImage: isImage,
         new: isNew,
+        isPreview: isPreview,
         fileName: name,
         color: language.color,
         extension: extension
@@ -1060,6 +1064,7 @@ export function closeTab(path) {
     tabEl.remove();
     tabsByPath.delete(path);
     codeContextMenuPerTab.delete(path);
+    if (previewTabPath === path) previewTabPath = null;
 
     const stillHas = !!tabsBar.querySelector(".code-tab");
     if (!stillHas) {
@@ -1082,6 +1087,15 @@ export function closeTab(path) {
         const oldest = [...recentlyClosed.entries()].sort((a, b) => a[1].when - b[1].when)[0][0];
         recentlyClosed.delete(oldest);
     }
+}
+
+export function promotePreview(path) {
+    if (previewTabPath !== path) return;
+    const rec = tabsByPath.get(path);
+    if (!rec) return;
+    rec.isPreview = false;
+    rec.tabEl.classList.remove("preview");
+    previewTabPath = null;
 }
 
 export async function reopenLastClosed() {

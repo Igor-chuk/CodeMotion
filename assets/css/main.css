@@ -759,6 +759,12 @@ body.explorer-resizing {
 .code-tab.active .file-name {
     color: var(--text-color);
 }
+.code-tab.preview .file-name {
+    font-style: italic;
+}
+.code-tab.preview.active {
+    border-bottom-color: var(--text-color-muted);
+}
 .code-tab span {
     font-size: 15px;
     height: 15px;
