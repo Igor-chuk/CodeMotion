@@ -448,6 +448,10 @@ input~span {
     cursor: pointer;
     opacity: .5;
 }
+.topbar-action span[class^="material-symbols"] {
+    font-size: 14px;
+    transform: translateY(2px);
+}
 
 .main-wrapper {
     display: flex;
