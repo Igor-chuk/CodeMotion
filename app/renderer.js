@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         yourOrganizationsPopupItem.classList.add("disabled")
         logoutPopupItem.classList.add("disabled")
-        createOrgPopupItem.classList.add("disabled")
+        createOrgPopupItem?.classList.add("disabled")
 
         topbarCenterUserData.querySelector("#username").textContent = gls.get("notAuth")
         topbarCenterUserData.querySelector("#current_hours").classList.add("v-hidden")
