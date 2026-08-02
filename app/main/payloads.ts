@@ -7,3 +7,8 @@ export type RunPythonPayload = {
     filePath: string, 
     useEmbed: boolean
 }
+export type EditOrgData = {
+    orgid: number,
+    name: string,
+    description: string
+}

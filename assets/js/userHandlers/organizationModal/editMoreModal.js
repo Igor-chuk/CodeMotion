@@ -1,4 +1,5 @@
-import { GLS } from "../../lib.js";
+import { sendEvent } from "../../bus.js";
+import { createNotify, GLS } from "../../lib.js";
 import { Modal } from "../../modalsHandler/engine.js";
 
 export async function renderEditMoreModal({ name, id, description, parentModal }) {
@@ -70,11 +71,46 @@ export async function renderEditMoreModal({ name, id, description, parentModal }
         ]
     })
 
-    const element = changeNameModal.el
-
     changeNameModal.onClose(() => {
         parentModal.open()
     }, { once: true })
+
+    changeNameModal.onOpen(() => {
+        const nameEl = changeNameModal.selectID("editOrgMoreName")
+        const descEl = changeNameModal.selectID("editOrgMoreDesc")
+        const confirmBtn = changeNameModal.selectID("editOrgNameConfirm")
+
+        confirmBtn.onClick(async () => {
+            const thisName = nameEl.value()
+            const thisDesc = descEl.value()
+            
+            const fields = {}
+
+            if(thisName != name) {
+                fields["name"] = thisName
+                name = thisName
+            }
+            if(thisDesc != description) {
+                fields["description"] = thisDesc
+                description = thisDesc
+            }
+
+            const res = await window.electron.editOrg(id, fields)
+
+            if(res.success) {
+                changeNameModal.close()
+                sendEvent("org-update", {})
+            }
+            else {
+                createNotify({
+                    type: "danger",
+                    icon: "cancel",
+                    title: lgls("errors.update.title"),
+                    content: String(res.msg)
+                })
+            }
+        })
+    })
 
     return changeNameModal
 }

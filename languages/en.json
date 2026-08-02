@@ -339,6 +339,11 @@
                         "value": "Description",
                         "note": "You can use #hashtags in description to make it easier for people to find you"
                     }
+                },
+                "errors": {
+                    "update": {
+                        "title": "Organization update error"
+                    }
                 }
             }
         },

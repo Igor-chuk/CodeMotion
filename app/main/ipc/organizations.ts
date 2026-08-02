@@ -4,6 +4,7 @@ import { API } from "../helpers/paths"
 import { readFile } from "fs/promises";
 import fs from "node:fs"
 import path from "node:path";
+import { EditOrgData } from "../payloads";
 
 ipcMain.handle("create-organization", async (_: IpcMainInvokeEvent, params: any) => {
     return await requestCreateOrganization(params)
@@ -206,6 +207,32 @@ ipcMain.handle('search-orgs', async (_: IpcMainInvokeEvent, query: string) => {
             headers: {
                 'Authorization': `Bearer ${userToken}`
             }
+        });
+
+        const data: any = await response.json()
+
+        if (data.success) {
+            return { success: true, msg: data.result }
+        } else {
+            return { success: false, msg: data.result }
+        }
+    } catch (error) {
+        return { success: false, msg: error }
+    }
+})
+
+ipcMain.handle('edit-org', async (_: IpcMainInvokeEvent, orgid: number, editData: EditOrgData) => {
+    const userToken = await getUserToken()
+
+    editData["orgid"] = orgid
+
+    try {
+        const response = await fetch(`${API}/org/edit`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            },
+            body: JSON.stringify(editData)
         });
 
         const data: any = await response.json()

@@ -367,7 +367,35 @@ export class Modal {
                 }
 
                 applyTitle(newTitle)
-            }
+            },
+
+            select(selector) {
+                const el = modalBase.body.querySelector(selector)
+
+                return {
+                    el: el,
+                    value(v) {
+
+                        if (v == null) el.textContent = ""
+                        if (v != undefined) el.textContent = v
+                        else if(el instanceof HTMLInputElement && v != undefined) el.value = v
+                        else if(el instanceof HTMLInputElement) return el.value
+
+                        else return false
+                    },
+                    onClick(cb) {
+                        el.onclick = cb
+                    }
+                }
+            },
+            selectID(selector) {
+                return api.select(`#${selector}`).el ?
+                    api.select(`#${selector}`) :
+                    api.select(`[id="${selector}"]`)
+            },
+            selectAll(selector) {
+                return modalBase.body.querySelectorAll(selector)
+            },
         }
 
         Modal.list[id] = api

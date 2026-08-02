@@ -1,4 +1,4 @@
-import { RunPythonPayload, SaveContentPayload } from "./payloads";
+import { EditOrgData, RunPythonPayload, SaveContentPayload } from "./payloads";
 
 const { contextBridge, ipcRenderer } = require('electron');
 
@@ -47,6 +47,7 @@ contextBridge.exposeInMainWorld('electron', {
     uploadOrgAvatar: (orgid: number) => ipcRenderer.invoke("upload-org-avatar", orgid),
     setOrgGithubRepos: (orgid: number, repos: object) => ipcRenderer.invoke("set-github-repos", orgid, repos),
     searchOrg: (query: string) => ipcRenderer.invoke("search-orgs", query),
+    editOrg: (orgid: number, editData: EditOrgData) => ipcRenderer.invoke("edit-org", orgid, editData),
 
     close: () => ipcRenderer.send("close"),
     minimize: () => ipcRenderer.send("minimize"),
