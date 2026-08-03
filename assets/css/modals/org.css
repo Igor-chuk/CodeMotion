@@ -37,7 +37,7 @@
     width: fit-content;
     display: flex;
     flex-direction: row;
-    gap: 5px;
+    gap: 4px;
 }
 .modal-org .modal-org-description {
     font-size: small;

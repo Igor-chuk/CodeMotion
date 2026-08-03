@@ -954,6 +954,11 @@ export async function getGithubToken() {
     return false
 }
 
+export function debounce(fn, ms = 400) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
 window.Notificator = Notificator
 window.addToBug = addToBug
 window.addToHistory = addToHistory

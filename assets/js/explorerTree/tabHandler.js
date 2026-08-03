@@ -201,7 +201,7 @@ let isLiveServerActive = false;
 const codeContextMenuPerTab = new Map();
 
 function setTabColor(tab, color) {
-    tab.style.borderBottomColor = color
+    tab.style.cssText += `--tab-color: ${color}`
 }
 
 let settingsObject = {}

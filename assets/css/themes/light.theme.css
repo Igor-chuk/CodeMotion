@@ -22,6 +22,8 @@ body[theme="light"] {
     --segment-divider: #ffffff1a;
     --danger: #ff4949;
     --warning: #e59036;
+
+    --context-border: #00000017;
     
     --code-footer-bg: #ffffffcf;
     --notificator-body-bg: #ffffffb5;

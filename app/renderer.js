@@ -393,10 +393,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     );
 
-    if (topbar && mainWrapper) {
-        mainWrapper.style.cssText = `height: calc(100% - ${topbar.offsetHeight}px)`;
-    }
-
     new SidebarResizeHandler({
         explorer: explorer,
         mainWrapper: mainWrapper,

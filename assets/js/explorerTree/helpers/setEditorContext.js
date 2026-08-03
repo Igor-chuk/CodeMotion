@@ -8,6 +8,7 @@ import { addRuntimeError, GLS } from "../../lib.js"
 import { GoParser } from "../../contextParsers/goParser.js"
 
 let diagnosticTimer = null
+let typeCheckTimer = null
 let generation = 0
 
 const SEVERITY_MAP = {
@@ -15,6 +16,8 @@ const SEVERITY_MAP = {
     Suggestion: "info",
     Error: "error",
 }
+
+const SCRIPT_MODES = ["javascript", "jsx", "typescript"]
 
 function getOxcLanguage(filePath, fallback) {
     const path = String(filePath || "").toLowerCase()
@@ -36,7 +39,12 @@ function getOxcLanguage(filePath, fallback) {
     return languageByExtension[extension] || fallback
 }
 
-function showDiagnostics(diagnostics, { editor, path }) {
+function resolveFilePath(path, oxcLanguage) {
+    if (path) return path
+    return `untitled.${oxcLanguage === "tsx" ? "tsx" : oxcLanguage}`
+}
+
+function showDiagnostics(diagnostics, { editor, path, source }) {
     const docLength = editor.getValue().length
 
     const list = diagnostics.map(item => {
@@ -51,9 +59,7 @@ function showDiagnostics(diagnostics, { editor, path }) {
         }
     })
 
-    editor.setDiagnostics(list)
-
-    console.log(list)
+    editor.setDiagnosticsFor(source, list)
 
     diagnostics.forEach(item => {
         addRuntimeError({
@@ -74,10 +80,17 @@ export async function setEditorContext(properties = {}, { editor, language, upda
     const isErrorsUpdate = properties.errorsUpdate !== false
 
     clearTimeout(diagnosticTimer)
-    const currentGen = ++generation
+    clearTimeout(typeCheckTimer)
+    const currentGen = isErrorsUpdate ? ++generation : generation
+
+    if (!SCRIPT_MODES.includes(language.mode)) {
+        editor.setDiagnosticsFor("syntax", [])
+        editor.setDiagnosticsFor("types", [])
+    }
 
     const setScriptContext = async (isTypeScript) => {
         const oxcLanguage = getOxcLanguage(path, isTypeScript ? "ts" : "js")
+        const filePath = resolveFilePath(path, oxcLanguage)
         const getDiagnostics = isTypeScript
             ? window.electron.typescriptDiagnostic
             : window.electron.javascriptDiagnostic
@@ -86,15 +99,26 @@ export async function setEditorContext(properties = {}, { editor, language, upda
             : window.electron.javascriptAST
         const parser = isTypeScript ? new TypescriptParser() : new JavascriptParser()
 
-        diagnosticTimer = setTimeout(async () => {
-            const diagnostics = await getDiagnostics(editor.getValue(), oxcLanguage)
+        if (isErrorsUpdate) {
+            diagnosticTimer = setTimeout(async () => {
+                const diagnostics = await getDiagnostics(editor.getValue(), oxcLanguage)
+                if (currentGen !== generation) return
+                showDiagnostics(diagnostics, { editor, path, source: "syntax" })
+            }, 500)
 
-            if (currentGen !== generation || !isErrorsUpdate) return
-            showDiagnostics(diagnostics, { editor, path })
-        }, 500)
+            if(isTypeScript) {
+                typeCheckTimer = setTimeout(async () => {
+                    const code = editor.getValue()
+                    const typeDiagnostics = await window.electron.tsTypeCheck(code, filePath)
+                    console.log(typeDiagnostics)
+                    if (currentGen !== generation) return
+                    showDiagnostics(typeDiagnostics, { editor, path, source: "types" })
+                }, 400)
+            }
+        }
 
         const ast = await getAst(editor.getValue(), oxcLanguage)
-        if (currentGen !== generation) return
+        if (isErrorsUpdate && currentGen !== generation) return
 
         const row = editor.getCursorPosition().row + 1
         parser.renderContext(parser.getContextChain(ast, row))

@@ -7,11 +7,13 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    border: 1px solid var(--block-divider-border-color);
+    border-radius: 10px;
 }
 
 .code-wrapper .bottom-window__container {
     position: absolute;
-    bottom: 50px;
+    bottom: 60px;
     width: -webkit-fill-available;
     z-index: 10;
 }
@@ -24,13 +26,15 @@
 .code-wrapper .bottom-window {
     background: var(--body-color);
     width: -webkit-fill-available;
-    border-top: 1px solid var(--block-divider-border-color);
     max-height: 200px;
     overflow: scroll;
     display: block;
     transition: .2s;
     min-height: 160px;
     position: relative;
+    border: 1px solid var(--block-divider-border-color);
+    border-radius: 5px;
+    margin: 5px;
 }
 
 .code-wrapper .bottom-window.fullscreen {
@@ -217,10 +221,8 @@ body.bottom-window-resizing {
     justify-content: space-between;
     position: fixed;
     width: -webkit-fill-available;
-    background: var(--body-color-transparent);
     z-index: 2;
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--block-divider-border-color);
+    backdrop-filter: blur(20px);
 }
 
 .code-wrapper .bottom-window.fullscreen .bottom-window__header {
@@ -322,12 +324,17 @@ body.bottom-window-resizing {
     height: 100%;
     position: relative;
     overflow: hidden;
+    background: var(--code-background);
 }
 
 .code-inner__wrapper div.code {
     position: absolute;
     z-index: 3;
-    height: calc(100% - 52px);
+    height: calc(100% - 62px);
+    border: none;
+}
+.code-inner__wrapper div.code#main-code {
+    height: 100%;
 }
 
 .code-inner__wrapper div.code.active-pane {

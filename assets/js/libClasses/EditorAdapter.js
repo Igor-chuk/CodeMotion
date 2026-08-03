@@ -30,6 +30,9 @@ export class _EditorAdapter {
         this.tabSize = undefined
         this.listeners = {}
 
+        this.filePath = null;
+        this._diagnosticsBySource = {}; 
+
         this.dom = view.dom
     }
 
@@ -253,8 +256,17 @@ export class _EditorAdapter {
         });
     }
 
+    setDiagnosticsFor(source, list) {
+        this._diagnosticsBySource = this._diagnosticsBySource || {};
+        this._diagnosticsBySource[source] = list || [];
+        this.setDiagnosticsInternal(Object.values(this._diagnosticsBySource).flat());
+    }
     setDiagnostics(list) {
-        this.setDiagnosticsInternal(list)
+        this.setDiagnosticsFor("manual", list);
+    }
+
+    setFilePath(filePath) {
+        this.filePath = filePath;
     }
 
     setOption(name, value) {
