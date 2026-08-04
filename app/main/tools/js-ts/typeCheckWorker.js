@@ -1,21 +1,8 @@
 const { parentPort } = require("worker_threads");
-const ts = require("typescript");
 const path = require("path");
-const fs = require("fs");
+const ts = require("typescript");
 
-const scriptVersions = new Map();
-const scriptContents = new Map();
-
-function findTsconfig(startDir) {
-    const configPath = ts.findConfigFile(startDir, ts.sys.fileExists, "tsconfig.json");
-    if (!configPath) return null;
-    const { config, error } = ts.readConfigFile(configPath, ts.sys.readFile);
-    if (error) return null;
-    return ts.parseJsonConfigFileContent(config, ts.sys, path.dirname(configPath));
-}
-
-let projectRoot = process.cwd();
-let parsedConfig = findTsconfig(projectRoot);
+const projects = new Map();
 
 const defaultCompilerOptions = {
     target: ts.ScriptTarget.ESNext,
@@ -30,48 +17,105 @@ const defaultCompilerOptions = {
     resolveJsonModule: true,
 };
 
-const compilerOptions = {
-    ...defaultCompilerOptions,
-    ...(parsedConfig?.options || {}),
-    allowJs: true,
-    checkJs: true,
-};
-const rootFiles = parsedConfig?.fileNames || [];
+function normalizeFileName(fileName) {
+    const resolved = path.resolve(String(fileName || "untitled.ts"));
+    return resolved.replace(/\\\\/g, "/");
+}
 
-const host = {
-    getScriptFileNames: () => Array.from(new Set([...rootFiles, ...scriptVersions.keys()])),
-    getScriptVersion: (fileName) => String(scriptVersions.get(fileName) ?? 0),
-    getScriptSnapshot: (fileName) => {
-        const override = scriptContents.get(fileName);
-        if (override !== undefined) return ts.ScriptSnapshot.fromString(override);
-        if (!fs.existsSync(fileName)) return undefined;
-        return ts.ScriptSnapshot.fromString(fs.readFileSync(fileName, "utf8"));
-    },
-    getCurrentDirectory: () => projectRoot,
-    getCompilationSettings: () => compilerOptions,
-    getDefaultLibFileName: (options) => ts.getDefaultLibFilePath(options),
-    fileExists: (fileName) => scriptContents.has(fileName) || ts.sys.fileExists(fileName),
-    readFile: (fileName) => scriptContents.get(fileName) ?? ts.sys.readFile(fileName),
-    directoryExists: ts.sys.directoryExists,
-    getDirectories: ts.sys.getDirectories,
-    readDirectory: ts.sys.readDirectory,
-    realpath: ts.sys.realpath,
-};
+function findTsconfig(startDir) {
+    const configPath = ts.findConfigFile(startDir, ts.sys.fileExists, "tsconfig.json");
+    if (!configPath) return null;
 
-const languageService = ts.createLanguageService(host, ts.createDocumentRegistry());
+    const { config, error } = ts.readConfigFile(configPath, ts.sys.readFile);
+    if (error) return null;
+
+    return {
+        path: normalizeFileName(configPath),
+        parsed: ts.parseJsonConfigFileContent(config, ts.sys, path.dirname(configPath)),
+    };
+}
+
+function createProject(config, fallbackRoot) {
+    const root = normalizeFileName(config ? path.dirname(config.path) : fallbackRoot);
+    const scriptVersions = new Map();
+    const scriptContents = new Map();
+    let version = 0;
+
+    const rootFiles = (config?.parsed.fileNames || []).map(normalizeFileName);
+    const compilerOptions = {
+        ...defaultCompilerOptions,
+        ...(config?.parsed.options || {}),
+        allowJs: true,
+        checkJs: true,
+    };
+
+    const host = {
+        getScriptFileNames: () => Array.from(new Set([...rootFiles, ...scriptVersions.keys()])),
+        getScriptVersion: (fileName) => String(scriptVersions.get(normalizeFileName(fileName)) || 0),
+        getProjectVersion: () => String(version),
+        getScriptSnapshot: (fileName) => {
+            const normalized = normalizeFileName(fileName);
+            const override = scriptContents.get(normalized);
+            if (override !== undefined) return ts.ScriptSnapshot.fromString(override);
+
+            const contents = ts.sys.readFile(normalized);
+            return contents === undefined ? undefined : ts.ScriptSnapshot.fromString(contents);
+        },
+        getCurrentDirectory: () => root,
+        getCompilationSettings: () => compilerOptions,
+        getDefaultLibFileName: (options) => normalizeFileName(ts.getDefaultLibFilePath(options)),
+        fileExists: (fileName) => {
+            const normalized = normalizeFileName(fileName);
+            return scriptContents.has(normalized) || ts.sys.fileExists(normalized);
+        },
+        readFile: (fileName) => {
+            const normalized = normalizeFileName(fileName);
+            return scriptContents.get(normalized) ?? ts.sys.readFile(normalized);
+        },
+        directoryExists: ts.sys.directoryExists,
+        getDirectories: ts.sys.getDirectories,
+        readDirectory: ts.sys.readDirectory,
+        realpath: (fileName) => normalizeFileName(ts.sys.realpath(fileName)),
+    };
+
+    return {
+        scriptVersions,
+        scriptContents,
+        incrementVersion: () => { version += 1; },
+        languageService: ts.createLanguageService(host, ts.createDocumentRegistry()),
+    };
+}
+
+function getProject(fileName) {
+    const directory = path.dirname(fileName);
+    const config = findTsconfig(directory);
+    const key = config ? `config:${config.path}` : `isolated:${normalizeFileName(directory)}`;
+
+    if (!projects.has(key)) {
+        projects.set(key, createProject(config, directory));
+    }
+
+    return projects.get(key);
+}
 
 function buildLineTable(code) {
     const table = [0];
-    for (let i = 0; i < code.length; i++) if (code[i] === "\n") table.push(i + 1);
+    for (let index = 0; index < code.length; index += 1) {
+        if (code[index] === "\n") table.push(index + 1);
+    }
     return table;
 }
 
 function offsetToLoc(offset, lineTable) {
-    let low = 0, high = lineTable.length - 1;
+    let low = 0;
+    let high = lineTable.length - 1;
+
     while (low < high) {
-        const mid = (low + high + 1) >> 1;
-        if (lineTable[mid] <= offset) low = mid; else high = mid - 1;
+        const middle = (low + high + 1) >> 1;
+        if (lineTable[middle] <= offset) low = middle;
+        else high = middle - 1;
     }
+
     return { line: low + 1, column: offset - lineTable[low] };
 }
 
@@ -92,30 +136,165 @@ function formatDiagnostic(diagnostic, lineTable) {
         message: ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"),
         category: categoryToString(diagnostic.category),
         from: start,
-        to: start + length,
+        to: start + Math.max(length, 1),
         line: loc.line,
         col: loc.column,
         code: diagnostic.code,
     };
 }
 
-function checkFile(fileName, code) {
-    scriptContents.set(fileName, code);
-    scriptVersions.set(fileName, (scriptVersions.get(fileName) ?? 0) + 1);
+function checkTypeScript(fileName, code) {
+    const project = getProject(fileName);
+    const nextVersion = (project.scriptVersions.get(fileName) || 0) + 1;
+
+    project.scriptContents.set(fileName, code);
+    project.scriptVersions.set(fileName, nextVersion);
+    project.incrementVersion();
 
     const lineTable = buildLineTable(code);
-    const diagnostics = [
-        ...languageService.getSyntacticDiagnostics(fileName),
-        ...languageService.getSemanticDiagnostics(fileName),
-    ];
+    return project.languageService
+        .getSemanticDiagnostics(fileName)
+        .map((diagnostic) => formatDiagnostic(diagnostic, lineTable));
+}
 
-    return diagnostics.map((d) => formatDiagnostic(d, lineTable));
+function isJavaScriptFile(fileName) {
+    return /\.(?:js|jsx|mjs|cjs|es6)$/i.test(fileName);
+}
+
+function createScope(parent = null) {
+    return { parent, functions: new Map() };
+}
+
+function findFunction(scope, name) {
+    for (let current = scope; current; current = current.parent) {
+        const definition = current.functions.get(name);
+        if (definition) return definition;
+    }
+
+    return null;
+}
+
+function getFunctionDefinition(node) {
+    const parameters = Array.from(node.parameters || []).filter((parameter) => !parameter.modifiers?.some(
+        (modifier) => modifier.kind === ts.SyntaxKind.ThisKeyword
+    ));
+    const hasRestParameter = parameters.some((parameter) => Boolean(parameter.dotDotDotToken));
+    const maxArguments = parameters.length;
+    const minArguments = parameters.reduce((minimum, parameter, index) => {
+        const optional = Boolean(parameter.questionToken || parameter.initializer || parameter.dotDotDotToken);
+        return optional ? minimum : index + 1;
+    }, 0);
+
+    return { minArguments, maxArguments, hasRestParameter };
+}
+
+function registerScopeDeclarations(statements, scope) {
+    for (const statement of statements) {
+        if (ts.isFunctionDeclaration(statement) && statement.name) {
+            scope.functions.set(statement.name.text, getFunctionDefinition(statement));
+            continue;
+        }
+
+        if (!ts.isVariableStatement(statement)) continue;
+
+        for (const declaration of statement.declarationList.declarations) {
+            if (!ts.isIdentifier(declaration.name) || !declaration.initializer) continue;
+            if (ts.isArrowFunction(declaration.initializer) || ts.isFunctionExpression(declaration.initializer)) {
+                scope.functions.set(declaration.name.text, getFunctionDefinition(declaration.initializer));
+            }
+        }
+    }
+}
+
+function expectedArgumentsMessage(definition, actualArguments) {
+    const expected = definition.hasRestParameter
+        ? `${definition.minArguments}+`
+        : definition.minArguments === definition.maxArguments
+            ? String(definition.minArguments)
+            : `${definition.minArguments}-${definition.maxArguments}`;
+
+    return `Expected ${expected} argument${expected === "1" ? "" : "s"}, but got ${actualArguments}.`;
+}
+
+function getJavaScriptArgumentDiagnostics(fileName, code) {
+    const scriptKind = /\.jsx$/i.test(fileName) ? ts.ScriptKind.JSX : ts.ScriptKind.JS;
+    const sourceFile = ts.createSourceFile(fileName, code, ts.ScriptTarget.Latest, true, scriptKind);
+    const lineTable = buildLineTable(code);
+    const diagnostics = [];
+
+    function addArityDiagnostic(node, scope) {
+        if (!ts.isIdentifier(node.expression)) return;
+
+        const definition = findFunction(scope, node.expression.text);
+        if (!definition) return;
+
+        const actualArguments = node.arguments.length;
+        const hasTooFewArguments = actualArguments < definition.minArguments;
+        const hasTooManyArguments = !definition.hasRestParameter && actualArguments > definition.maxArguments;
+        if (!hasTooFewArguments && !hasTooManyArguments) return;
+
+        const from = node.getStart(sourceFile);
+        const loc = offsetToLoc(from, lineTable);
+
+        diagnostics.push({
+            message: expectedArgumentsMessage(definition, actualArguments),
+            category: "Error",
+            from,
+            to: node.getEnd(),
+            line: loc.line,
+            col: loc.column,
+            code: 2554,
+        });
+    }
+
+    function visitStatementList(statements, parentScope) {
+        const scope = createScope(parentScope);
+        registerScopeDeclarations(statements, scope);
+        statements.forEach((statement) => visitNode(statement, scope));
+    }
+
+    function visitFunctionBody(node, parentScope) {
+        if (node.body && ts.isBlock(node.body)) {
+            visitStatementList(node.body.statements, parentScope);
+        } else if (node.body) {
+            visitNode(node.body, createScope(parentScope));
+        }
+    }
+
+    function visitNode(node, scope) {
+        if (ts.isBlock(node) || ts.isModuleBlock(node)) {
+            visitStatementList(node.statements, scope);
+            return;
+        }
+
+        if (ts.isCallExpression(node)) {
+            addArityDiagnostic(node, scope);
+        }
+
+        if (ts.isFunctionLike(node)) {
+            visitFunctionBody(node, scope);
+            return;
+        }
+
+        ts.forEachChild(node, (child) => visitNode(child, scope));
+    }
+
+    visitStatementList(sourceFile.statements, null);
+    return diagnostics;
+}
+
+function checkFile(fileName, code) {
+    const normalizedFileName = normalizeFileName(fileName);
+    const source = typeof code === "string" ? code : "";
+
+    return isJavaScriptFile(normalizedFileName)
+        ? getJavaScriptArgumentDiagnostics(normalizedFileName, source)
+        : checkTypeScript(normalizedFileName, source);
 }
 
 parentPort.on("message", ({ id, fileName, code } = {}) => {
     try {
-        const diagnostics = checkFile(fileName, code);
-        parentPort.postMessage({ id, diagnostics });
+        parentPort.postMessage({ id, diagnostics: checkFile(fileName, code) });
     } catch (error) {
         parentPort.postMessage({ id, diagnostics: [] });
     }

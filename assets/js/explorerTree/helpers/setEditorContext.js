@@ -79,8 +79,10 @@ export async function setEditorContext(properties = {}, { editor, language, upda
     const gls = GLS.initLocal()
     const isErrorsUpdate = properties.errorsUpdate !== false
 
-    clearTimeout(diagnosticTimer)
-    clearTimeout(typeCheckTimer)
+    if (isErrorsUpdate) {
+        clearTimeout(diagnosticTimer)
+        clearTimeout(typeCheckTimer)
+    }
     const currentGen = isErrorsUpdate ? ++generation : generation
 
     if (!SCRIPT_MODES.includes(language.mode)) {
@@ -110,7 +112,7 @@ export async function setEditorContext(properties = {}, { editor, language, upda
                 typeCheckTimer = setTimeout(async () => {
                     const code = editor.getValue()
                     const typeDiagnostics = await window.electron.tsTypeCheck(code, filePath)
-                    console.log(typeDiagnostics)
+
                     if (currentGen !== generation) return
                     showDiagnostics(typeDiagnostics, { editor, path, source: "types" })
                 }, 400)

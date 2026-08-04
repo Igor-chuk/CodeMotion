@@ -44,6 +44,11 @@ span[data-color] {
     letter-spacing: 0px;
 }
 
+.cm-tooltip {
+    border-radius: 5px;
+    font-family: var(--main-font);
+}
+
 /* gutter */
 
 .cm-gutter {

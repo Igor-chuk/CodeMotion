@@ -8,7 +8,7 @@ import {
     acceptCompletion, completionStatus
 } from "@codemirror/autocomplete";
 import { indentUnit, language } from "@codemirror/language";
-import { linter, lintGutter, forceLinting } from "@codemirror/lint";
+import { lintGutter, setDiagnostics as setLintDiagnostics } from "@codemirror/lint";
 
 // commands
 import {
@@ -266,16 +266,11 @@ window.CodeMirror = {
             }
         });
 
-        let diagnostics = [];
-
-        const lintExtension = linter(() => diagnostics);
-
         function createState(doc) {
             return EditorState.create({
                 doc,
                 extensions: [
                     lintGutter(),
-                    lintExtension,
 
                     history(),
                     lineNumbers(),
@@ -348,8 +343,7 @@ window.CodeMirror = {
             },
 
             setDiagnostics(value) {
-                diagnostics = value;
-                forceLinting(view);
+                view.dispatch(setLintDiagnostics(view.state, Array.isArray(value) ? value : []));
             },
             setOnChange(cb) {
                 onChange = cb;
