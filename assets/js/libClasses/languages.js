@@ -317,7 +317,7 @@ export class _Languages {
             name: "GO",
             icon: "go",
             iconExt: "svg",
-            mode: "golang",
+            mode: "go",
             color: "#00ACD7"
         },
         bat: {

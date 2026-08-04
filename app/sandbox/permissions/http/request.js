@@ -1,4 +1,4 @@
-function callback(data) {
+async function callback(data) {
     const properties = data.selfArgs[0]
     const url = properties.url
     const method = properties.method || "GET";

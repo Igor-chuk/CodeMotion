@@ -185,8 +185,10 @@ ipcMain.handle("run-extension", async (event, code, permissions, meta) => {
 
                     debuggerSender = debuggerSender ?? mainSender
 
-                    setNestedProperty(app, p, (...args) => {
-                        const factory = callback({
+                    const isAsync = callback[Symbol.toStringTag] === 'AsyncFunction'
+
+                    setNestedProperty(app, p, async (...args) => {
+                        const dataToSend = {
                             debuggerSender,
                             mainSender,
                             extensionName,
@@ -195,7 +197,9 @@ ipcMain.handle("run-extension", async (event, code, permissions, meta) => {
                             allCSSVariables,
                             selfArgs: args,
                             activeOn: activeOn
-                        })
+                        }
+                        const factory = isAsync ? await callback(dataToSend) : callback(dataToSend)
+                        console.log(appPermissionFile, factory)
 
                         if (factory && typeof factory === "function") {
                             return factory(...args);
