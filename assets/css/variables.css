@@ -57,7 +57,8 @@
 
     --ui-scale: 1;
 
-    --sidebar-width: 70px;
+    /* --sidebar-width: 70px; */
+    --sidebar-width: 55px;
 
     --bug-priority-medium: #ffc72361;
     --bug-priority-high: #ff232361;

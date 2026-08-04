@@ -1750,7 +1750,7 @@ body.explorer-resizing {
 .code-structure {
     bottom: 30px;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: flex-start;
     flex-direction: row;
     gap: 5px;
@@ -1766,6 +1766,7 @@ body.explorer-resizing {
     gap: 5px;
     font-weight: var(--default-font-weight);
     white-space: nowrap;
+    letter-spacing: 0px;
 }
 .code-structure .separator {
     opacity: 0.5;
@@ -1778,6 +1779,7 @@ body.explorer-resizing {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: 1px;
 }
 .code-structure .context-item span[class^="material-symbols"].function {
     color: var(--color-function);
@@ -1977,7 +1979,7 @@ body.explorer-resizing {
 .transparent-scrollbar::-webkit-scrollbar-button {
     display: none;
 }
-
+/* 
 .sidebar {
     width: var(--sidebar-width);
     min-width: var(--sidebar-width);
@@ -1993,6 +1995,21 @@ body.explorer-resizing {
     gap: 0px;
     position: relative;
     border: 1px solid var(--block-divider-border-color);
+    border-radius: 10px;
+} */
+.sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    max-width: var(--sidebar-width);
+    flex: 0 0 var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    color: var(--text-color);
+    height: -webkit-fill-available;
+    gap: 0px;
+    position: relative;
     border-radius: 10px;
 }
 .sidebar .sidebar-item {
@@ -2010,6 +2027,10 @@ body.explorer-resizing {
 }
 .sidebar .sidebar-item span[class^="material-symbols"] {
     font-size: 22px;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+.sidebar .sidebar-item.active span[class^="material-symbols"] {
+    font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
 }
 .sidebar .sidebar-item .sidebar-icon {
     --size: 10px;
