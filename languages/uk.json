@@ -259,6 +259,30 @@
             "fileWindowCategory": "Вікно файлів",
             "editorCategory": "Редактор",
 
+            "sideBar": {
+                "showHiddenFiles": {
+                    "title": "Показувати приховані файли",
+                    "description": "Показує файли та папки, що починаються з крапки (наприклад, .gitignore)"
+                }
+            },
+
+            "terminal": {
+                "appearanceLabel": "Вигляд",
+                "fontSize": {
+                    "title": "Розмір шрифту",
+                    "description": "Налаштовує розмір шрифту термінала"
+                },
+                "cursorBlink": {
+                    "title": "Блимання курсора",
+                    "description": "Вмикає анімацію блимання курсора в терміналі"
+                },
+                "behaviourLabel": "Поведінка",
+                "copyOnSelect": {
+                    "title": "Копіювати під час виділення",
+                    "description": "Автоматично копіює виділений текст у буфер обміну"
+                }
+            },
+
             "application": {
                 "applicationLabel": "Застосунок",
 
@@ -348,11 +372,43 @@
             },
 
             "fileWindow": {
+                "tabsCategory": "Вкладки",
                 "title": "Кольорові вкладки",
                 "description": "Нижня частина активної вкладки матиме колір, що відповідає її мові",
+                "showCloseButton": {
+                    "title": "Показувати кнопку закриття вкладки",
+                    "description": "Показує кнопку X для закриття на вкладках редактора"
+                },
                 "confirmClose": {
                     "title": "Підтвердження при закритті",
                     "description": "Показувати діалог підтвердження при закритті вкладки з незбереженими змінами"
+                }
+            },
+
+            "extensions": {
+                "title": "Розширення",
+                "securityCategory": "Безпека",
+                "riskyPermsWarn": {
+                    "title": "Вимкнути попередження про небезпечні дозволи",
+                    "description": "Пропускати попередження для розширень із небезпечними дозволами та автоматично їх вмикати"
+                }
+            },
+
+            "gitGithub": {
+                "title": "Git і GitHub",
+                "integration": {
+                    "title": "Інтеграція з Git і GitHub",
+                    "description": "Налаштуйте доступ до функцій Git, щоб отримати більше можливостей",
+                    "inputs": {
+                        "token": {
+                            "placeholder": "Персональний токен доступу GitHub"
+                        }
+                    },
+                    "buttons": {
+                        "save": "Зберегти",
+                        "view": "Переглянути",
+                        "getToken": "Отримати токен GitHub"
+                    }
                 }
             }
         },

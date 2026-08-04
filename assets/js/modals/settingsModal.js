@@ -115,8 +115,8 @@ export async function getSettingsModal({ platform }) {
                         items: [
                             {
                                 type: "switch",
-                                title: "Show hidden files",
-                                description: "Displays files and folders starting with a dot (e.g. .gitignore)",
+                                title: lgls("sideBar.showHiddenFiles.title"),
+                                description: lgls("sideBar.showHiddenFiles.description"),
                                 id: "setting_sidebarShowHiddenFiles",
                                 disabled: true
                             }
@@ -130,7 +130,7 @@ export async function getSettingsModal({ platform }) {
                 content: [
                     {
                         type: "category",
-                        label: "Appearance",
+                        label: lgls("terminal.appearanceLabel"),
                         items: []
                     },
                     {
@@ -139,8 +139,8 @@ export async function getSettingsModal({ platform }) {
                         items: [
                             {
                                 type: "range",
-                                title: "Font size",
-                                description: "Sets the terminal font size",
+                                title: lgls("terminal.fontSize.title"),
+                                description: lgls("terminal.fontSize.description"),
                                 id: "setting_terminalFontSize",
                                 min: 10,
                                 max: 24,
@@ -151,8 +151,8 @@ export async function getSettingsModal({ platform }) {
                             },
                             {
                                 type: "switch",
-                                title: "Cursor blink",
-                                description: "Enables cursor blinking animation in the terminal",
+                                title: lgls("terminal.cursorBlink.title"),
+                                description: lgls("terminal.cursorBlink.description"),
                                 id: "setting_terminalCursorBlink",
                                 disabled: true
                             },
@@ -160,7 +160,7 @@ export async function getSettingsModal({ platform }) {
                     },
                     {
                         type: "category",
-                        label: "Behaviour",
+                        label: lgls("terminal.behaviourLabel"),
                         items: []
                     },
                     {
@@ -169,8 +169,8 @@ export async function getSettingsModal({ platform }) {
                         items: [
                             {
                                 type: "switch",
-                                title: "Copy on selection",
-                                description: "Copies selected text to the clipboard automatically",
+                                title: lgls("terminal.copyOnSelect.title"),
+                                description: lgls("terminal.copyOnSelect.description"),
                                 id: "setting_terminalCopyOnSelect",
                                 disabled: true
                             }
@@ -184,7 +184,7 @@ export async function getSettingsModal({ platform }) {
                 content: [
                     {
                         type: "category",
-                        label: "Tabs",
+                        label: lgls("fileWindow.tabsCategory"),
                         items: []
                     },
                     {
@@ -199,8 +199,8 @@ export async function getSettingsModal({ platform }) {
                             },
                             {
                                 type: "switch",
-                                title: "Show tab close button",
-                                description: "Displays the X close button on editor tabs",
+                                title: lgls("fileWindow.showCloseButton.title"),
+                                description: lgls("fileWindow.showCloseButton.description"),
                                 id: "setting_tabShowClose",
                                 disabled: true
                             },
@@ -273,7 +273,7 @@ export async function getSettingsModal({ platform }) {
                 content: [
                     {
                         type: "category",
-                        label: "Security",
+                        label: lgls("extensions.securityCategory"),
                         items: []
                     },
                     {
@@ -324,7 +324,7 @@ export async function getSettingsModal({ platform }) {
 
                             {
                                 type: "button",
-                                title: gls.get("save"),
+                                title: lgls("gitGithub.integration.buttons.save"),
                                 id: "setting_githubAccessKeySave",
                                 container: "#githubAccessKeyButtonsContainer"
                             },

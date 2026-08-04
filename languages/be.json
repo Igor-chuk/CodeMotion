@@ -262,6 +262,30 @@
             "fileWindowCategory": "Акно файлаў",
             "editorCategory": "Рэдактар",
 
+            "sideBar": {
+                "showHiddenFiles": {
+                    "title": "Паказваць схаваныя файлы",
+                    "description": "Паказвае файлы і папкі, якія пачынаюцца з кропкі (напрыклад, .gitignore)"
+                }
+            },
+
+            "terminal": {
+                "appearanceLabel": "Выгляд",
+                "fontSize": {
+                    "title": "Памер шрыфту",
+                    "description": "Наладжвае памер шрыфту тэрмінала"
+                },
+                "cursorBlink": {
+                    "title": "Мігценне курсора",
+                    "description": "Уключае анімацыю мігцення курсора ў тэрмінале"
+                },
+                "behaviourLabel": "Паводзіны",
+                "copyOnSelect": {
+                    "title": "Капіяваць пры выдзяленні",
+                    "description": "Аўтаматычна капіруе вылучаны тэкст у буфер абмену"
+                }
+            },
+
             "application": {
                 "applicationLabel": "Праграма",
 
@@ -351,11 +375,43 @@
             },
 
             "fileWindow": {
+                "tabsCategory": "Укладкі",
                 "title": "Каляровыя ўкладкі",
                 "description": "Ніжняя частка актыўнай укладкі будзе падсвечвацца колерам мовы",
+                "showCloseButton": {
+                    "title": "Паказваць кнопку закрыцця ўкладкі",
+                    "description": "Паказвае кнопку X для закрыцця на ўкладках рэдактара"
+                },
                 "confirmClose": {
                     "title": "Пацверджанне пры закрыцці",
                     "description": "Паказваць дыялог пацверджання пры закрыцці ўкладкі з незахаванымі зменамі"
+                }
+            },
+
+            "extensions": {
+                "title": "Пашырэнні",
+                "securityCategory": "Бяспека",
+                "riskyPermsWarn": {
+                    "title": "Адключыць папярэджанне пра небяспечныя дазволы",
+                    "description": "Прапускаць папярэджанне для пашырэнняў з небяспечнымі дазволамі і аўтаматычна ўключаць іх"
+                }
+            },
+
+            "gitGithub": {
+                "title": "Git і GitHub",
+                "integration": {
+                    "title": "Інтэграцыя з Git і GitHub",
+                    "description": "Наладзьце доступ да функцый Git, каб атрымаць больш магчымасцяў",
+                    "inputs": {
+                        "token": {
+                            "placeholder": "Персанальны токен доступу GitHub"
+                        }
+                    },
+                    "buttons": {
+                        "save": "Захаваць",
+                        "view": "Праглядзець",
+                        "getToken": "Атрымаць токен GitHub"
+                    }
                 }
             }
         },

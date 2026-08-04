@@ -356,6 +356,30 @@
             "fileWindowCategory": "File Window",
             "editorCategory": "Editor",
 
+            "sideBar": {
+                "showHiddenFiles": {
+                    "title": "Show hidden files",
+                    "description": "Displays files and folders starting with a dot (e.g. .gitignore)"
+                }
+            },
+
+            "terminal": {
+                "appearanceLabel": "Appearance",
+                "fontSize": {
+                    "title": "Font size",
+                    "description": "Sets the terminal font size"
+                },
+                "cursorBlink": {
+                    "title": "Cursor blink",
+                    "description": "Enables cursor blinking animation in the terminal"
+                },
+                "behaviourLabel": "Behaviour",
+                "copyOnSelect": {
+                    "title": "Copy on selection",
+                    "description": "Copies selected text to the clipboard automatically"
+                }
+            },
+
             "application": {
                 "applicationLabel": "Application",
 
@@ -440,8 +464,13 @@
             },
 
             "fileWindow": {
+                "tabsCategory": "Tabs",
                 "title": "Colored tabs",
                 "description": "The bottom part of the active tab will glow in the color of the language",
+                "showCloseButton": {
+                    "title": "Show tab close button",
+                    "description": "Displays the X close button on editor tabs"
+                },
                 "confirmClose": {
                     "title": "Confirm on close",
                     "description": "Show a confirmation dialog when closing a tab with unsaved changes"
@@ -450,6 +479,7 @@
 
             "extensions": {
                 "title": "Extensions",
+                "securityCategory": "Security",
                 "riskyPermsWarn": {
                     "title": "Disable risky permission warning",
                     "description": "Skips the warning modal for extensions with risky permissions and auto-enables them"
@@ -467,6 +497,7 @@
                         }
                     },
                     "buttons": {
+                        "save": "Save",
                         "view": "View",
                         "getToken": "Get Github token"
                     }
