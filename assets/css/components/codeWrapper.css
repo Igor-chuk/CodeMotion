@@ -143,7 +143,7 @@ body.bottom-window-resizing {
 .bottom-window__resize-preview {
     position: fixed;
     height: 2px;
-    border-top: 2px solid rgba(255, 255, 255, .9);
+    border-top: 2px solid var(--text-color);
     box-shadow: 0 0 0 1px rgba(0, 0, 0, .45);
     pointer-events: none;
     z-index: 9999;
