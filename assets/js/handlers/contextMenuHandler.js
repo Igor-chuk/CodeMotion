@@ -1,4 +1,5 @@
 import { idify } from "../lib.js"
+import { getContextMenuPosition } from "./contextMenuPosition.js"
 
 export class ContextMenu {
     constructor(id, elements = {}) {
@@ -83,10 +84,17 @@ export class ContextMenu {
     _show(x, y) {
         const menuW = this.context.offsetWidth || 250;
         const menuH = this.context.offsetHeight || 300;
-        if (x + menuW > window.innerWidth) x = window.innerWidth - menuW - 5;
-        if (y + menuH > window.innerHeight) y = window.innerHeight - menuH - 5;
-        this.context.style.left = x + "px";
-        this.context.style.top = y + "px";
+        const position = getContextMenuPosition({
+            clientX: x,
+            clientY: y,
+            menuWidth: menuW,
+            menuHeight: menuH,
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight,
+            zoom: getComputedStyle(document.body).zoom,
+        });
+        this.context.style.left = position.left + "px";
+        this.context.style.top = position.top + "px";
         if (this.context.classList.contains("hidden")) {
             this.context.classList.add("closing");
             this.context.classList.remove("hidden");
