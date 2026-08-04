@@ -471,6 +471,7 @@ input~span {
     margin: 5px;
     margin-top: 0px;
     height: calc(100% - 5%);
+    padding-bottom: 5px;
 }
 .explorer {
     --explorer-width: 250px;

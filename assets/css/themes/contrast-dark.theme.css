@@ -1,7 +1,9 @@
 body[theme="contrast-dark"] {
     --body-color: #000000;
     --body-color-solid: #000000;
-    --body-color-transparent: #121212bd;
+    --body-color-transparent: #0a0a0abd;
+    --body-color-transparent-solid: #070707;
+    --code-background: #040404;
     --topbar-color: #000000;
     --block-divider-border-color: #1c1c1c;
     --text-color: white;

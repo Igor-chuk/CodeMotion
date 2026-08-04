@@ -2,6 +2,8 @@ body[theme="light"] {
     --body-color: #ffffff;
     --body-color-solid: #ffffff;
     --body-color-transparent: #ffffffa6;
+    --body-color-transparent-solid: white;
+    --code-background: white;
     --topbar-color: #efefef;
     --block-divider-border-color: #e1e1e1;
     --text-color: #000000;
@@ -47,9 +49,6 @@ body[theme="light"] {
 body[theme="light"] .code-tab.not-saved::after {
     background: #388ae1;
     border: 2px solid #ffffff;
-}
-body[theme="light"] .explorer-elements .file::after {
-    background: linear-gradient(270deg, var(--topbar-color) 20%, transparent);
 }
 body[theme="light"] .explorer-elements .file.active {
     background: #00000012;

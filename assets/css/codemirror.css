@@ -43,3 +43,22 @@ span[data-color] {
 .cm-editor {
     letter-spacing: 0px;
 }
+
+/* gutter */
+
+.cm-gutter {
+    --marker-size: 10px;
+}
+
+.cm-lint-marker-error {
+    content: ''!important;
+    background: var(--danger);
+    border-radius: 100%;
+    width: var(--marker-size)!important;
+    height: var(--marker-size)!important;
+}
+.cm-gutter-lint .cm-gutterElement {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

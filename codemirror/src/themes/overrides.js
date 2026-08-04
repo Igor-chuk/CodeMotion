@@ -10,10 +10,10 @@ export const vscodeDarkOverride = EditorView.theme({
 });
 export const atomoneOverride = EditorView.theme({
     "&": {
-        backgroundColor: "#26262b!important"
+        backgroundColor: "#040404!important"
     },
     ".cm-gutters": {
-        backgroundColor: "#0b0b0b!important"
+        backgroundColor: "#040404!important"
     }
 });
 export const githubDarkOverride = EditorView.theme({

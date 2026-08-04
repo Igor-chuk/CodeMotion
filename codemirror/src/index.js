@@ -171,13 +171,17 @@ export const Themes = {
     githubDark: [
         githubDark,
         githubDarkOverride
-    ]
+    ],
+    githubDarker: [
+        githubDark,
+        atomoneOverride
+    ],
 };
 
 export const ThemeParents = {
     default: "vscodeDark",
     light: "vscodeLight",
-    "contrast-dark": "atomone"
+    "contrast-dark": "githubDarker"
 }
 
 export const TabSizes = {
