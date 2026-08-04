@@ -37,3 +37,9 @@
 span[data-color] {
     outline: 1px solid var(--block-divider-border-color)!important;
 }
+
+/* other */
+
+.cm-editor {
+    letter-spacing: 0px;
+}

@@ -22,7 +22,7 @@
 }
 .top-window.list .top-window__list-item:hover {
     opacity: 1;
-    background: var(--block-divider-border-color);
+    background: var(--topbar-menu-item-hover-bg);
     cursor: pointer;
 }
 

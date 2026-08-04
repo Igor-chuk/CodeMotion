@@ -1297,6 +1297,7 @@ function bindEditorBtns(editor, properties = {}) {
 
                     captureWrapper.style.zIndex = 0
                     captureWrapper.style.display = "none"
+                    // captureWrapper.remove()
                 });
             }, 100);
         })

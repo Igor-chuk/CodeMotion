@@ -53,10 +53,19 @@ body {
     height: 100%;
     overflow: hidden;
     overscroll-behavior: none;
-    zoom: var(--ui-scale)
+    zoom: var(--ui-scale);
+    letter-spacing: var(--letter-spacing);
 }
 p, a, input, textarea, button {
     font-family: var(--main-font);
+}
+
+.main-background {
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: var(--body-color);
 }
 
 .hidden {
