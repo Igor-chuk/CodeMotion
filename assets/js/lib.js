@@ -702,7 +702,7 @@ export function getTheme() {
 }
 
 export function handleOnWheelScrollX() {
-    const elements = document.querySelectorAll(".code-tabs, .commands .commands-suggest")
+    const elements = document.querySelectorAll(".code-tabs, .commands .commands-suggest, .code-structure")
 
     elements.forEach(el => {
         el.addEventListener("wheel", (event) => {

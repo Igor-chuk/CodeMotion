@@ -296,7 +296,7 @@ input~span {
     background: var(--block-divider-border-color);
     border: 1px solid var(--context-border);
     font-size: 12px;
-    color: #d1d1d1;
+    color: var(--text-color);
     line-height: 20px;
     font-weight: 500;
     min-width: 20px;
@@ -1765,6 +1765,7 @@ body.explorer-resizing {
     align-items: center;
     gap: 5px;
     font-weight: var(--default-font-weight);
+    white-space: nowrap;
 }
 .code-structure .separator {
     opacity: 0.5;
