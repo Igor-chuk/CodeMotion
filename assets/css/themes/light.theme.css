@@ -5,16 +5,17 @@ body[theme="light"] {
     --topbar-color: #efefef;
     --block-divider-border-color: #e1e1e1;
     --text-color: #000000;
-    --text-color-muted: #c1c1c1;
-    --topbar-menu-item-hover-bg: #000000;
+    --text-color-muted: #626262;
+    --code-background: #ffffff;
+    --topbar-menu-item-hover-bg: #00000012;
     --explorer-padding: 0px 15px;
     --switch-bg-default: #ffffff;
     --switch-bg-active: #ffffff;
     --switch-inner-default: #fff;
     --switch-inner-active: #ffffff;
-    --explorer-tabs-bg: linear-gradient(0deg, #ffffff00, #ffffff14);
-    --explorer-tabs-border: radial-gradient(#ffffff4a, transparent);
-    --explorer-tabs-color: white;
+    --explorer-tabs-bg: linear-gradient(0deg, #ffffff00, #0000000a);
+    --explorer-tabs-border: radial-gradient(#00000024, transparent);
+    --explorer-tabs-color: #000000;
     --default-badge-bg: #e5903624;
     --default-badge-text: #e59036;
     --segment-bg: #ffffff;
@@ -52,6 +53,14 @@ body[theme="light"] .explorer-elements .file::after {
     background: linear-gradient(270deg, var(--topbar-color) 20%, transparent);
 }
 body[theme="light"] .explorer-elements .file.active {
+    background: #00000012;
+}
+
+body[theme="light"] .explorer-tabs {
+    backdrop-filter: blur(10px) brightness(1);
+}
+
+body[theme="light"] .code-tab span:hover {
     background: #00000012;
 }
 
