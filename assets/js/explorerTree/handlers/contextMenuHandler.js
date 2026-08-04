@@ -4,6 +4,7 @@ import { copyText, normalizePath } from "../../lib.js";
 import { closeTab, updateTabPath } from "../tabHandler.js";
 import { renderNodes } from "../render.js";
 import { bindFileClicks } from "./bindFileClicksHandler.js";
+import { getContextMenuPosition } from "../../handlers/contextMenuPosition.js";
 
 let menuEl = null;
 
@@ -124,14 +125,18 @@ function showMenu(event, items) {
         menu.classList.remove("closing");
     }
 
-    const edgeGap = 8;
-    const maxLeft = window.innerWidth - menu.offsetWidth - edgeGap;
-    const maxTop = window.innerHeight - menu.offsetHeight - edgeGap;
-    const left = Math.max(edgeGap, Math.min(event.clientX, maxLeft));
-    const top = Math.max(edgeGap, Math.min(event.clientY, maxTop));
+    const position = getContextMenuPosition({
+        clientX: event.clientX,
+        clientY: event.clientY,
+        menuWidth: menu.offsetWidth,
+        menuHeight: menu.offsetHeight,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        zoom: getComputedStyle(document.body).zoom,
+    });
 
-    menu.style.left = `${left}px`;
-    menu.style.top = `${top}px`;
+    menu.style.left = `${position.left}px`;
+    menu.style.top = `${position.top}px`;
 }
 
 async function refreshFolder(dirElement, context) {
