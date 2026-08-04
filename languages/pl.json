@@ -262,6 +262,30 @@
             "fileWindowCategory": "Okno plików",
             "editorCategory": "Edytor",
 
+            "sideBar": {
+                "showHiddenFiles": {
+                    "title": "Pokaż ukryte pliki",
+                    "description": "Wyświetla pliki i foldery zaczynające się od kropki (np. .gitignore)"
+                }
+            },
+
+            "terminal": {
+                "appearanceLabel": "Wygląd",
+                "fontSize": {
+                    "title": "Rozmiar czcionki",
+                    "description": "Ustawia rozmiar czcionki terminala"
+                },
+                "cursorBlink": {
+                    "title": "Miganie kursora",
+                    "description": "Włącza animację migania kursora w terminalu"
+                },
+                "behaviourLabel": "Zachowanie",
+                "copyOnSelect": {
+                    "title": "Kopiuj po zaznaczeniu",
+                    "description": "Automatycznie kopiuje zaznaczony tekst do schowka"
+                }
+            },
+
             "application": {
                 "applicationLabel": "Aplikacja",
 
@@ -351,11 +375,43 @@
             },
 
             "fileWindow": {
+                "tabsCategory": "Karty",
                 "title": "Kolorowe karty",
                 "description": "Dolna część aktywnej karty będzie podświetlana w kolorze języka",
+                "showCloseButton": {
+                    "title": "Pokaż przycisk zamykania karty",
+                    "description": "Wyświetla przycisk X zamykania na kartach edytora"
+                },
                 "confirmClose": {
                     "title": "Potwierdzenie przy zamykaniu",
                     "description": "Pokazuj dialog potwierdzenia przy zamykaniu karty z niezapisanymi zmianami"
+                }
+            },
+
+            "extensions": {
+                "title": "Rozszerzenia",
+                "securityCategory": "Bezpieczeństwo",
+                "riskyPermsWarn": {
+                    "title": "Wyłącz ostrzeżenie o ryzykownych uprawnieniach",
+                    "description": "Pomijaj ostrzeżenie dla rozszerzeń z ryzykownymi uprawnieniami i włączaj je automatycznie"
+                }
+            },
+
+            "gitGithub": {
+                "title": "Git i GitHub",
+                "integration": {
+                    "title": "Integracja z Git i GitHub",
+                    "description": "Skonfiguruj dostęp do funkcji Git, aby odblokować więcej możliwości",
+                    "inputs": {
+                        "token": {
+                            "placeholder": "Osobisty token dostępu GitHub"
+                        }
+                    },
+                    "buttons": {
+                        "save": "Zapisz",
+                        "view": "Wyświetl",
+                        "getToken": "Pobierz token GitHub"
+                    }
                 }
             }
         },
