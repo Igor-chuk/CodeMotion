@@ -113,7 +113,8 @@ ipcMain.handle("request-extension", async (event, name) => {
 })
 
 ipcMain.handle("run-extension", async (event, code, permissions, meta) => {
-    const extensionName = meta.extensionName != undefined ? meta.extensionName : "Unknown"
+	const extensionName = meta.extensionName != undefined ? meta.extensionName : "Unknown"
+    const extensionDisplayName = meta.extensionDisplayName != undefined ? meta.extensionDisplayName : "Unknown"
     const extensionVersion = meta.extensionVersion != undefined ? meta.extensionVersion : null
     const extensionPath = meta.extensionPath != undefined ? meta.extensionPath : null
     const isDev = meta.isDev != undefined ? meta.isDev : false
@@ -134,7 +135,8 @@ ipcMain.handle("run-extension", async (event, code, permissions, meta) => {
         }
 
         const app = {
-            name: extensionName,
+			name: extensionName,
+            displayName: extensionDisplayName,
             permissions: permissions,
             version: extensionVersion,
             path: extensionPath,
@@ -177,7 +179,7 @@ ipcMain.handle("run-extension", async (event, code, permissions, meta) => {
         permissions.forEach(p => {
             const checkRegex = /^[A-Za-z]+(?:\.[A-Za-z]+)+$/gm
 
-            if(checkRegex.test(p)) {
+            if (checkRegex.test(p)) {
                 let appPermissionFile = p.replaceAll(".", "/")
 
                 if (fs.existsSync(path.join(APP_PATH, "sandbox", "permissions", appPermissionFile + ".js"))) {
@@ -187,26 +189,33 @@ ipcMain.handle("run-extension", async (event, code, permissions, meta) => {
 
                     const isAsync = callback[Symbol.toStringTag] === 'AsyncFunction'
 
-                    setNestedProperty(app, p, async (...args) => {
-                        const dataToSend = {
-                            debuggerSender,
-                            mainSender,
-                            extensionName,
-                            extensionPath,
-                            permissionName: "app." + p,
-                            allCSSVariables,
-                            selfArgs: args,
-                            activeOn: activeOn
-                        }
-                        const factory = isAsync ? await callback(dataToSend) : callback(dataToSend)
-                        console.log(appPermissionFile, factory)
-
-                        if (factory && typeof factory === "function") {
-                            return factory(...args);
-                        }
+                    const buildDataToSend = (args) => ({
+                        debuggerSender,
+                        mainSender,
+                        extensionName,
+                        extensionPath,
+                        permissionName: "app." + p,
+                        allCSSVariables,
+                        selfArgs: args,
+                        activeOn: activeOn
                     })
-                }
-                else {
+
+                    if (isAsync) {
+                        setNestedProperty(app, p, async (...args) => {
+                            const factory = await callback(buildDataToSend(args))
+                            if (factory && typeof factory === "function") {
+                                return factory(...args)
+                            }
+                        })
+                    } else {
+                        setNestedProperty(app, p, (...args) => {
+                            const factory = callback(buildDataToSend(args))
+                            if (factory && typeof factory === "function") {
+                                return factory(...args)
+                            }
+                        })
+                    }
+                } else {
                     throw new Error(`Permission "${p}" is not exists`)
                 }
             }

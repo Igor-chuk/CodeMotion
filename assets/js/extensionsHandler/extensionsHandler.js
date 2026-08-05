@@ -246,7 +246,7 @@ export async function initExtensions() {
         permissions.forEach(p => allPermissions.add(p))
 
         const permissionsArray = [...allPermissions]
-        
+
         let isDev = false
 
         if ("app" in settings && "devMode" in settings.app) {
@@ -364,7 +364,7 @@ export async function initExtensions() {
                 )
             }
         }
-        
+
         // platform check
         const extPlatforms = Array.isArray(extensionPackage.platform) ? extensionPackage.platform : [extensionPackage.platform]
         if (!isPlatformCompatible(extPlatforms, currentPlatform)) {
@@ -406,8 +406,8 @@ export async function initExtensions() {
                 })
             }
         })
-        // 
-        
+        //
+
         async function runExtension() {
             const riskyPerms = hasRiskyPermissions(permissionsArray)
 
@@ -428,13 +428,17 @@ export async function initExtensions() {
                 }
             }
 
-            const extSettingsValues = settings?.extensions?.[name] || {}
+			const extSettingsValues = settings?.extensions?.[name] || {}
 
-            const runResult = await window.electron.runExtension(
+			console.log(displayName)
+			console.log(extensionPackage)
+
+			const runResult = await window.electron.runExtension(
                 extensionMainFileContentRes.result,
                 permissionsArray,
                 {
-                    extensionName: name,
+					extensionName: name,
+                    extensionDisplayName: displayName,
                     extensionVersion: version,
                     extensionPath: extensionPath,
                     isDev: isDev,

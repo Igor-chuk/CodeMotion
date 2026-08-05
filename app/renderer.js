@@ -55,7 +55,7 @@ export function enableSave() {
 
 document.addEventListener("DOMContentLoaded", async () => {
     const gls = await GLS.init()
-    
+
     localStorage.setItem("gls.current", gls.currentLang)
     localStorage.setItem("gls", JSON.stringify(gls.registry))
 
@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         openTab(name, content, extension, name, undefined, true, { gls: gls })
     })
 
-    // 
+    //
 
     sendDebugMsg("App started")
 
@@ -128,14 +128,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             mode: "python"
         })
     }
-    // 
+    //
 
     // set text-color to l-rings (loaders)
     document.querySelectorAll("l-ring").forEach(loader => {
         const textColor = window.getComputedStyle(document.documentElement).getPropertyValue("--text-color")
         loader.setAttribute("color", textColor)
     })
-    // 
+    //
 
     handleOnWheelScrollX()
 
@@ -304,7 +304,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (rec.new) {
             const saveNewFileRes = await electronAPI.askToSaveNewFile(
                 {
-                    filename: currentPath, 
+                    filename: currentPath,
                     content: rec.editor.getValue()
                 });
 
