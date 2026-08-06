@@ -32,7 +32,13 @@
         ],
         "win": {
             "target": "nsis",
-            "icon": "assets/media/builder-icons/codemotion-icon.ico"
+            "icon": "assets/media/builder-icons/app.ico"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "installerIcon": "assets/media/builder-icons/app.ico",
+            "uninstallerIcon": "assets/media/builder-icons/app.ico"
         },
         "mac": {
             "target": "dmg"
