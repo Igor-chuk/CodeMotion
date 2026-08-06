@@ -24,11 +24,11 @@ ipcMain.on("editor-clicked-event", (_: any, data: any) => {
 });
 
 ipcMain.on("file-opened-event", () => {
-    editorChangedCallback = null;
-    editorClickedCallback = null;
+
 });
 
 export function setEditorChangedCallback(cb: EditorChangedCallback): void {
+	console.log("setEditorChangedCallback")
     editorChangedCallback = cb;
 }
 

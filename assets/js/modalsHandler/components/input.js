@@ -56,8 +56,10 @@ export function renderInput(properties = {}) {
 
     wrapper.appendChild(inputWrapper)
 
-    input.addEventListener("input", (e) => {
-        e.target.parentElement.querySelector("#current-symbols").textContent = e.target.value.length
+	input.addEventListener("input", (e) => {
+		if (e.target.parentElement.querySelector("#current-symbols")) {
+			e.target.parentElement.querySelector("#current-symbols").textContent = e.target.value.length
+		}
 
         if(prefix) {
             if (!e.target.value.startsWith(prefix)) {
@@ -73,7 +75,7 @@ export function renderInput(properties = {}) {
             input.classList.toggle(
                 "focused",
                 input.value.length > 0
-            ); 
+            );
         }
     });
 

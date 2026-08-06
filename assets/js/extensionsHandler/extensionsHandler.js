@@ -430,9 +430,6 @@ export async function initExtensions() {
 
 			const extSettingsValues = settings?.extensions?.[name] || {}
 
-			console.log(displayName)
-			console.log(extensionPackage)
-
 			const runResult = await window.electron.runExtension(
                 extensionMainFileContentRes.result,
                 permissionsArray,

@@ -1,9 +1,9 @@
 const activeRules = new Map();
 
-function getAceTriggeredData({ data, mainSender }) {
-    const fileId = data.editorId;
+function getEditorTriggeredData({ data, mainSender }) {
+	const fileId = data.editorId;
 
-    const object = {
+	const object = {
         value: data.editorValue,
         mode: data.editorMode,
         language: {
@@ -35,4 +35,4 @@ const publicAPI = {
     }
 }
 
-module.exports = { getAceTriggeredData, publicAPI }
+module.exports = { getEditorTriggeredData, publicAPI }

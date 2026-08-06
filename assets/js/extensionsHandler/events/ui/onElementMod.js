@@ -17,9 +17,11 @@ export function onElementMod(data, modules = {}) {
     const id = data.id
     const type = data.type
     const context = data.extName
-    const value = data.value
+	const value = data.value
 
-    const topbarElementInstance = modules.TopBarElement
+	const topbarElementInstance = modules.TopBarElement
+	const sidebarElementInstance = modules.SidebarElement
+	const chatElementInstance = modules.ChatElement
     const idify = modules.idify
 
     const el = getEl(id)
@@ -72,9 +74,9 @@ export function onElementMod(data, modules = {}) {
     }
     if(type == "setTopbarItemSetup") {
         const topbarItem = new topbarElementInstance(id)
-        const item = topbarItem.item
+		const item = topbarItem.item
 
-        if("colors" in value) {
+		if ("colors" in value) {
             if("background" in value.colors) item.style.background = value.colors.background
             if("text" in value.colors) item.style.color = value.colors.text
         }
@@ -129,6 +131,101 @@ export function onElementMod(data, modules = {}) {
                 topbarItem.on(value, () => {
                     sendToElement(id, "onEventTriggered", { eventName: value })
                 })
+            })
+        }
+	}
+
+    if(type == "setSidebarItemSetup") {
+        const sidebarItem = new sidebarElementInstance(id, ["non-native"])
+
+		sidebarItem.content(value)
+        sidebarItem.show()
+	}
+    if(type == "setSidebarItemShow") {
+        const idifiedID = idify(id)
+
+        if (sidebarElementInstance.instances.has(idifiedID)) {
+            const sidebarItem = sidebarElementInstance.instances.get(idifiedID)
+
+            requestAnimationFrame(() => {
+                sidebarItem.show()
+            })
+        }
+	}
+    if(type == "setSidebarItemHide") {
+        const idifiedID = idify(id)
+
+        if (sidebarElementInstance.instances.has(idifiedID)) {
+            const sidebarItem = sidebarElementInstance.instances.get(idifiedID)
+
+            requestAnimationFrame(() => {
+                sidebarItem.hide()
+            })
+        }
+    }
+    if(type == "setSidebarItemEvent") {
+        const idifiedID = idify(id)
+
+        if (sidebarElementInstance.instances.has(idifiedID)) {
+            const sidebarItem = sidebarElementInstance.instances.get(idifiedID)
+
+            requestAnimationFrame(() => {
+                sidebarItem.on(value, () => {
+                    sendToElement(id, "onEventTriggered", { eventName: value })
+                })
+            })
+        }
+	}
+
+	if (type == "setChatElementSetup") {
+		const chatItem = new chatElementInstance(id)
+
+		chatItem.content(value)
+		chatItem.show()
+    }
+	if (type == "setChatElementEvent") {
+		const idifiedID = idify(id)
+
+        if (chatElementInstance.instances.has(idifiedID)) {
+			const chatElement = chatElementInstance.instances.get(idifiedID)
+
+			requestAnimationFrame(() => {
+				chatElement.on("msg", (data) => {
+					sendToElement(id, "onEventTriggered", { eventName: value, data: data })
+             	})
+            })
+        }
+    }
+	if (type == "setChatElementReply") {
+		const idifiedID = idify(id)
+
+        if (chatElementInstance.instances.has(idifiedID)) {
+			const chatElement = chatElementInstance.instances.get(idifiedID)
+
+			requestAnimationFrame(() => {
+				chatElement.reply(value)
+            })
+        }
+    }
+	if (type == "setChatElementShow") {
+		const idifiedID = idify(id)
+
+        if (chatElementInstance.instances.has(idifiedID)) {
+			const chatElement = chatElementInstance.instances.get(idifiedID)
+
+			requestAnimationFrame(() => {
+				chatElement.show()
+            })
+        }
+    }
+	if (type == "setChatElementHide") {
+		const idifiedID = idify(id)
+
+        if (chatElementInstance.instances.has(idifiedID)) {
+			const chatElement = chatElementInstance.instances.get(idifiedID)
+
+			requestAnimationFrame(() => {
+				chatElement.hide()
             })
         }
     }

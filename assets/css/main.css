@@ -9,6 +9,7 @@
 @import url("codemirror.css");
 @import url("keyframes.css");
 @import url("variables.css");
+@import url("components/chatElement.css");
 
 html {
     height: 100vh;
@@ -588,7 +589,7 @@ body.explorer-resizing {
 }
 .explorer-tabs .explorer-tab.active {
     opacity: 1;
-    cursor: pointer; 
+    cursor: pointer;
     position: relative;
 }
 .explorer-tabs .explorer-tab:hover {
@@ -867,7 +868,7 @@ body.explorer-resizing {
 .explorer-elements[data-tab="files"] {
     gap: 5px;
 }
-.explorer-elements .file { 
+.explorer-elements .file {
     display: flex;
     align-items: center;
     flex: 0 0 auto;
@@ -1979,7 +1980,7 @@ body.explorer-resizing {
 .transparent-scrollbar::-webkit-scrollbar-button {
     display: none;
 }
-/* 
+/*
 .sidebar {
     width: var(--sidebar-width);
     min-width: var(--sidebar-width);
@@ -2024,6 +2025,11 @@ body.explorer-resizing {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+}
+.sidebar .sidebar-item .sidebar-image {
+	width: 25px;
+    height: 25px;
+    object-fit: cover;
 }
 .sidebar .sidebar-item span[class^="material-symbols"] {
     font-size: 22px;

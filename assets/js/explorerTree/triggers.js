@@ -15,10 +15,10 @@ function getTriggerObj({ editor, language, extension }) {
     }
 }
 
-export function triggerEditorChanged({ editor, extension, language }) {  
+export function triggerEditorChanged({ editor, extension, language }) {
     window.electron.triggers.sendEditorChanged(
         getTriggerObj({ editor: editor, extension: extension, language: language })
-    )
+	)
 
     sendEvent("editor-language-changed", { extension: extension, editor: editor, mode: editor.currentLanguageId() })
 }

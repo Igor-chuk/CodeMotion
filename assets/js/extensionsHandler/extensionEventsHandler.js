@@ -1,8 +1,4 @@
-import { Options, Languages, Dirs, escapeHtml, createNotify, TopBarElement, idify } from "../lib.js"
-import { optionsThemeButtonHandler } from "../handlers/themesHandler.js"
-import { themeEditors } from "../explorerTree/tabHandler.js"
-import { bus, sendEvent } from "../../js/bus.js"
-import { disableErrors, enableErrors } from "../handlers/bottomTabHandler.js"
+import { TopBarElement, idify, SidebarElement, ChatElement } from "../lib.js"
 
 import { themeRegisterCallback } from "./events/ui/onThemeRegister.js"
 import { onLoadCSSCallback } from "./events/ui/onLoadCSS.js"
@@ -22,7 +18,6 @@ const preloadapi = window.electron
 const extapi = preloadapi.ext
 
 const contexts = {}
-let currentEditor = null
 
 export function handleExtensionEvents() {
     const audioProvider = new Audio()
@@ -42,7 +37,7 @@ export function handleExtensionEvents() {
         onElementCreate(data)
     })
     extapi.ui.element.onMod(data => {
-        onElementMod(data, { TopBarElement, idify })
+        onElementMod(data, { ChatElement, SidebarElement, TopBarElement, idify })
     })
 
     extapi.editor.docs.onRegister(data => {
@@ -78,7 +73,7 @@ export function handleExtensionEvents() {
         const path = data.path
         let volume = data.volume
         let speed = data.speed
-        
+
         audioProvider.src = path
         audioProvider.load()
 

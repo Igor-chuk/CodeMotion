@@ -1,4 +1,4 @@
-const { setAceClickedCallback } = require("../../../main/ipc/ace.ts")
+const { setEditorClickedCallback } = require("../../../main/ipc/editor.ts")
 const { getAceTriggeredData } = require("./__api.js")
 
 function callback(data) {
@@ -7,7 +7,7 @@ function callback(data) {
 
     if (typeof cb !== "function") return;
 
-    setAceClickedCallback((rawData) => {
+    setEditorClickedCallback((rawData) => {
         cb(getAceTriggeredData({
             data: rawData,
             mainSender

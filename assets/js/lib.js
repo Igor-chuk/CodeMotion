@@ -18,6 +18,9 @@ import { _CodeTemplates } from "./libClasses/codeTemplates.js"
 import { _EditorAdapter } from "./libClasses/EditorAdapter.js"
 import { _GetOrgAvatar } from "./libClasses/avatar.js"
 import { _Task } from "./libClasses/task.js"
+import { _SidebarElement } from "./libClasses/sidebarElement.js"
+import { _ChatElement } from "./libClasses/chatElement.js"
+import { _Time } from "./libClasses/Time.js"
 
 let runtimeErrors = []
 let runtimeErrorsCount = 0
@@ -38,6 +41,9 @@ export const GLS = _GLS
 export const CodeTemplates = _CodeTemplates
 export const EditorAdapter = _EditorAdapter
 export const Task = _Task
+export const SidebarElement = _SidebarElement
+export const ChatElement = _ChatElement
+export const Time = _Time
 
 export const GetOrgAvatar = _GetOrgAvatar
 
@@ -81,7 +87,7 @@ export function setTabNameCounter(count) {
         if (old) old.remove();
         return;
     }
-    
+
     if (old) old.remove();
     tabName.insertAdjacentHTML("beforeend", `<span class="counter">${count}</span>`);
 }
@@ -208,11 +214,11 @@ export function addToHistory({ id, actionType, value, desc, today }) {
     const historyDesc = desc != undefined ? desc : "No description provided"
     const historyToday = today != undefined ? today : new Date().format("H:i")
 
-    historyObject[historyID] = { 
-        time: historyToday, 
-        action: actionType, 
-        value: historyValue, 
-        description: historyDesc 
+    historyObject[historyID] = {
+        time: historyToday,
+        action: actionType,
+        value: historyValue,
+        description: historyDesc
     };
 }
 

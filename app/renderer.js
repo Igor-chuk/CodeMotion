@@ -234,9 +234,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Explorer tabs
 
     document.querySelectorAll(".sidebar-item").forEach(tab => {
-        const id = tab.getAttribute("id");
+		const id = tab.getAttribute("id");
 
-        tab.addEventListener("click", async () => {
+		if(tab.getAttribute("non-native")) return
+
+		tab.addEventListener("click", async () => {
             document.querySelectorAll("[visibleOn]").forEach(el => {
                 const tabID = tab.id
                 const visibleID = el.getAttribute("visibleOn")

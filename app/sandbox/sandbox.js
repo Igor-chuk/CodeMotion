@@ -230,7 +230,8 @@ ipcMain.handle("run-extension", async (event, code, permissions, meta) => {
         const sandbox = {
             console: createSandboxConsole(extensionName, debuggerSender),
             Map: Map,
-            app
+			app,
+            JSON
         };
 
         const context = vm.createContext(sandbox);

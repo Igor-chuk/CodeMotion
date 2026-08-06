@@ -706,7 +706,7 @@ export async function openTab(path, content, extension, name, pathContext, isNew
     } else {
         if (!isImage) editor.setValue(content ?? "", -1);
         editor.resetUndoManager();
-        
+
         setErrors(editor.getAnnotations())
     }
 
@@ -718,17 +718,7 @@ export async function openTab(path, content, extension, name, pathContext, isNew
         animatedScroll: true,
         cursorStyle: "smooth",
         fixedWidthGutter: true
-    });
-
-    await setEditorContext({}, {
-        editor: editor,
-        language: language,
-        updateEditorData: updateEditorData,
-        path: path,
-        settings: settings
-    })
-
-    addThemeModificator(editor)
+	});
 
     window.electron.triggers.sendFileOpened(
         {
@@ -747,6 +737,16 @@ export async function openTab(path, content, extension, name, pathContext, isNew
             context: pathContext ?? undefined
         }
     )
+
+    await setEditorContext({}, {
+        editor: editor,
+        language: language,
+        updateEditorData: updateEditorData,
+        path: path,
+        settings: settings
+    })
+
+    addThemeModificator(editor)
 
     // trigger first ace mode changed
 
@@ -820,9 +820,10 @@ export async function openTab(path, content, extension, name, pathContext, isNew
             updateEditorData: updateEditorData,
             path: path,
             settings: settings
-        })
+		})
+        triggerCursorChanged()
     });
-    
+
     const tab = document.createElement("div");
 
     tab.className = "code-tab" + (isPreview ? " preview" : "");
@@ -1062,7 +1063,7 @@ export function closeTab(path) {
     destroyCodeContextMenu();
 
     try { editor.destroy(); } catch (_) { }
-    
+
     if (paneEl && paneEl.parentNode) paneEl.parentNode.removeChild(paneEl);
 
     const next = tabEl.nextElementSibling?.classList.contains("code-tab") ? tabEl.nextElementSibling : null;
@@ -1238,7 +1239,7 @@ function bindEditorBtns(editor, properties = {}) {
             else {
                 value = editor.getValue()
             }
-            
+
             const captureArea = captureWrapper.querySelector("#code-snippet-area")
             captureArea.id = "code-snippet-area"
 

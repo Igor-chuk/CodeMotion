@@ -3,9 +3,26 @@ const path = require("node:path");
 const { getEl } = require("../../../../assets/js/extensionsHandler/events/ui/onElementMod");
 const { ExtensionError, createSandboxConsole } = require("../../tools");
 
+const allowedImageFormats = ["gif", "png", "jpg", "jpeg", "svg"]
+
 function checkForMatch(originalObject, matchObject) {
     const allowed = new Set(Object.keys(matchObject));
     return Object.keys(originalObject).filter(key => !allowed.has(key));
+}
+
+function checkForImage(properties, { extPath, type }) {
+	if("image" in properties) {
+	    const imgBase = properties.image.split("?")[0]
+		const imgQuery = properties.image.includes("?") ? "?" + properties.image.split("?")[1] : ""
+
+	    if(!allowedImageFormats.includes(imgBase.split(".").pop())) {
+		    c.error(`[${type}:setup:image] This image format is not supported. Supported formats: ${allowedImageFormats.join(", ")}`)
+		}
+
+		properties.image = path.join(extPath, imgBase) + imgQuery
+
+		return properties
+	}
 }
 
 function callback(data) {
@@ -13,9 +30,7 @@ function callback(data) {
     const mainSender = data.mainSender
     const debuggerSender = data.debuggerSender
     const extName = data.extensionName
-    const extPath = data.extensionPath
-
-    const allowedImageFormats = ["gif", "png", "jpg", "jpeg", "svg"]
+	const extPath = data.extensionPath
 
     const c = createSandboxConsole(extName, debuggerSender)
 
@@ -175,9 +190,88 @@ function callback(data) {
 
                 list[id]["events"] = events
             }
-        }
+		}
 
-        return properties
+        if (type == "sidebarItem") {
+	        properties["setup"] = (properties = {}) => {
+	            if("image" in properties) {
+	                const imgBase = properties.image.split("?")[0]
+	                const imgQuery = properties.image.includes("?") ? "?" + properties.image.split("?")[1] : ""
+	                if(!allowedImageFormats.includes(imgBase.split(".").pop())) {
+	                    c.error(`[${type}:setup:image] This image format is not supported. Supported formats: ${allowedImageFormats.join(", ")}`)
+	                }
+	                properties.image = path.join(extPath, imgBase) + imgQuery
+				}
+
+	            mainSender.send("extension-mod-element", genObj({
+	                type: "setSidebarItemSetup",
+	                value: properties,
+	            }))
+
+	            list[id]["properties"] = properties
+			}
+			properties["on"] = (eventName, callback = () => {}) => {
+                mainSender.send("extension-mod-element", genObj({
+                    type: "setSidebarItemEvent",
+                    value: eventName
+                }))
+
+                events[eventName] = callback
+
+                list[id]["events"] = events
+            }
+			properties["show"] = () => {
+                mainSender.send("extension-mod-element", genObj({
+                    type: "setSidebarItemShow"
+                }))
+            }
+			properties["hide"] = () => {
+                mainSender.send("extension-mod-element", genObj({
+                    type: "setSidebarItemHide"
+                }))
+            }
+		}
+
+        if (type == "chatElement") {
+			properties["setup"] = (properties = {}) => {
+				properties = checkForImage(properties, { extPath, type })
+
+	            mainSender.send("extension-mod-element", genObj({
+	                type: "setChatElementSetup",
+	                value: properties,
+	            }))
+
+	            list[id]["properties"] = properties
+			}
+			properties["on"] = (eventName, callback = () => {}) => {
+                mainSender.send("extension-mod-element", genObj({
+                    type: "setChatElementEvent",
+                    value: eventName
+                }))
+
+                events[eventName] = callback
+
+                list[id]["events"] = events
+            }
+			properties["reply"] = (properties = {}) => {
+	            mainSender.send("extension-mod-element", genObj({
+	                type: "setChatElementReply",
+	                value: properties,
+	            }))
+			}
+			properties["show"] = () => {
+                mainSender.send("extension-mod-element", genObj({
+                    type: "setChatElementShow"
+                }))
+            }
+			properties["hide"] = () => {
+                mainSender.send("extension-mod-element", genObj({
+                    type: "setChatElementHide"
+                }))
+            }
+		}
+
+		return properties
     }
 
     // listen to external changes
@@ -188,18 +282,21 @@ function callback(data) {
 
         const current = list[id]
 
-        if(type == "onEventTriggered" && current) { 
-            const eventName = data.eventName
+        if(type == "onEventTriggered" && current) {
+			const eventName = data.eventName
+            const dataToSend = data.data ? data.data : {}
 
-            if(eventName in current.events) {
-                current.events[eventName]()
+			if (eventName in current.events) {
+                current.events[eventName](dataToSend)
             }
         }
     })
 
     const elements = {
         image: createElement("image"),
-        topbarItem: createElement("topbarItem")
+		topbarItem: createElement("topbarItem"),
+		sidebarItem: createElement("sidebarItem"),
+        chatElement: createElement("chatElement")
     }
 
     if(elType in elements) {
