@@ -42,13 +42,13 @@
         },
         "mac": {
             "target": "dmg",
-            "icon": "assets/media/codemotion_icon.png"
+            "icon": "assets/media/builder-icons/app.png"
         },
         "linux": {
             "category": "Development",
             "target": "AppImage",
             "syncDesktopName": true,
-            "icon": "assets/media/codemotion_icon.png"
+            "icon": "assets/media/builder-icons/app.png"
         }
     },
     "devDependencies": {

@@ -142,7 +142,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const pathContext = {}
     window.__pathContext = pathContext
 
-    document.querySelector(".code-start__main-logo").src = appIcon
+	document.querySelectorAll("[appicon-src-setup]").forEach(el => {
+		el.src = appIcon
+    })
 
     setupSegmentedControl()
     showIndicator()

@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="../assets/css/main.css"> 
-    <link rel="stylesheet" href="../assets/css/global.css"> 
-    <link rel="stylesheet" href="../assets/css/themes/light.theme.css"> 
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/global.css">
+    <link rel="stylesheet" href="../assets/css/themes/light.theme.css">
     <link rel="stylesheet" href="../assets/css/themes/contrast-dark.theme.css">
     <link rel="stylesheet" href="../assets/css/themes/terminal.theme.css">
 
@@ -63,7 +63,7 @@
     <script defer src="../node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
 
     <script defer src="../assets/js/external/popper.min.js"></script>
-    
+
     <title>CodeMotion</title>
 </head>
 <body>
@@ -82,15 +82,15 @@
             size="40"
             stroke="3"
             speed="1"
-            color="white" 
+            color="white"
         ></l-line-spinner>
         <p class="loader-msg hidden">...</p>
     </div>
     <div class="topbar">
         <div class="topbar-section">
             <div class="topbar-section__item">
-                <img class="topbar-section__item-logo blurred" src="../assets/media/codemotion_header_icon.png">
-                <img class="topbar-section__item-logo" src="../assets/media/codemotion_header_icon.png">
+                <img class="topbar-section__item-logo blurred" appicon-src-setup>
+                <img class="topbar-section__item-logo" appicon-src-setup>
             </div>
 			<div class="popups-wrapper">
 				<div class="popup" popup="file">
@@ -276,7 +276,7 @@
                 <div class="code" id="main-code">
                     <div class="code-start">
                         <div class="code-start__main">
-                            <img class="code-start__main-logo">
+                            <img class="code-start__main-logo" appicon-src-setup>
                             <h1 class="monospace">$cdmtn<span class="cursor-animation">_</span></h1>
                             <p id="greeting" gls="greeting.withoutUsername">How do you feel today?</p>
                         </div>
@@ -293,7 +293,7 @@
             <div class="code-footer hidden">
                 <div class="code-footer__section">
                     <span class="visible-after-opened-folder" id="currentLang">Javascript</span>
-                    <span class="code-footer__section-btn visible-after-opened-folder" id="code-snippet" tooltip="tooltips.codeSnippet" tooltippos="top"> 
+                    <span class="code-footer__section-btn visible-after-opened-folder" id="code-snippet" tooltip="tooltips.codeSnippet" tooltippos="top">
                         <span class="material-symbols-rounded">camera</span>
                     </span>
                     <span class="code-footer__section-btn visible-after-opened-folder" id="code-copy" tooltip="tooltips.copy" tooltippos="top">
