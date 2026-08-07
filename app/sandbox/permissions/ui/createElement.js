@@ -25,6 +25,29 @@ function checkForImage(properties, { extPath, type }) {
 	}
 }
 
+// Shared registry of extension-created UI elements, keyed by their unique id.
+const list = {}
+
+// Registered exactly once for the whole process. Previously this lived inside
+// callback(), so every extension element added another IpcMain listener and
+// eventually tripped MaxListenersExceededWarning.
+ipcMain.on("extension-send-element", (_, object) => {
+    const type = object.type
+    const id = object.id
+    const data = object.data
+
+    const current = list[id]
+
+    if (type == "onEventTriggered" && current && current.events) {
+        const eventName = data.eventName
+        const dataToSend = data.data ? data.data : {}
+
+        if (eventName in current.events) {
+            current.events[eventName](dataToSend)
+        }
+    }
+})
+
 function callback(data) {
     const elType = data.selfArgs[0]
     const mainSender = data.mainSender
@@ -33,8 +56,6 @@ function callback(data) {
 	const extPath = data.extensionPath
 
     const c = createSandboxConsole(extName, debuggerSender)
-
-    const list = {}
 
     function createElement(type) {
         const id = crypto.randomUUID()
@@ -273,24 +294,6 @@ function callback(data) {
 
 		return properties
     }
-
-    // listen to external changes
-    ipcMain.on("extension-send-element", (_, object) => {
-        const type = object.type
-        const id = object.id
-        const data = object.data
-
-        const current = list[id]
-
-        if(type == "onEventTriggered" && current) {
-			const eventName = data.eventName
-            const dataToSend = data.data ? data.data : {}
-
-			if (eventName in current.events) {
-                current.events[eventName](dataToSend)
-            }
-        }
-    })
 
     const elements = {
         image: createElement("image"),
