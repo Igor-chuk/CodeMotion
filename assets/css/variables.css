@@ -71,5 +71,20 @@
     --verified-bagde-text: white;
     --owner-badge: #ff742f;
 
-    --letter-spacing: -0.5px
+    --letter-spacing: -0.5px;
+
+    --color-boolean: #c19aff;
+    --color-const: #72abff;
+    --color-class: #4EC9B0;
+    --color-function: #ffef9d;
+    --color-number: #ffa981;
+    --color-string: #ffc17a;
+    --color-special-operator: #ff6fcb;
+    --color-default: #8dbeff;
+    --color-operator: #428cff;
+    --color-keyword: rgb(255 107 107);
+    --color-other: #c960a8;
+    --color-template-literal-wrapper: #29a9ff;
+    --color-character: var(--color-const);
+    --color-func-arg: #ffb96e;
 }
