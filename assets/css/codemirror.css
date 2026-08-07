@@ -46,7 +46,10 @@ span[data-color] {
 
 .cm-tooltip {
     border-radius: 5px;
+    overflow: hidden;
+    font-size: 14px;
     font-family: var(--main-font);
+    border: 1px solid var(--block-divider-border-color);
 }
 
 /* gutter */
