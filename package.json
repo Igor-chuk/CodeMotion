@@ -41,7 +41,8 @@
             "uninstallerIcon": "assets/media/builder-icons/app.ico"
         },
         "mac": {
-            "target": "dmg"
+            "target": "dmg",
+            "icon": "assets/media/codemotion_icon.png"
         },
         "linux": {
             "category": "Development",
