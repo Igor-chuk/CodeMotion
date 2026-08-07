@@ -45,6 +45,7 @@ import { markdown } from "@codemirror/lang-markdown";
 
 // extensions
 import { colorComments, colorCommentsTheme } from "./plugins/colorComments";
+import { semanticHighlight, semanticHighlightTheme, semanticDiagnosticsSink } from "./plugins/semanticHighlight";
 import { fromVSCodeSnippets } from "./plugins/snippets";
 import { suggestionField, suggestionTheme, suggestPlugin, suggestUpdateListener, acceptSuggestion, dismissSuggestion, initSuggestListener } from "./plugins/suggest";
 import { atomoneOverride, githubDarkOverride, vscodeDarkOverride } from "./themes/overrides";
@@ -91,6 +92,9 @@ const typescriptLang = javascript({ jsx: true, typescript: true });
 const htmlLang = html({ matchClosingTags: true, selfClosingTags: true, autoCloseTags: true })
 const jsonLang = json()
 
+const jsSemantic = semanticHighlight({ ts: false, jsx: true });
+const tsSemantic = semanticHighlight({ ts: true, jsx: true });
+
 const javascriptHighlight = javascriptLang;
 const javascriptAutocomplete = [
     javascriptLang.language.data.of({ autocomplete: forLanguage("javascript", completeFromList(javascriptSnippets)) }),
@@ -114,8 +118,8 @@ const jsonAutocomplete = [
 ];
 
 export const Languages = {
-    javascript: [javascriptHighlight, ...javascriptAutocomplete],
-    typescript: [typescriptHighlight, ...typescriptAutocomplete],
+    javascript: [javascriptHighlight, ...javascriptAutocomplete, ...jsSemantic, semanticHighlightTheme],
+    typescript: [typescriptHighlight, ...typescriptAutocomplete, ...tsSemantic, semanticHighlightTheme],
     html: htmlHighlight,
     css: cssHighlight,
     json: [jsonHighlight, ...jsonAutocomplete],
@@ -259,6 +263,7 @@ window.CodeMirror = {
         const readOnlyCompartment = new Compartment();
 
         let onChange = null;
+        let onSemanticDiagnostics = null;
 
         const updateListener = EditorView.updateListener.of((update) => {
             if (update.docChanged && typeof onChange === "function") {
@@ -297,6 +302,9 @@ window.CodeMirror = {
                     scrollCompartment.of([]),
                     readOnlyCompartment.of(EditorState.readOnly.of(false)),
                     indentUnit.of("\t"),
+
+                    // Stable trampoline so the per-editor handler survives recreateState.
+                    semanticDiagnosticsSink.of((list) => onSemanticDiagnostics?.(list)),
 
                     closeBrackets(),
                     autocompletion(),
@@ -347,6 +355,9 @@ window.CodeMirror = {
             },
             setOnChange(cb) {
                 onChange = cb;
+            },
+            setSemanticDiagnosticsHandler(cb) {
+                onSemanticDiagnostics = cb;
             },
 
             commands: {

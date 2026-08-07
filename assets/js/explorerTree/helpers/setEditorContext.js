@@ -88,6 +88,7 @@ export async function setEditorContext(properties = {}, { editor, language, upda
     if (!SCRIPT_MODES.includes(language.mode)) {
         editor.setDiagnosticsFor("syntax", [])
         editor.setDiagnosticsFor("types", [])
+        editor.setDiagnosticsFor("semantic", [])
     }
 
     const setScriptContext = async (isTypeScript) => {

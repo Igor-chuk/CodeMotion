@@ -3,9 +3,10 @@ import { fromJSONToTextMate } from "../../../app/dist-esm/textmate/compile.js"
 
 export class _EditorAdapter {
     constructor(
-        { 
-            view, compartments, setDiagnostics, setOnChange, commands, 
-            recreateState, editorView, editorState, tools
+        {
+            view, compartments, setDiagnostics, setOnChange, commands,
+            recreateState, editorView, editorState, tools,
+            setSemanticDiagnosticsHandler
         }
     ) {
         this.instance = view
@@ -31,9 +32,23 @@ export class _EditorAdapter {
         this.listeners = {}
 
         this.filePath = null;
-        this._diagnosticsBySource = {}; 
+        this._diagnosticsBySource = {};
 
         this.dom = view.dom
+
+        // Semantic highlighter (codemirror plugin) pushes JS class-method-existence
+        // diagnostics here; route them through the shared source merge.
+        if (typeof setSemanticDiagnosticsHandler === "function") {
+            setSemanticDiagnosticsHandler((list) => {
+                const max = this.getValue().length;
+                const clamped = (list || []).map((item) => {
+                    const from = Math.min(Math.max(item.from ?? 0, 0), max);
+                    const to = Math.min(Math.max(item.to ?? from, from), max);
+                    return { from, to, severity: item.severity || "error", message: item.message };
+                });
+                this.setDiagnosticsFor("semantic", clamped);
+            });
+        }
     }
 
     // 
