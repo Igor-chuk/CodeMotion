@@ -19,7 +19,7 @@ const defaultCompilerOptions = {
 
 function normalizeFileName(fileName) {
     const resolved = path.resolve(String(fileName || "untitled.ts"));
-    return resolved.replace(/\\\\/g, "/");
+    return resolved.replace(/\\/g, "/");
 }
 
 function findTsconfig(startDir) {
@@ -238,7 +238,7 @@ function getJavaScriptArgumentDiagnostics(fileName, code) {
 
         diagnostics.push({
             message: expectedArgumentsMessage(definition, actualArguments),
-            category: "Error",
+            category: "Warning",
             from,
             to: node.getEnd(),
             line: loc.line,

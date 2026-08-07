@@ -108,15 +108,16 @@ export async function setEditorContext(properties = {}, { editor, language, upda
                 showDiagnostics(diagnostics, { editor, path, source: "syntax" })
             }, 500)
 
-            if(isTypeScript) {
-                typeCheckTimer = setTimeout(async () => {
-                    const code = editor.getValue()
-                    const typeDiagnostics = await window.electron.tsTypeCheck(code, filePath)
+            // Runs for both TS (full type checking) and JS (lightweight
+            // argument-count checks). The worker picks the right analysis
+            // based on the file extension.
+            typeCheckTimer = setTimeout(async () => {
+                const code = editor.getValue()
+                const typeDiagnostics = await window.electron.tsTypeCheck(code, filePath)
 
-                    if (currentGen !== generation) return
-                    showDiagnostics(typeDiagnostics, { editor, path, source: "types" })
-                }, 400)
-            }
+                if (currentGen !== generation) return
+                showDiagnostics(typeDiagnostics, { editor, path, source: "types" })
+            }, 400)
         }
 
         const ast = await getAst(editor.getValue(), oxcLanguage)
