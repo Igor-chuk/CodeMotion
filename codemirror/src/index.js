@@ -14,7 +14,8 @@ import { lintGutter, setDiagnostics as setLintDiagnostics } from "@codemirror/li
 // commands
 import {
     defaultKeymap, indentWithTab, history, historyKeymap,
-    selectAll, undo, redo, toggleComment, indentSelection
+    selectAll, undo, redo, toggleComment, indentSelection,
+    indentMore, indentLess
 } from "@codemirror/commands";
 import {
     openSearchPanel, closeSearchPanel, findNext,
@@ -212,6 +213,12 @@ const insertTab = (view) => {
         return acceptCompletion(view);
     }
 
+    // With a selection, indent the selected line(s) instead of replacing the
+    // selection with a tab character (which deleted the highlighted text).
+    if (view.state.selection.ranges.some((range) => !range.empty)) {
+        return indentMore(view);
+    }
+
     const { state, dispatch } = view;
     dispatch(
         state.update({
@@ -228,6 +235,9 @@ const insertTab = (view) => {
 
     return true;
 };
+
+// Shift+Tab dedents the selected line(s) (natural companion to Tab-indent).
+const removeTab = (view) => indentLess(view);
 
 const escapeHandler = (view) => {
     if (dismissSuggestion(view)) return true;
@@ -297,6 +307,10 @@ window.CodeMirror = {
                         {
                             key: "Tab",
                             run: insertTab
+                        },
+                        {
+                            key: "Shift-Tab",
+                            run: removeTab
                         },
                         {
                             key: "Escape",
