@@ -32,13 +32,24 @@ function parserPlugins({ ts, jsx }) {
 const KIND_PRIORITY = { "keyword": 5, "semantic-class": 4, "function": 3, "func_arg": 2, "constant": 1 };
 
 function pushToken(tokens, node, kind) {
-    if (!node || typeof node.start !== "number" || typeof node.end !== "number") return;
-    // A typed identifier (e.g. a TS param `x: number`) reports an `end` past its
-    // type annotation; clamp to the name so only the identifier is highlighted.
-    const end = node.type === "Identifier" && typeof node.name === "string"
-        ? node.start + node.name.length
-        : node.end;
-    if (end <= node.start) return;
+    if (!node || typeof node.start !== "number") return;
+
+    // Only ever decorate small identifier-like nodes. Notably, babel lists the
+    // whole export declaration in `referencePaths` for exported bindings, so
+    // decorating a raw reference node would colour the entire line.
+    let end;
+    if (node.type === "Identifier" && typeof node.name === "string") {
+        // Clamp to the name (a TS param `x: number` reports `end` past its type).
+        end = node.start + node.name.length;
+    } else if (node.type === "ThisExpression") {
+        end = node.end; // "this"
+    } else if (node.type === "PrivateName" && node.id && typeof node.id.name === "string") {
+        end = node.start + 1 + node.id.name.length; // #name
+    } else {
+        return;
+    }
+
+    if (typeof end !== "number" || end <= node.start) return;
     tokens.push({ from: node.start, to: end, kind });
 }
 
@@ -49,11 +60,21 @@ function isClassDeclNode(node) {
     return false;
 }
 
+function isFunctionInit(node) {
+    return node && node.type === "VariableDeclarator" && node.init &&
+        (node.init.type === "ArrowFunctionExpression" || node.init.type === "FunctionExpression");
+}
+
 function classifyBinding(binding) {
-    if (isClassDeclNode(binding.path && binding.path.node)) return "semantic-class";
+    const declNode = binding.path && binding.path.node;
+    if (isClassDeclNode(declNode)) return "semantic-class";
     if (binding.kind === "param") return "func_arg";
-    // Every `const` binding (any name), scoped by babel — includes `const x = 10`.
-    if (binding.kind === "const") return "constant";
+    if (binding.kind === "const") {
+        // A const holding a function (`const log = (...) => {}`) is a function,
+        // not a constant — colour it like a method so it isn't blue.
+        if (isFunctionInit(declNode)) return "function";
+        return "constant";
+    }
     return null;
 }
 
@@ -328,6 +349,7 @@ export function analyze(code, { ts = false, jsx = true } = {}) {
 
 const MAX_DOC_LENGTH = 200_000;
 const DEBOUNCE_MS = 200;
+const INITIAL_DELAY_MS = 30; // quick first paint on open, but still visibility-safe
 
 // Per-editor callback that receives computed diagnostics (routed to the app).
 export const semanticDiagnosticsSink = Facet.define({
@@ -367,29 +389,19 @@ export function semanticHighlight({ ts = false, jsx = true } = {}) {
     const driver = ViewPlugin.fromClass(class {
         constructor(view) {
             this.timer = null;
-            this.frame = null;
-            this.hasRun = false;
-            // Render on the next frame (~immediately) so colors appear the moment a
-            // file opens, instead of waiting out the edit debounce — which could
-            // race the editor's open sequence and leave semantic colors missing.
-            this.frame = requestAnimationFrame(() => { this.frame = null; this.run(view); });
+            // First render is scheduled via setTimeout (fires even when the pane is
+            // hidden, unlike requestAnimationFrame which is paused while hidden and
+            // would leave background tabs uncoloured until focused).
+            this.schedule(view, INITIAL_DELAY_MS);
         }
         update(update) {
-            if (update.docChanged) {
-                this.schedule(update.view);
-            } else if (!this.hasRun && this.timer === null && this.frame === null) {
-                // Self-heal: if the very first render never landed (view not ready,
-                // reconfigured mid-open), retry on the next update.
-                this.schedule(update.view);
-            }
+            if (update.docChanged) this.schedule(update.view, DEBOUNCE_MS);
         }
-        schedule(view) {
-            if (this.frame !== null) { cancelAnimationFrame(this.frame); this.frame = null; }
+        schedule(view, delay) {
             clearTimeout(this.timer);
-            this.timer = setTimeout(() => { this.timer = null; this.run(view); }, DEBOUNCE_MS);
+            this.timer = setTimeout(() => { this.timer = null; this.run(view); }, delay);
         }
         run(view) {
-            this.hasRun = true;
             // Defensive: analysis/decoration work must never throw out of the
             // debounce callback — that would leave the editor in a broken state.
             try {
@@ -415,7 +427,6 @@ export function semanticHighlight({ ts = false, jsx = true } = {}) {
         }
         destroy() {
             clearTimeout(this.timer);
-            if (this.frame !== null) cancelAnimationFrame(this.frame);
         }
     });
 
