@@ -383,6 +383,86 @@ export class _EditorAdapter {
     }
 
     //
+    // formatting
+    //
+
+    _prettierParser() {
+        const info = Languages.get(this.language)
+        const candidates = [info && info.mode, this.language]
+
+        for (const candidate of candidates) {
+            const parser = window.CodeMirror.parserForMode(candidate)
+            if (parser) return parser
+        }
+        return null
+    }
+
+    _applyFormatted(text, cursorOffset) {
+        const doc = this.instance.state.doc
+        if (text == null || text === doc.toString()) return
+
+        const selection = typeof cursorOffset === "number"
+            ? { anchor: Math.min(Math.max(cursorOffset, 0), text.length) }
+            : undefined
+
+        this.instance.dispatch({
+            changes: { from: 0, to: doc.length, insert: text },
+            selection,
+            scrollIntoView: true
+        })
+    }
+
+    async formatDocument() {
+        this.instance.focus()
+        const parser = this._prettierParser()
+
+        // Unsupported language -> best-effort re-indentation via CodeMirror.
+        if (!parser) {
+            this.commands.selectAll(this.instance)
+            this.commands.indentSelection(this.instance)
+            return
+        }
+
+        try {
+            const result = await window.CodeMirror.formatCode(this.getValue(), {
+                parser,
+                tabWidth: Number(this.tabSize) || 4,
+                useTabs: true,
+                cursorOffset: this.instance.state.selection.main.head
+            })
+            if (result) this._applyFormatted(result.formatted, result.cursorOffset)
+        } catch (error) {
+            console.warn("Format document failed:", error?.message || error)
+        }
+    }
+
+    async formatSelection() {
+        this.instance.focus()
+        const selection = this.instance.state.selection.main
+        if (selection.empty) return this.formatDocument()
+
+        const parser = this._prettierParser()
+        if (!parser) {
+            this.commands.indentSelection(this.instance)
+            return
+        }
+
+        try {
+            // Range formatting returns the whole document with only the range reflowed.
+            const result = await window.CodeMirror.formatCode(this.getValue(), {
+                parser,
+                tabWidth: Number(this.tabSize) || 4,
+                useTabs: true,
+                rangeStart: selection.from,
+                rangeEnd: selection.to
+            })
+            if (result) this._applyFormatted(result.formatted, null)
+        } catch (error) {
+            console.warn("Format selection failed:", error?.message || error)
+        }
+    }
+
+    //
     // events
     //
 

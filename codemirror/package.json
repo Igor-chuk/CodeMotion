@@ -43,6 +43,7 @@
     "@uiw/codemirror-themes-all": "^4.25.11",
     "codemirror": "^6.0.2",
     "html-to-image": "^1.11.13",
+    "prettier": "^3.9.6",
     "vscode-oniguruma": "^2.0.1",
     "vscode-textmate": "^9.3.2"
   },

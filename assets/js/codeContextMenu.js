@@ -112,4 +112,16 @@ export async function initCodeContextMenu(currentPath, pathContext, editor) {
             editor.toggleCommentLine();
         }
     })
+    codeContextMenu.add({ type: "divider" })
+
+    codeContextMenu.add({
+        id: "formatDocument", icon: "format_align_left", content: "Format Document", shortcut: "Shift+Alt+F", func: async () => {
+            await editor.formatDocument();
+        }
+    })
+    codeContextMenu.add({
+        id: "formatSelection", icon: "format_indent_increase", content: "Format Selection", shortcut: "Ctrl+K Ctrl+F", func: async () => {
+            await editor.formatSelection();
+        }
+    })
 }

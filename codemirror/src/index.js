@@ -13,7 +13,7 @@ import { lintGutter, setDiagnostics as setLintDiagnostics } from "@codemirror/li
 // commands
 import {
     defaultKeymap, indentWithTab, history, historyKeymap,
-    selectAll, undo, redo, toggleComment
+    selectAll, undo, redo, toggleComment, indentSelection
 } from "@codemirror/commands";
 import {
     openSearchPanel, closeSearchPanel, findNext,
@@ -46,6 +46,7 @@ import { markdown } from "@codemirror/lang-markdown";
 // extensions
 import { colorComments, colorCommentsTheme } from "./plugins/colorComments";
 import { semanticHighlight, semanticHighlightTheme, semanticDiagnosticsSink } from "./plugins/semanticHighlight";
+import { formatCode, parserForMode } from "./plugins/formatter";
 import { fromVSCodeSnippets } from "./plugins/snippets";
 import { suggestionField, suggestionTheme, suggestPlugin, suggestUpdateListener, acceptSuggestion, dismissSuggestion, initSuggestListener } from "./plugins/suggest";
 import { atomoneOverride, githubDarkOverride, vscodeDarkOverride } from "./themes/overrides";
@@ -365,7 +366,8 @@ window.CodeMirror = {
                 undo,
                 redo,
                 openSearchPanel,
-                toggleComment
+                toggleComment,
+                indentSelection
             },
 
             recreateState(doc) {
@@ -392,6 +394,9 @@ window.CodeMirror = {
     Themes: Themes,
     ThemeParents: ThemeParents,
     TabSizes: TabSizes,
+
+    formatCode: formatCode,
+    parserForMode: parserForMode,
 
     async registerLanguage({ id, grammar, extends: inherits = {} }) {
         const scopeName = `source.${id}`;
