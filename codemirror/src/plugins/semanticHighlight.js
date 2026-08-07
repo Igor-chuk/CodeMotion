@@ -29,7 +29,7 @@ function parserPlugins({ ts, jsx }) {
     return plugins;
 }
 
-const KIND_PRIORITY = { "keyword": 4, "semantic-class": 3, "func_arg": 2, "constant": 1 };
+const KIND_PRIORITY = { "keyword": 5, "semantic-class": 4, "function": 3, "func_arg": 2, "constant": 1 };
 
 function pushToken(tokens, node, kind) {
     if (!node || typeof node.start !== "number" || typeof node.end !== "number") return;
@@ -73,10 +73,29 @@ function collectTokens(ast, tokens) {
             }
         },
         ClassMethod(path) {
-            // Highlight the `constructor` name itself as a keyword.
+            // `constructor` -> keyword; every other method (incl. get/set) -> function.
             const node = path.node;
-            if (node.kind === "constructor" && node.key && node.key.type === "Identifier") {
-                pushToken(tokens, node.key, "keyword");
+            if (node.computed || !node.key || node.key.type !== "Identifier") return;
+            pushToken(tokens, node.key, node.kind === "constructor" ? "keyword" : "function");
+        },
+        ClassPrivateMethod(path) {
+            const key = path.node.key; // PrivateName
+            if (key && key.id) pushToken(tokens, key.id, "function");
+        },
+        ObjectMethod(path) {
+            // Shorthand methods and get/set in object literals.
+            const node = path.node;
+            if (!node.computed && node.key && node.key.type === "Identifier") {
+                pushToken(tokens, node.key, "function");
+            }
+        },
+        ObjectProperty(path) {
+            // Function-valued object properties: `{ foo: () => {} }`, `{ foo: function () {} }`.
+            const node = path.node;
+            if (node.computed || !node.key || node.key.type !== "Identifier") return;
+            const value = node.value;
+            if (value && (value.type === "ArrowFunctionExpression" || value.type === "FunctionExpression")) {
+                pushToken(tokens, node.key, "function");
             }
         },
         ThisExpression(path) {
@@ -262,19 +281,35 @@ function analyzeMethods(ast, diagnostics) {
     });
 }
 
+function parseCode(code, { ts, jsx }) {
+    return parse(code, {
+        sourceType: "module",
+        errorRecovery: true,
+        allowReturnOutsideFunction: true,
+        allowAwaitOutsideFunction: true,
+        allowUndeclaredExports: true,
+        plugins: parserPlugins({ ts, jsx }),
+    });
+}
+
 export function analyze(code, { ts = false, jsx = true } = {}) {
     let ast;
     try {
-        ast = parse(code, {
-            sourceType: "module",
-            errorRecovery: true,
-            allowReturnOutsideFunction: true,
-            allowAwaitOutsideFunction: true,
-            allowUndeclaredExports: true,
-            plugins: parserPlugins({ ts, jsx }),
-        });
+        ast = parseCode(code, { ts, jsx });
     } catch {
-        return { ok: false, tokens: [], diagnostics: [] };
+        // TS is ambiguous with JSX: `.ts` generics like `foo<T>()` fail to parse
+        // when jsx is on, while `.tsx` needs it on. Retry with jsx flipped so both
+        // work with a single "typescript" plugin instance (avoids TS highlighting
+        // silently dropping out on generic-heavy files).
+        if (ts) {
+            try {
+                ast = parseCode(code, { ts, jsx: !jsx });
+            } catch {
+                return { ok: false, tokens: [], diagnostics: [] };
+            }
+        } else {
+            return { ok: false, tokens: [], diagnostics: [] };
+        }
     }
 
     const tokens = [];
@@ -306,6 +341,7 @@ const MARKS = {
     "semantic-class": Decoration.mark({ class: "cm-semantic-class" }),
     "constant": Decoration.mark({ class: "cm-constant" }),
     "keyword": Decoration.mark({ class: "cm-keyword" }),
+    "function": Decoration.mark({ class: "cm-function" }),
 };
 
 function buildDecorations(tokens) {
@@ -341,22 +377,28 @@ export function semanticHighlight({ ts = false, jsx = true } = {}) {
             this.timer = setTimeout(() => this.run(view), DEBOUNCE_MS);
         }
         run(view) {
-            const code = view.state.doc.toString();
-            const sink = view.state.facet(semanticDiagnosticsSink);
+            // Defensive: analysis/decoration work must never throw out of the
+            // debounce callback — that would leave the editor in a broken state.
+            try {
+                const code = view.state.doc.toString();
+                const sink = view.state.facet(semanticDiagnosticsSink);
 
-            if (code.length > MAX_DOC_LENGTH) {
-                view.dispatch({ effects: setSemanticDecorations.of(Decoration.none) });
-                if (sink) sink([]);
-                return;
+                if (code.length > MAX_DOC_LENGTH) {
+                    view.dispatch({ effects: setSemanticDecorations.of(Decoration.none) });
+                    if (sink) sink([]);
+                    return;
+                }
+
+                const { ok, tokens, diagnostics } = analyze(code, { ts, jsx });
+                // On parse/analysis failure keep the last good decorations & diagnostics
+                // (they are position-mapped as the user types) to avoid flicker.
+                if (!ok) return;
+
+                view.dispatch({ effects: setSemanticDecorations.of(buildDecorations(tokens)) });
+                if (sink) sink(diagnostics);
+            } catch (err) {
+                console.error("semantic highlight run failed:", err);
             }
-
-            const { ok, tokens, diagnostics } = analyze(code, { ts, jsx });
-            // On parse/analysis failure keep the last good decorations & diagnostics
-            // (they are position-mapped as the user types) to avoid flicker.
-            if (!ok) return;
-
-            view.dispatch({ effects: setSemanticDecorations.of(buildDecorations(tokens)) });
-            if (sink) sink(diagnostics);
         }
         destroy() {
             clearTimeout(this.timer);
@@ -373,4 +415,5 @@ export const semanticHighlightTheme = EditorView.baseTheme({
     ".cm-semantic-class, .cm-semantic-class *": { color: "var(--color-class, #4EC9B0) !important" },
     ".cm-constant, .cm-constant *": { color: "var(--color-const, #4FC1FF) !important" },
     ".cm-keyword, .cm-keyword *": { color: "var(--color-keyword, #569CD6) !important" },
+    ".cm-function, .cm-function *": { color: "var(--color-function, #DCDCAA) !important" },
 });
