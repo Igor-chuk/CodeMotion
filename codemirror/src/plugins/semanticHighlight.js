@@ -31,6 +31,33 @@ function parserPlugins({ ts, jsx }) {
 
 const KIND_PRIORITY = { "keyword": 5, "semantic-class": 4, "function": 3, "func_arg": 2, "constant": 1 };
 
+// Global built-in classes / namespaces coloured like classes when referenced
+// (and not shadowed by a local binding).
+const BUILTIN_GLOBALS = new Set([
+    "Object", "Array", "String", "Number", "Boolean", "Symbol", "BigInt", "Function",
+    "Math", "JSON", "Date", "RegExp", "Intl", "WebAssembly", "Reflect", "Proxy",
+    "Error", "TypeError", "RangeError", "SyntaxError", "ReferenceError", "EvalError",
+    "URIError", "AggregateError",
+    "Map", "Set", "WeakMap", "WeakSet", "WeakRef", "FinalizationRegistry",
+    "Promise", "ArrayBuffer", "SharedArrayBuffer", "DataView", "Atomics",
+    "Int8Array", "Uint8Array", "Uint8ClampedArray", "Int16Array", "Uint16Array",
+    "Int32Array", "Uint32Array", "Float32Array", "Float64Array", "BigInt64Array", "BigUint64Array",
+    "console", "process", "globalThis", "Buffer",
+    "URL", "URLSearchParams", "TextEncoder", "TextDecoder",
+    "AbortController", "AbortSignal", "Event", "EventTarget",
+]);
+
+function isModuleNamespaceBinding(node) {
+    if (!node) return false;
+    // `import fs from "fs"` and `import * as path from "path"`.
+    if (node.type === "ImportDefaultSpecifier" || node.type === "ImportNamespaceSpecifier") return true;
+    // `const path = require("path")`.
+    return node.type === "VariableDeclarator" &&
+        node.init && node.init.type === "CallExpression" &&
+        node.init.callee && node.init.callee.type === "Identifier" &&
+        node.init.callee.name === "require";
+}
+
 function pushToken(tokens, node, kind) {
     if (!node || typeof node.start !== "number") return;
 
@@ -68,6 +95,8 @@ function isFunctionInit(node) {
 function classifyBinding(binding) {
     const declNode = binding.path && binding.path.node;
     if (isClassDeclNode(declNode)) return "semantic-class";
+    // Imported module namespaces (fs, path, …) colour like classes.
+    if (isModuleNamespaceBinding(declNode)) return "semantic-class";
     if (binding.kind === "param") return "func_arg";
     if (binding.kind === "const") {
         // A const holding a function (`const log = (...) => {}`) is a function,
@@ -121,6 +150,14 @@ function collectTokens(ast, tokens) {
         },
         ThisExpression(path) {
             pushToken(tokens, path.node, "constant");
+        },
+        ReferencedIdentifier(path) {
+            // Built-in globals (Object, Array, Math, …) that aren't shadowed by a
+            // local declaration — colour them like classes.
+            const name = path.node.name;
+            if (!BUILTIN_GLOBALS.has(name)) return;
+            if (path.scope.getBinding(name)) return; // locally declared/imported -> not the builtin
+            pushToken(tokens, path.node, "semantic-class");
         },
     });
 }
