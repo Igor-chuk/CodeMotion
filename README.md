@@ -5,6 +5,10 @@
 <h1 align="center">CodeMotion IDE<br>
 (Early-Development Alpha)</h1>
 
+<p align="center">CodeMotion is a web-focused, advanced 
+open-source code editor (IDE) 
+with native tools for web developers</p>
+
 > [!IMPORTANT]
 > If you download a pre-compiled build (exe), Windows may flag it as a keylogger, and VirusTotal may flag it for random viruses—and that’s NORMAL; I honestly don’t know why this happens. The project is in alpha development. If you don’t trust the build, you can compile the project [yourself](https://github.com/cdmtn-dev/codemotion-ide/wiki/%5BFOR-BEGINNERS%5D-How-do-I-build-an-app%3F)
 
@@ -14,10 +18,6 @@
 > xattr -cr /Applications/CodeMotion.app
 > ```
 > The app will open normally afterwards.
-
-CodeMotion is a web-focused, advanced 
-open-source code editor (IDE) 
-with native tools for web developers
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
