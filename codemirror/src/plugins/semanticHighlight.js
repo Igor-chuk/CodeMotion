@@ -367,16 +367,29 @@ export function semanticHighlight({ ts = false, jsx = true } = {}) {
     const driver = ViewPlugin.fromClass(class {
         constructor(view) {
             this.timer = null;
-            this.schedule(view);
+            this.frame = null;
+            this.hasRun = false;
+            // Render on the next frame (~immediately) so colors appear the moment a
+            // file opens, instead of waiting out the edit debounce — which could
+            // race the editor's open sequence and leave semantic colors missing.
+            this.frame = requestAnimationFrame(() => { this.frame = null; this.run(view); });
         }
         update(update) {
-            if (update.docChanged) this.schedule(update.view);
+            if (update.docChanged) {
+                this.schedule(update.view);
+            } else if (!this.hasRun && this.timer === null && this.frame === null) {
+                // Self-heal: if the very first render never landed (view not ready,
+                // reconfigured mid-open), retry on the next update.
+                this.schedule(update.view);
+            }
         }
         schedule(view) {
+            if (this.frame !== null) { cancelAnimationFrame(this.frame); this.frame = null; }
             clearTimeout(this.timer);
-            this.timer = setTimeout(() => this.run(view), DEBOUNCE_MS);
+            this.timer = setTimeout(() => { this.timer = null; this.run(view); }, DEBOUNCE_MS);
         }
         run(view) {
+            this.hasRun = true;
             // Defensive: analysis/decoration work must never throw out of the
             // debounce callback — that would leave the editor in a broken state.
             try {
@@ -402,6 +415,7 @@ export function semanticHighlight({ ts = false, jsx = true } = {}) {
         }
         destroy() {
             clearTimeout(this.timer);
+            if (this.frame !== null) cancelAnimationFrame(this.frame);
         }
     });
 
