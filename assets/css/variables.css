@@ -87,4 +87,5 @@
     --color-template-literal-wrapper: #29a9ff;
     --color-character: var(--color-const);
     --color-func-arg: #ffb96e;
+    --color-comment: #7d8590;
 }

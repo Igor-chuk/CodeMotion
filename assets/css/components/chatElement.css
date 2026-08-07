@@ -1,5 +1,5 @@
 .chat-element {
-	--chat-width: 500px;
+	--chat-width: 700px;
     width: var(--chat-width);
     max-width: var(--chat-width);
     height: 100%;
