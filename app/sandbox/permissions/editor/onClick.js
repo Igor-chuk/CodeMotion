@@ -1,18 +1,27 @@
-const { setEditorClickedCallback } = require("../../../main/ipc/editor.ts")
-const { getAceTriggeredData } = require("./__api.js")
+const { addEditorClickedCallback } = require("../../../dist/ipc/editor.js")
+const { getEditorTriggeredData } = require("./__api.js")
+
+// Replace an extension's previous click subscription instead of stacking listeners.
+const unsubscribers = new Map();
 
 function callback(data) {
     const cb = data.selfArgs[0];
     const mainSender = data.mainSender;
+    const extensionName = data.extensionName;
 
     if (typeof cb !== "function") return;
 
-    setEditorClickedCallback((rawData) => {
-        cb(getAceTriggeredData({
+    const previous = unsubscribers.get(extensionName);
+    if (previous) previous();
+
+    const unsubscribe = addEditorClickedCallback((rawData) => {
+        cb(getEditorTriggeredData({
             data: rawData,
             mainSender
         }));
     });
+
+    unsubscribers.set(extensionName, unsubscribe);
 }
 
 module.exports = { callback };

@@ -5,21 +5,24 @@ type EditorData = {
     [key: string]: any;
 };
 
-type EditorChangedCallback = (data: EditorData) => void;
-type EditorClickedCallback = (data: any) => void;
+type Listener = (data: any) => void;
 
-let editorChangedCallback: EditorChangedCallback | null = null;
-let editorClickedCallback: EditorClickedCallback | null = null;
+// Multiple consumers (onChange, onClick, highlight providers, …) can subscribe.
+// Previously a single module-level slot meant each new consumer silently
+// overwrote the last one, so only one ever fired.
+const changedListeners = new Set<Listener>();
+const clickedListeners = new Set<Listener>();
 
+// Registered once for the process — fans a single IPC event out to every listener.
 ipcMain.on("editor-changed-event", (_: any, data: EditorData) => {
-    if (editorChangedCallback) {
-        editorChangedCallback(data);
+    for (const cb of [...changedListeners]) {
+        try { cb(data); } catch (err) { console.error("editor-changed listener error:", err); }
     }
 });
 
 ipcMain.on("editor-clicked-event", (_: any, data: any) => {
-    if (editorClickedCallback) {
-        editorClickedCallback(data);
+    for (const cb of [...clickedListeners]) {
+        try { cb(data); } catch (err) { console.error("editor-clicked listener error:", err); }
     }
 });
 
@@ -27,11 +30,14 @@ ipcMain.on("file-opened-event", () => {
 
 });
 
-export function setEditorChangedCallback(cb: EditorChangedCallback): void {
-	console.log("setEditorChangedCallback")
-    editorChangedCallback = cb;
+// Each returns an unsubscribe function so callers can drop their listener
+// (e.g. when an extension re-registers or unloads) instead of leaking it.
+export function addEditorChangedCallback(cb: Listener): () => void {
+    changedListeners.add(cb);
+    return () => changedListeners.delete(cb);
 }
 
-export function setEditorClickedCallback(cb: EditorClickedCallback): void {
-    editorClickedCallback = cb;
+export function addEditorClickedCallback(cb: Listener): () => void {
+    clickedListeners.add(cb);
+    return () => clickedListeners.delete(cb);
 }

@@ -1,28 +1,32 @@
 const bus = require("../../../../../helpers/eventBus.js");
 const { callbacks } = require("./shared.js");
 
+// Registered once. Previously a new bus listener was added on every onRequest()
+// call, leaking EventEmitter listeners (and re-invoking the callback N times).
+let listenerAttached = false;
+
+function ensureListener() {
+    if (listenerAttached) return;
+    listenerAttached = true;
+
+    bus.on("code-suggest-request", (requestData) => {
+        for (const [extensionName, cb] of callbacks) {
+            try {
+                cb(requestData);
+            } catch (e) {
+                console.error(`[code.suggest] ${extensionName} error:`, e.message);
+            }
+        }
+    });
+}
+
 function callback(data) {
     const extensionName = data.extensionName;
-
-    console.log(`[code-suggest] onRequest registered for: ${extensionName}`);
+    ensureListener();
 
     return (userCallback) => {
         if (typeof userCallback !== "function") return;
-
         callbacks.set(extensionName, userCallback);
-        console.log(`[code-suggest] callback stored for: ${extensionName}`);
-
-        bus.on("code-suggest-request", (requestData) => {
-            console.log(`[code-suggest] bus event received for: ${extensionName}`);
-            const cb = callbacks.get(extensionName);
-            if (cb) {
-                try {
-                    cb(requestData);
-                } catch (e) {
-                    console.error(`[code.suggest] ${extensionName} error:`, e.message);
-                }
-            }
-        });
     };
 }
 
