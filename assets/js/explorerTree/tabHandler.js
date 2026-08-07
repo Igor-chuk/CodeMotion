@@ -274,7 +274,12 @@ function dropLive(path) {
 }
 
 function setTabColor(tab, color) {
-    tab.style.cssText += `--tab-color: ${color}`
+	if (color == undefined) {
+		tab.style.cssText += `--tab-color: var(--text-color)`
+	}
+	else {
+		tab.style.cssText += `--tab-color: ${color}`
+    }
 }
 
 let settingsObject = {}
