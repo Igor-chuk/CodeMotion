@@ -40,8 +40,6 @@ export class _EditorAdapter {
 
         this.dom = view.dom
 
-        // Semantic highlighter (codemirror plugin) pushes JS class-method-existence
-        // diagnostics here; route them through the shared source merge.
         if (typeof setSemanticDiagnosticsHandler === "function") {
             setSemanticDiagnosticsHandler((list) => {
                 const max = this.getValue().length;
@@ -59,14 +57,10 @@ export class _EditorAdapter {
     // other
     //
 
-    // Register a teardown callback (observers, listeners) to run on destroy().
     onDestroy(fn) {
         if (typeof fn === "function") this._cleanups.push(fn);
     }
 
-    // Tear the editor down completely. Without this, closing a tab left the
-    // underlying CodeMirror EditorView (and its plugins/timers/listeners) alive,
-    // so every closed file leaked — a large driver of the "many files" slowdown.
     destroy() {
         if (this._destroyed) return;
         this._destroyed = true;
@@ -249,8 +243,6 @@ export class _EditorAdapter {
         })
     }
 
-    // Replace the document without polluting undo history or resetting language/
-    // theme/tab-size compartments (used for tab hibernation).
     setValueNoHistory(value) {
         if (typeof this._setValueNoHistory === "function") {
             this._setValueNoHistory(value)
@@ -415,10 +407,6 @@ export class _EditorAdapter {
         this.commands.toggleComment(this.instance)
     }
 
-    //
-    // formatting
-    //
-
     _prettierParser() {
         const info = Languages.get(this.language)
         const candidates = [info && info.mode, this.language]
@@ -449,7 +437,6 @@ export class _EditorAdapter {
         this.instance.focus()
         const parser = this._prettierParser()
 
-        // Unsupported language -> best-effort re-indentation via CodeMirror.
         if (!parser) {
             this.commands.selectAll(this.instance)
             this.commands.indentSelection(this.instance)
@@ -481,7 +468,6 @@ export class _EditorAdapter {
         }
 
         try {
-            // Range formatting returns the whole document with only the range reflowed.
             const result = await window.CodeMirror.formatCode(this.getValue(), {
                 parser,
                 tabWidth: Number(this.tabSize) || 4,

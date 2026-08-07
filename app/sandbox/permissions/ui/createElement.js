@@ -25,12 +25,8 @@ function checkForImage(properties, { extPath, type }) {
 	}
 }
 
-// Shared registry of extension-created UI elements, keyed by their unique id.
 const list = {}
 
-// Registered exactly once for the whole process. Previously this lived inside
-// callback(), so every extension element added another IpcMain listener and
-// eventually tripped MaxListenersExceededWarning.
 ipcMain.on("extension-send-element", (_, object) => {
     const type = object.type
     const id = object.id

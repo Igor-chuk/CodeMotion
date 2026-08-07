@@ -200,15 +200,8 @@ const globalButtonsInitialized = new Map();
 let isLiveServerActive = false;
 const codeContextMenuPerTab = new Map();
 
-// ─── Editor hibernation (bounded live editors) ──────────────────────────────
-// Keep only a small pool of tabs holding their full document. Inactive tabs
-// beyond the pool are "hibernated": their text is captured and the editor's
-// document emptied, freeing the file-proportional memory (content + syntax /
-// semantic trees) that made many large open files overload the machine. Dirty
-// (unsaved) tabs are never hibernated, and every content read for save/close
-// goes through getRecContent so nothing is ever lost.
 const MAX_LIVE_EDITORS = 5;
-const liveOrder = []; // paths of non-hibernated editors, oldest first
+const liveOrder = [];
 
 export function getRecContent(rec) {
     if (!rec) return "";
@@ -218,7 +211,7 @@ export function getRecContent(rec) {
 
 function hibernateRec(rec) {
     if (!rec || rec.hibernated || rec.isImage || !rec.editor) return;
-    if (rec.tabEl.classList.contains("not-saved")) return; // never touch unsaved work
+    if (rec.tabEl.classList.contains("not-saved")) return;
 
     rec.hibernated = {
         content: rec.editor.getValue(),
@@ -244,9 +237,6 @@ function restoreRec(rec) {
     if (cursor) rec.editor.moveCursorTo(cursor.row, cursor.column);
     if (typeof scrollTop === "number") rec.editor.setScrollTop(scrollTop);
 
-    // setEditorContext (diagnostics + context panel) is skipped while suspended,
-    // so recompute it for the restored content. Semantic highlighting recovers on
-    // its own from the document change the restore produces.
     if (typeof rec.recomputeContext === "function") rec.recomputeContext();
 }
 
@@ -353,8 +343,6 @@ function addThemeModificator(editor) {
         attributeFilter: ["theme"]
     })
 
-    // Previously this observer was never disconnected, leaking one (holding the
-    // editor) per opened tab. Tie its lifetime to the editor.
     editor.onDestroy(() => observer.disconnect())
 }
 
@@ -995,7 +983,6 @@ export async function openTab(path, content, extension, name, pathContext, isNew
         color: language.color,
         extension: extension,
         hibernated: null,
-        // Rebuilds diagnostics/context after a hibernated tab is restored.
         recomputeContext: () => setEditorContext({}, {
             editor: editor,
             language: language,
@@ -1044,8 +1031,6 @@ export async function openTab(path, content, extension, name, pathContext, isNew
         }
     });
     editor.onChange(async () => {
-        // Hibernation/restore swaps the document via setValueNoHistory; skip the
-        // "dirty" mark, context recompute and extension events for those swaps.
         const currentRec = tabsByPath.get(path);
         if (currentRec && currentRec._suspend) return;
 
@@ -1150,8 +1135,6 @@ export function closeTab(path) {
 
     dropLive(path);
 
-    // Read through the hibernation-aware accessor so a closed-while-hibernated
-    // (empty-doc) tab still caches its real content for reopen.
     const state = {
         content: getRecContent(rec),
         cursor: rec.hibernated ? rec.hibernated.cursor : editor.getCursorPosition(),
@@ -1195,8 +1178,6 @@ export function closeTab(path) {
     pruneRecentlyClosed();
 }
 
-// Bound the reopen cache by both count and total cached content size, so
-// closing many large files doesn't keep megabytes of text alive indefinitely.
 const RECENTLY_CLOSED_MAX_COUNT = 30;
 const RECENTLY_CLOSED_MAX_CHARS = 3_000_000;
 
@@ -1274,8 +1255,6 @@ export function activateTab(tabEl) {
     const editor = rec.editor;
     if (!editor) return;
 
-    // Bring this tab's document back if it was hibernated, and mark it as one of
-    // the most-recently-used live editors (evicting the oldest past the cap).
     if (!rec.isImage) {
         restoreRec(rec);
         touchLive(realPath);

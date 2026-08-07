@@ -3,12 +3,9 @@ import { StateField, StateEffect, RangeSetBuilder, Facet } from "@codemirror/sta
 import * as babelParser from "@babel/parser";
 import traverseImport from "@babel/traverse";
 
-// @babel/parser is CJS; grab `parse` off the namespace for robust esbuild interop.
 const parse = babelParser.parse;
-// @babel/traverse exposes the callable on `.default` under CJS interop.
 const traverse = traverseImport.default || traverseImport;
 
-// ─── Analysis ─────────────────────────────────────────────────────────────────
 
 const BASE_PLUGINS = [
     "decorators-legacy",
@@ -31,8 +28,6 @@ function parserPlugins({ ts, jsx }) {
 
 const KIND_PRIORITY = { "keyword": 5, "semantic-class": 4, "function": 3, "func_arg": 2, "constant": 1 };
 
-// Global built-in classes / namespaces coloured like classes when referenced
-// (and not shadowed by a local binding).
 const BUILTIN_GLOBALS = new Set([
     "Object", "Array", "String", "Number", "Boolean", "Symbol", "BigInt", "Function",
     "Math", "JSON", "Date", "RegExp", "Intl", "WebAssembly", "Reflect", "Proxy",
@@ -49,9 +44,7 @@ const BUILTIN_GLOBALS = new Set([
 
 function isModuleNamespaceBinding(node) {
     if (!node) return false;
-    // `import fs from "fs"` and `import * as path from "path"`.
     if (node.type === "ImportDefaultSpecifier" || node.type === "ImportNamespaceSpecifier") return true;
-    // `const path = require("path")`.
     return node.type === "VariableDeclarator" &&
         node.init && node.init.type === "CallExpression" &&
         node.init.callee && node.init.callee.type === "Identifier" &&
@@ -61,17 +54,13 @@ function isModuleNamespaceBinding(node) {
 function pushToken(tokens, node, kind) {
     if (!node || typeof node.start !== "number") return;
 
-    // Only ever decorate small identifier-like nodes. Notably, babel lists the
-    // whole export declaration in `referencePaths` for exported bindings, so
-    // decorating a raw reference node would colour the entire line.
     let end;
     if (node.type === "Identifier" && typeof node.name === "string") {
-        // Clamp to the name (a TS param `x: number` reports `end` past its type).
         end = node.start + node.name.length;
     } else if (node.type === "ThisExpression") {
-        end = node.end; // "this"
+        end = node.end;
     } else if (node.type === "PrivateName" && node.id && typeof node.id.name === "string") {
-        end = node.start + 1 + node.id.name.length; // #name
+        end = node.start + 1 + node.id.name.length;
     } else {
         return;
     }
@@ -95,12 +84,9 @@ function isFunctionInit(node) {
 function classifyBinding(binding) {
     const declNode = binding.path && binding.path.node;
     if (isClassDeclNode(declNode)) return "semantic-class";
-    // Imported module namespaces (fs, path, …) colour like classes.
     if (isModuleNamespaceBinding(declNode)) return "semantic-class";
     if (binding.kind === "param") return "func_arg";
     if (binding.kind === "const") {
-        // A const holding a function (`const log = (...) => {}`) is a function,
-        // not a constant — colour it like a method so it isn't blue.
         if (isFunctionInit(declNode)) return "function";
         return "constant";
     }
@@ -123,24 +109,21 @@ function collectTokens(ast, tokens) {
             }
         },
         ClassMethod(path) {
-            // `constructor` -> keyword; every other method (incl. get/set) -> function.
             const node = path.node;
             if (node.computed || !node.key || node.key.type !== "Identifier") return;
             pushToken(tokens, node.key, node.kind === "constructor" ? "keyword" : "function");
         },
         ClassPrivateMethod(path) {
-            const key = path.node.key; // PrivateName
+            const key = path.node.key;
             if (key && key.id) pushToken(tokens, key.id, "function");
         },
         ObjectMethod(path) {
-            // Shorthand methods and get/set in object literals.
             const node = path.node;
             if (!node.computed && node.key && node.key.type === "Identifier") {
                 pushToken(tokens, node.key, "function");
             }
         },
         ObjectProperty(path) {
-            // Function-valued object properties: `{ foo: () => {} }`, `{ foo: function () {} }`.
             const node = path.node;
             if (node.computed || !node.key || node.key.type !== "Identifier") return;
             const value = node.value;
@@ -152,18 +135,14 @@ function collectTokens(ast, tokens) {
             pushToken(tokens, path.node, "constant");
         },
         ReferencedIdentifier(path) {
-            // Built-in globals (Object, Array, Math, …) that aren't shadowed by a
-            // local declaration — colour them like classes.
             const name = path.node.name;
             if (!BUILTIN_GLOBALS.has(name)) return;
-            if (path.scope.getBinding(name)) return; // locally declared/imported -> not the builtin
+            if (path.scope.getBinding(name)) return;
             pushToken(tokens, path.node, "semantic-class");
         },
     });
 }
 
-// Keep one kind per identifier range (class > func_arg > constant), sort ascending,
-// and drop any overlap so RangeSetBuilder receives clean, ordered ranges.
 function finalizeTokens(tokens) {
     const byStart = new Map();
     for (const token of tokens) {
@@ -184,8 +163,6 @@ function finalizeTokens(tokens) {
     }
     return result;
 }
-
-// ─── Method-existence analysis (JavaScript only) ────────────────────────────────
 
 const MEMBER_TYPES = new Set([
     "ClassMethod", "ClassPrivateMethod",
@@ -217,7 +194,6 @@ function collectConstructorMembers(classPath, info) {
                 }
             },
             CallExpression(call) {
-                // Object.assign(this, ...) makes the instance surface unknowable.
                 const callee = call.node.callee;
                 if (
                     callee.type === "MemberExpression" &&
@@ -233,9 +209,9 @@ function collectConstructorMembers(classPath, info) {
 }
 
 function analyzeMethods(ast, diagnostics) {
-    const localClasses = new Map();      // name -> { members:Set, superName, open }
+    const localClasses = new Map();
     const prototypeAugmented = new Set();
-    const instanceVars = new Map();      // Binding -> className
+    const instanceVars = new Map();
 
     traverse(ast, {
         "ClassDeclaration|ClassExpression"(path) {
@@ -247,12 +223,9 @@ function analyzeMethods(ast, diagnostics) {
 
             if (node.superClass) {
                 if (node.superClass.type === "Identifier") info.superName = node.superClass.name;
-                else info.open = true; // mixin / expression superclass
+                else info.open = true;
             }
 
-            // Collect every declared member — static and instance alike. A class
-            // may have only static methods and no constructor; that is valid and
-            // must not be flagged, so static names count as known members too.
             for (const element of node.body.body) {
                 if (element.computed) { info.open = true; continue; }
                 if (!MEMBER_TYPES.has(element.type)) continue;
@@ -260,9 +233,8 @@ function analyzeMethods(ast, diagnostics) {
                 if (key) info.members.add(key);
             }
 
-            // Constructor is optional; this simply adds any `this.x = …` fields when present.
             collectConstructorMembers(path, info);
-            localClasses.set(name, info); // last declaration of a name wins
+            localClasses.set(name, info);
         },
 
         MemberExpression(path) {
@@ -289,7 +261,6 @@ function analyzeMethods(ast, diagnostics) {
         },
     });
 
-    // Any prototype patching or a non-local base makes the surface open.
     for (const [name, info] of localClasses) {
         if (prototypeAugmented.has(name)) info.open = true;
         if (info.superName && !localClasses.has(info.superName)) info.open = true;
@@ -319,11 +290,11 @@ function analyzeMethods(ast, diagnostics) {
 
             const binding = path.scope.getBinding(callee.object.name);
             if (!binding || !instanceVars.has(binding)) return;
-            if (binding.constantViolations.length > 0) return; // reassigned -> unprovable
+            if (binding.constantViolations.length > 0) return;
 
             const className = instanceVars.get(binding);
             const members = resolveMembers(className);
-            if (!members) return; // open / unknown surface
+            if (!members) return;
 
             const method = callee.property.name;
             if (!members.has(method)) {
@@ -355,10 +326,6 @@ export function analyze(code, { ts = false, jsx = true } = {}) {
     try {
         ast = parseCode(code, { ts, jsx });
     } catch {
-        // TS is ambiguous with JSX: `.ts` generics like `foo<T>()` fail to parse
-        // when jsx is on, while `.tsx` needs it on. Retry with jsx flipped so both
-        // work with a single "typescript" plugin instance (avoids TS highlighting
-        // silently dropping out on generic-heavy files).
         if (ts) {
             try {
                 ast = parseCode(code, { ts, jsx: !jsx });
@@ -382,13 +349,11 @@ export function analyze(code, { ts = false, jsx = true } = {}) {
     return { ok: true, tokens: finalizeTokens(tokens), diagnostics };
 }
 
-// ─── CodeMirror integration ─────────────────────────────────────────────────
 
 const MAX_DOC_LENGTH = 200_000;
 const DEBOUNCE_MS = 200;
-const INITIAL_DELAY_MS = 30; // quick first paint on open, but still visibility-safe
+const INITIAL_DELAY_MS = 30;
 
-// Per-editor callback that receives computed diagnostics (routed to the app).
 export const semanticDiagnosticsSink = Facet.define({
     combine: (values) => (values.length ? values[0] : null),
 });
@@ -409,7 +374,6 @@ function buildDecorations(tokens) {
     return builder.finish();
 }
 
-// Single shared field; an editor only ever has one JS/TS variant active at a time.
 const semanticField = StateField.define({
     create: () => Decoration.none,
     update(decorations, tr) {
@@ -426,9 +390,6 @@ export function semanticHighlight({ ts = false, jsx = true } = {}) {
     const driver = ViewPlugin.fromClass(class {
         constructor(view) {
             this.timer = null;
-            // First render is scheduled via setTimeout (fires even when the pane is
-            // hidden, unlike requestAnimationFrame which is paused while hidden and
-            // would leave background tabs uncoloured until focused).
             this.schedule(view, INITIAL_DELAY_MS);
         }
         update(update) {
@@ -439,8 +400,6 @@ export function semanticHighlight({ ts = false, jsx = true } = {}) {
             this.timer = setTimeout(() => { this.timer = null; this.run(view); }, delay);
         }
         run(view) {
-            // Defensive: analysis/decoration work must never throw out of the
-            // debounce callback — that would leave the editor in a broken state.
             try {
                 const code = view.state.doc.toString();
                 const sink = view.state.facet(semanticDiagnosticsSink);
@@ -452,8 +411,6 @@ export function semanticHighlight({ ts = false, jsx = true } = {}) {
                 }
 
                 const { ok, tokens, diagnostics } = analyze(code, { ts, jsx });
-                // On parse/analysis failure keep the last good decorations & diagnostics
-                // (they are position-mapped as the user types) to avoid flicker.
                 if (!ok) return;
 
                 view.dispatch({ effects: setSemanticDecorations.of(buildDecorations(tokens)) });
@@ -470,8 +427,6 @@ export function semanticHighlight({ ts = false, jsx = true } = {}) {
     return [semanticField, driver];
 }
 
-// Colors come from the app's token palette (assets/css/variables.css); fallbacks
-// keep the plugin sensible if a variable is undefined (e.g. isolated testing).
 export const semanticHighlightTheme = EditorView.baseTheme({
     ".cm-func-arg, .cm-func-arg *": { color: "var(--color-func-arg, #9CDCFE) !important" },
     ".cm-semantic-class, .cm-semantic-class *": { color: "var(--color-class, #4EC9B0) !important" },

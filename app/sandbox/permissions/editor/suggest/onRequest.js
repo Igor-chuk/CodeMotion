@@ -1,8 +1,6 @@
 const bus = require("../../../../../helpers/eventBus.js");
 const { callbacks } = require("./shared.js");
 
-// Registered once. Previously a new bus listener was added on every onRequest()
-// call, leaking EventEmitter listeners (and re-invoking the callback N times).
 let listenerAttached = false;
 
 function ensureListener() {

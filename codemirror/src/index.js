@@ -77,8 +77,6 @@ import { textMateHighlighter } from "./plugins/textmate/highlighter.js";
 import { textMateBaseTheme } from "./plugins/textmate/theme.js";
 // 
 
-// Force all comments to gray across every theme/language (was theme-green).
-// High precedence so it wins over each theme's own comment colour.
 const commentHighlightStyle = Prec.highest(syntaxHighlighting(HighlightStyle.define([
     {
         tag: [tags.comment, tags.lineComment, tags.blockComment, tags.docComment],
@@ -213,8 +211,6 @@ const insertTab = (view) => {
         return acceptCompletion(view);
     }
 
-    // With a selection, indent the selected line(s) instead of replacing the
-    // selection with a tab character (which deleted the highlighted text).
     if (view.state.selection.ranges.some((range) => !range.empty)) {
         return indentMore(view);
     }
@@ -236,7 +232,6 @@ const insertTab = (view) => {
     return true;
 };
 
-// Shift+Tab dedents the selected line(s) (natural companion to Tab-indent).
 const removeTab = (view) => indentLess(view);
 
 const escapeHandler = (view) => {
@@ -328,7 +323,6 @@ window.CodeMirror = {
                     readOnlyCompartment.of(EditorState.readOnly.of(false)),
                     indentUnit.of("\t"),
 
-                    // Stable trampoline so the per-editor handler survives recreateState.
                     semanticDiagnosticsSink.of((list) => onSemanticDiagnostics?.(list)),
 
                     closeBrackets(),
@@ -400,9 +394,6 @@ window.CodeMirror = {
                 view.setState(createState(doc));
             },
 
-            // Replace the whole document without touching undo history or any
-            // compartment (language/theme/tabSize). Used to hibernate/restore
-            // inactive tabs (free their text) without side effects.
             setValueNoHistory(value) {
                 view.dispatch({
                     changes: { from: 0, to: view.state.doc.length, insert: value },

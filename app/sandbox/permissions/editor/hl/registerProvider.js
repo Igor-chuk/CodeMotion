@@ -5,14 +5,10 @@ const providers = new Map();
 let listenerAttached = false;
 let currentMainSender = null;
 
-// Debounce editor changes so rapid typing doesn't re-run every provider (and
-// re-send rules over IPC) on every keystroke; recompute once typing settles.
 const DEBOUNCE_MS = 150;
 let debounceTimer = null;
 let lastEditorData = null;
 
-// Cache the last rule set sent per file so we skip the IPC round-trip (and the
-// renderer re-highlighting the whole document) when nothing actually changed.
 const lastRulesSignatureByFile = new Map();
 
 function computeRules(editorData) {
@@ -61,7 +57,7 @@ function flush() {
     const rules = computeRules(editorData);
     const signature = JSON.stringify(rules);
 
-    if (lastRulesSignatureByFile.get(fileId) === signature) return; // unchanged -> skip
+    if (lastRulesSignatureByFile.get(fileId) === signature) return;
     lastRulesSignatureByFile.set(fileId, signature);
 
     if (currentMainSender && !currentMainSender.isDestroyed()) {
@@ -78,7 +74,6 @@ function ensureListener() {
     if (listenerAttached) return;
     listenerAttached = true;
 
-    // Registered once — coalesced fan-out to every provider.
     addEditorChangedCallback((editorData) => {
         lastEditorData = editorData;
         schedule();
@@ -95,8 +90,6 @@ function callback(data) {
     providers.set(providerID, cb);
     ensureListener();
 
-    // A new provider changes the rule set: drop the cache and recompute against
-    // the latest known editor state so it applies without waiting for a keystroke.
     lastRulesSignatureByFile.clear();
     if (lastEditorData) schedule();
 }
