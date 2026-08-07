@@ -34,6 +34,9 @@ export class _EditorAdapter {
         this.filePath = null;
         this._diagnosticsBySource = {};
 
+        this._cleanups = [];
+        this._destroyed = false;
+
         this.dom = view.dom
 
         // Semantic highlighter (codemirror plugin) pushes JS class-method-existence
@@ -51,9 +54,28 @@ export class _EditorAdapter {
         }
     }
 
-    // 
+    //
     // other
-    // 
+    //
+
+    // Register a teardown callback (observers, listeners) to run on destroy().
+    onDestroy(fn) {
+        if (typeof fn === "function") this._cleanups.push(fn);
+    }
+
+    // Tear the editor down completely. Without this, closing a tab left the
+    // underlying CodeMirror EditorView (and its plugins/timers/listeners) alive,
+    // so every closed file leaked — a large driver of the "many files" slowdown.
+    destroy() {
+        if (this._destroyed) return;
+        this._destroyed = true;
+
+        for (const fn of this._cleanups.splice(0)) {
+            try { fn(); } catch (_) { }
+        }
+
+        try { this.instance.destroy(); } catch (_) { }
+    }
 
     openSearch() {
         this.commands.openSearchPanel(this.instance)

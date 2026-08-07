@@ -274,6 +274,10 @@ function addThemeModificator(editor) {
         attributes: true,
         attributeFilter: ["theme"]
     })
+
+    // Previously this observer was never disconnected, leaking one (holding the
+    // editor) per opened tab. Tie its lifetime to the editor.
+    editor.onDestroy(() => observer.disconnect())
 }
 
 function initializeGlobalButtons(settings = {}) {
@@ -1092,9 +1096,28 @@ export function closeTab(path) {
         activateTab(toActivate);
     }
 
-    if (recentlyClosed.size > 30) {
-        const oldest = [...recentlyClosed.entries()].sort((a, b) => a[1].when - b[1].when)[0][0];
-        recentlyClosed.delete(oldest);
+    pruneRecentlyClosed();
+}
+
+// Bound the reopen cache by both count and total cached content size, so
+// closing many large files doesn't keep megabytes of text alive indefinitely.
+const RECENTLY_CLOSED_MAX_COUNT = 30;
+const RECENTLY_CLOSED_MAX_CHARS = 3_000_000;
+
+function pruneRecentlyClosed() {
+    const byOldest = () => [...recentlyClosed.entries()].sort((a, b) => a[1].when - b[1].when);
+
+    while (recentlyClosed.size > RECENTLY_CLOSED_MAX_COUNT) {
+        recentlyClosed.delete(byOldest()[0][0]);
+    }
+
+    let totalChars = 0;
+    for (const [, state] of recentlyClosed) totalChars += state.content ? state.content.length : 0;
+
+    while (totalChars > RECENTLY_CLOSED_MAX_CHARS && recentlyClosed.size > 1) {
+        const [oldestPath, oldestState] = byOldest()[0];
+        totalChars -= oldestState.content ? oldestState.content.length : 0;
+        recentlyClosed.delete(oldestPath);
     }
 }
 
