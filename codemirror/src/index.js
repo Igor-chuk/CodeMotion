@@ -7,7 +7,8 @@ import {
     closeBrackets, autocompletion, completionKeymap, completeFromList,
     acceptCompletion, completionStatus
 } from "@codemirror/autocomplete";
-import { indentUnit, language } from "@codemirror/language";
+import { indentUnit, language, HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
 import { lintGutter, setDiagnostics as setLintDiagnostics } from "@codemirror/lint";
 
 // commands
@@ -74,6 +75,15 @@ import { loadWASM, OnigScanner, OnigString } from "vscode-oniguruma";
 import { textMateHighlighter } from "./plugins/textmate/highlighter.js";
 import { textMateBaseTheme } from "./plugins/textmate/theme.js";
 // 
+
+// Force all comments to gray across every theme/language (was theme-green).
+// High precedence so it wins over each theme's own comment colour.
+const commentHighlightStyle = Prec.highest(syntaxHighlighting(HighlightStyle.define([
+    {
+        tag: [tags.comment, tags.lineComment, tags.blockComment, tags.docComment],
+        color: "var(--color-comment, #7d8590)"
+    }
+])));
 
 export const javascriptSnippets = fromVSCodeSnippets(javascriptSnippetsJSON);
 export const javascriptGlobals = completeFromList(
@@ -316,6 +326,8 @@ window.CodeMirror = {
                     suggestionTheme,
                     suggestPlugin,
                     suggestUpdateListener,
+
+                    commentHighlightStyle,
 
                     colorComments,
                     colorCommentsTheme,
