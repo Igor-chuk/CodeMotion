@@ -200,6 +200,79 @@ const globalButtonsInitialized = new Map();
 let isLiveServerActive = false;
 const codeContextMenuPerTab = new Map();
 
+// ─── Editor hibernation (bounded live editors) ──────────────────────────────
+// Keep only a small pool of tabs holding their full document. Inactive tabs
+// beyond the pool are "hibernated": their text is captured and the editor's
+// document emptied, freeing the file-proportional memory (content + syntax /
+// semantic trees) that made many large open files overload the machine. Dirty
+// (unsaved) tabs are never hibernated, and every content read for save/close
+// goes through getRecContent so nothing is ever lost.
+const MAX_LIVE_EDITORS = 5;
+const liveOrder = []; // paths of non-hibernated editors, oldest first
+
+export function getRecContent(rec) {
+    if (!rec) return "";
+    if (rec.hibernated) return rec.hibernated.content;
+    return rec.editor ? rec.editor.getValue() : "";
+}
+
+function hibernateRec(rec) {
+    if (!rec || rec.hibernated || rec.isImage || !rec.editor) return;
+    if (rec.tabEl.classList.contains("not-saved")) return; // never touch unsaved work
+
+    rec.hibernated = {
+        content: rec.editor.getValue(),
+        cursor: rec.editor.getCursorPosition(),
+        scrollTop: rec.editor.getScrollTop()
+    };
+
+    rec._suspend = true;
+    rec.editor.setValueNoHistory("");
+    rec._suspend = false;
+}
+
+function restoreRec(rec) {
+    if (!rec || !rec.hibernated) return;
+
+    const { content, cursor, scrollTop } = rec.hibernated;
+    rec.hibernated = null;
+
+    rec._suspend = true;
+    rec.editor.setValueNoHistory(content);
+    rec._suspend = false;
+
+    if (cursor) rec.editor.moveCursorTo(cursor.row, cursor.column);
+    if (typeof scrollTop === "number") rec.editor.setScrollTop(scrollTop);
+
+    // setEditorContext (diagnostics + context panel) is skipped while suspended,
+    // so recompute it for the restored content. Semantic highlighting recovers on
+    // its own from the document change the restore produces.
+    if (typeof rec.recomputeContext === "function") rec.recomputeContext();
+}
+
+function touchLive(path) {
+    const existing = liveOrder.indexOf(path);
+    if (existing !== -1) liveOrder.splice(existing, 1);
+    liveOrder.push(path);
+
+    let idx = 0;
+    while (liveOrder.length > MAX_LIVE_EDITORS && idx < liveOrder.length) {
+        const p = liveOrder[idx];
+        if (p === path) { idx++; continue; }
+
+        const rec = tabsByPath.get(p);
+        if (!rec || rec.isImage || rec.tabEl.classList.contains("not-saved")) { idx++; continue; }
+
+        hibernateRec(rec);
+        liveOrder.splice(idx, 1);
+    }
+}
+
+function dropLive(path) {
+    const i = liveOrder.indexOf(path);
+    if (i !== -1) liveOrder.splice(i, 1);
+}
+
 function setTabColor(tab, color) {
     tab.style.cssText += `--tab-color: ${color}`
 }
@@ -915,7 +988,16 @@ export async function openTab(path, content, extension, name, pathContext, isNew
         isPreview: isPreview,
         fileName: name,
         color: language.color,
-        extension: extension
+        extension: extension,
+        hibernated: null,
+        // Rebuilds diagnostics/context after a hibernated tab is restored.
+        recomputeContext: () => setEditorContext({}, {
+            editor: editor,
+            language: language,
+            updateEditorData: updateEditorData,
+            path: path,
+            settings: settings
+        })
     });
 
     recentlyClosed.delete(path);
@@ -957,6 +1039,11 @@ export async function openTab(path, content, extension, name, pathContext, isNew
         }
     });
     editor.onChange(async () => {
+        // Hibernation/restore swaps the document via setValueNoHistory; skip the
+        // "dirty" mark, context recompute and extension events for those swaps.
+        const currentRec = tabsByPath.get(path);
+        if (currentRec && currentRec._suspend) return;
+
         tab.classList.add("not-saved");
 
         await setEditorContext({}, {
@@ -1056,10 +1143,14 @@ export function closeTab(path) {
 
     const { tabEl, editor, paneEl, id } = rec;
 
+    dropLive(path);
+
+    // Read through the hibernation-aware accessor so a closed-while-hibernated
+    // (empty-doc) tab still caches its real content for reopen.
     const state = {
-        content: editor.getValue(),
-        cursor: editor.getCursorPosition(),
-        scrollTop: editor.getScrollTop(),
+        content: getRecContent(rec),
+        cursor: rec.hibernated ? rec.hibernated.cursor : editor.getCursorPosition(),
+        scrollTop: rec.hibernated ? rec.hibernated.scrollTop : editor.getScrollTop(),
         when: Date.now()
     };
     recentlyClosed.set(path, state);
@@ -1177,6 +1268,13 @@ export function activateTab(tabEl) {
 
     const editor = rec.editor;
     if (!editor) return;
+
+    // Bring this tab's document back if it was hibernated, and mark it as one of
+    // the most-recently-used live editors (evicting the oldest past the cap).
+    if (!rec.isImage) {
+        restoreRec(rec);
+        touchLive(realPath);
+    }
 
     bindEditorBtns(editor, { fileName: rec.fileName })
     bindCodeTools({ editor: editor, extension: rec.extension })

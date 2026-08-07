@@ -1,4 +1,4 @@
-import { EditorState, Compartment, EditorSelection, Prec } from "@codemirror/state";
+import { EditorState, Compartment, EditorSelection, Prec, Transaction } from "@codemirror/state";
 import {
     EditorView, keymap, lineNumbers, highlightActiveLine,
     highlightActiveLineGutter
@@ -372,6 +372,16 @@ window.CodeMirror = {
 
             recreateState(doc) {
                 view.setState(createState(doc));
+            },
+
+            // Replace the whole document without touching undo history or any
+            // compartment (language/theme/tabSize). Used to hibernate/restore
+            // inactive tabs (free their text) without side effects.
+            setValueNoHistory(value) {
+                view.dispatch({
+                    changes: { from: 0, to: view.state.doc.length, insert: value },
+                    annotations: Transaction.addToHistory.of(false)
+                });
             },
 
             editorView: {

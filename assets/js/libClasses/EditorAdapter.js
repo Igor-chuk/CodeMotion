@@ -6,7 +6,7 @@ export class _EditorAdapter {
         {
             view, compartments, setDiagnostics, setOnChange, commands,
             recreateState, editorView, editorState, tools,
-            setSemanticDiagnosticsHandler
+            setSemanticDiagnosticsHandler, setValueNoHistory
         }
     ) {
         this.instance = view
@@ -36,6 +36,7 @@ export class _EditorAdapter {
 
         this._cleanups = [];
         this._destroyed = false;
+        this._setValueNoHistory = setValueNoHistory;
 
         this.dom = view.dom
 
@@ -246,6 +247,16 @@ export class _EditorAdapter {
                 insert: value
             }
         })
+    }
+
+    // Replace the document without polluting undo history or resetting language/
+    // theme/tab-size compartments (used for tab hibernation).
+    setValueNoHistory(value) {
+        if (typeof this._setValueNoHistory === "function") {
+            this._setValueNoHistory(value)
+        } else {
+            this.setValue(value)
+        }
     }
 
     setLanguage(name) {
