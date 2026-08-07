@@ -1,7 +1,6 @@
 const { addEditorClickedCallback } = require("../../../dist/ipc/editor.js")
 const { getEditorTriggeredData } = require("./__api.js")
 
-// Replace an extension's previous click subscription instead of stacking listeners.
 const unsubscribers = new Map();
 
 function callback(data) {

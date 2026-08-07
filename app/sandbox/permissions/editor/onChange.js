@@ -1,8 +1,6 @@
 const { addEditorChangedCallback } = require("../../../dist/ipc/editor.js");
 const { getEditorTriggeredData } = require("./__api.js");
 
-// Track each extension's active subscription so re-registering replaces it
-// instead of stacking another listener.
 const unsubscribers = new Map();
 
 function callback(data) {
