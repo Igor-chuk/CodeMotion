@@ -8,6 +8,13 @@
 > [!IMPORTANT]
 > If you download a pre-compiled build (exe), Windows may flag it as a keylogger, and VirusTotal may flag it for random viruses—and that’s NORMAL; I honestly don’t know why this happens. The project is in alpha development. If you don’t trust the build, you can compile the project [yourself](https://github.com/cdmtn-dev/codemotion-ide/wiki/%5BFOR-BEGINNERS%5D-How-do-I-build-an-app%3F)
 
+> [!IMPORTANT]
+> **macOS: "CodeMotion is damaged and can't be opened"** — this is NOT corruption. The build isn't signed with a paid Apple Developer certificate, so macOS Gatekeeper quarantines it. To fix, drag the app to `/Applications`, then run this once in Terminal:
+> ```bash
+> xattr -cr /Applications/CodeMotion.app
+> ```
+> The app will open normally afterwards.
+
 CodeMotion is a web-focused, advanced 
 open-source code editor (IDE) 
 with native tools for web developers
