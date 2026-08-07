@@ -10,8 +10,6 @@ const traverse = traverseImport.default || traverseImport;
 
 // ─── Analysis ─────────────────────────────────────────────────────────────────
 
-const UPPER_CASE = /^[A-Z][A-Z0-9_]*$/;
-
 const BASE_PLUGINS = [
     "decorators-legacy",
     "classProperties",
@@ -31,7 +29,7 @@ function parserPlugins({ ts, jsx }) {
     return plugins;
 }
 
-const KIND_PRIORITY = { "semantic-class": 3, "func_arg": 2, "constant": 1 };
+const KIND_PRIORITY = { "keyword": 4, "semantic-class": 3, "func_arg": 2, "constant": 1 };
 
 function pushToken(tokens, node, kind) {
     if (!node || typeof node.start !== "number" || typeof node.end !== "number") return;
@@ -51,10 +49,11 @@ function isClassDeclNode(node) {
     return false;
 }
 
-function classifyBinding(name, binding) {
+function classifyBinding(binding) {
     if (isClassDeclNode(binding.path && binding.path.node)) return "semantic-class";
     if (binding.kind === "param") return "func_arg";
-    if (binding.kind === "const" && UPPER_CASE.test(name)) return "constant";
+    // Every `const` binding (any name), scoped by babel — includes `const x = 10`.
+    if (binding.kind === "const") return "constant";
     return null;
 }
 
@@ -64,7 +63,7 @@ function collectTokens(ast, tokens) {
             const bindings = path.scope.bindings;
             for (const name in bindings) {
                 const binding = bindings[name];
-                const kind = classifyBinding(name, binding);
+                const kind = classifyBinding(binding);
                 if (!kind) continue;
 
                 pushToken(tokens, binding.identifier, kind);
@@ -72,6 +71,16 @@ function collectTokens(ast, tokens) {
                     pushToken(tokens, ref.node, kind);
                 }
             }
+        },
+        ClassMethod(path) {
+            // Highlight the `constructor` name itself as a keyword.
+            const node = path.node;
+            if (node.kind === "constructor" && node.key && node.key.type === "Identifier") {
+                pushToken(tokens, node.key, "keyword");
+            }
+        },
+        ThisExpression(path) {
+            pushToken(tokens, path.node, "constant");
         },
     });
 }
@@ -164,6 +173,9 @@ function analyzeMethods(ast, diagnostics) {
                 else info.open = true; // mixin / expression superclass
             }
 
+            // Collect every declared member — static and instance alike. A class
+            // may have only static methods and no constructor; that is valid and
+            // must not be flagged, so static names count as known members too.
             for (const element of node.body.body) {
                 if (element.computed) { info.open = true; continue; }
                 if (!MEMBER_TYPES.has(element.type)) continue;
@@ -171,6 +183,7 @@ function analyzeMethods(ast, diagnostics) {
                 if (key) info.members.add(key);
             }
 
+            // Constructor is optional; this simply adds any `this.x = …` fields when present.
             collectConstructorMembers(path, info);
             localClasses.set(name, info); // last declaration of a name wins
         },
@@ -292,6 +305,7 @@ const MARKS = {
     "func_arg": Decoration.mark({ class: "cm-func-arg" }),
     "semantic-class": Decoration.mark({ class: "cm-semantic-class" }),
     "constant": Decoration.mark({ class: "cm-constant" }),
+    "keyword": Decoration.mark({ class: "cm-keyword" }),
 };
 
 function buildDecorations(tokens) {
@@ -352,13 +366,11 @@ export function semanticHighlight({ ts = false, jsx = true } = {}) {
     return [semanticField, driver];
 }
 
+// Colors come from the app's token palette (assets/css/variables.css); fallbacks
+// keep the plugin sensible if a variable is undefined (e.g. isolated testing).
 export const semanticHighlightTheme = EditorView.baseTheme({
-    "&dark .cm-func-arg, &dark .cm-func-arg *": { color: "#9CDCFE !important" },
-    "&light .cm-func-arg, &light .cm-func-arg *": { color: "#001080 !important" },
-
-    "&dark .cm-semantic-class, &dark .cm-semantic-class *": { color: "#4EC9B0 !important" },
-    "&light .cm-semantic-class, &light .cm-semantic-class *": { color: "#267F99 !important" },
-
-    "&dark .cm-constant, &dark .cm-constant *": { color: "#4FC1FF !important" },
-    "&light .cm-constant, &light .cm-constant *": { color: "#0070C1 !important" },
+    ".cm-func-arg, .cm-func-arg *": { color: "var(--color-func-arg, #9CDCFE) !important" },
+    ".cm-semantic-class, .cm-semantic-class *": { color: "var(--color-class, #4EC9B0) !important" },
+    ".cm-constant, .cm-constant *": { color: "var(--color-const, #4FC1FF) !important" },
+    ".cm-keyword, .cm-keyword *": { color: "var(--color-keyword, #569CD6) !important" },
 });
