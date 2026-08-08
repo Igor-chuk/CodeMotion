@@ -50,6 +50,11 @@ export class JSONParser {
 
         while (i < length) {
             if (captured === null && i >= offset) {
+                const top = frames[frames.length - 1];
+                if (top && top.type === "object" && top.key === null) {
+                    const key = this.peekNextKey(code, i);
+                    if (key !== null) top.key = key;
+                }
                 captured = this.cloneFrames(frames);
                 break;
             }
@@ -110,6 +115,20 @@ export class JSONParser {
 
         if (captured === null) captured = this.cloneFrames(frames);
         return this.framesToPath(captured);
+    }
+
+    peekNextKey(code, start) {
+        const length = code.length;
+        let i = start;
+
+        while (i < length && WHITESPACE.has(code[i])) i++;
+        if (code[i] !== '"') return null;
+
+        const value = this.readString(code, i);
+        let j = value.end;
+        while (j < length && WHITESPACE.has(code[j])) j++;
+
+        return code[j] === ":" ? value.text : null;
     }
 
     readString(code, start) {
