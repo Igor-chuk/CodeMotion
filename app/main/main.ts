@@ -23,6 +23,8 @@ require("./runtime/runtimeHandler")
 require("./tools/diagnostics")
 require("./tools/js-ts/ast")
 require("./tools/go/ast")
+require("./tools/json")
+require("./tools/yaml")
 
 require("./ipc/filesWork")
 require("./ipc/api")

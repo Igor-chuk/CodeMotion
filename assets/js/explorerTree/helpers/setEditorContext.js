@@ -6,6 +6,7 @@ import { CSSParser } from "../../contextParsers/cssParser.js"
 
 import { addRuntimeError, GLS } from "../../lib.js"
 import { GoParser } from "../../contextParsers/goParser.js"
+import { YAMLParser } from "../../contextParsers/yamlParser.js"
 
 let diagnosticTimer = null
 let typeCheckTimer = null
@@ -18,6 +19,7 @@ const SEVERITY_MAP = {
 }
 
 const SCRIPT_MODES = ["javascript", "jsx", "typescript"]
+const DATA_MODES = ["json", "yaml"]
 
 function getOxcLanguage(filePath, fallback) {
     const path = String(filePath || "").toLowerCase()
@@ -86,9 +88,18 @@ export async function setEditorContext(properties = {}, { editor, language, upda
     const currentGen = isErrorsUpdate ? ++generation : generation
 
     if (!SCRIPT_MODES.includes(language.mode)) {
-        editor.setDiagnosticsFor("syntax", [])
+        if (!DATA_MODES.includes(language.mode)) editor.setDiagnosticsFor("syntax", [])
         editor.setDiagnosticsFor("types", [])
         editor.setDiagnosticsFor("semantic", [])
+    }
+
+    const setDataDiagnostics = (getDiagnostics) => {
+        if (!isErrorsUpdate) return
+        diagnosticTimer = setTimeout(async () => {
+            const diagnostics = await getDiagnostics(editor.getValue())
+            if (currentGen !== generation) return
+            showDiagnostics(diagnostics, { editor, path, source: "syntax" })
+        }, 400)
     }
 
     const setScriptContext = async (isTypeScript) => {
@@ -130,8 +141,19 @@ export async function setEditorContext(properties = {}, { editor, language, upda
         jsx: () => setScriptContext(false),
         typescript: () => setScriptContext(true),
         json: () => {
+            setDataDiagnostics(window.electron.jsonDiagnostic)
+
             const jsonParser = new JSONParser()
             jsonParser.showJSONContext(editor, document.querySelector(".code-structure"))
+        },
+        yaml: async () => {
+            setDataDiagnostics(window.electron.yamlDiagnostic)
+
+            const yamlParser = new YAMLParser()
+            const ast = await window.electron.yamlAST(editor.getValue())
+            const row = editor.getCursorPosition().row + 1
+
+            yamlParser.renderContext(yamlParser.getContextChain(ast, row))
         },
         html: () => {
             const htmlParser = new HTMLParser()

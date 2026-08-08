@@ -127,6 +127,10 @@ contextBridge.exposeInMainWorld('electron', {
     javascriptAST: (code: string, language?: string) => ipcRenderer.invoke("javascript-ast", code, language),
     typescriptAST: (code: string, language?: string) => ipcRenderer.invoke("typescript-ast", code, language),
     golangAST: (code: string) => ipcRenderer.invoke("golang-ast", code),
+    jsonDiagnostic: (code: string) => ipcRenderer.invoke("json-diagnostic", code),
+    jsonAST: (code: string) => ipcRenderer.invoke("json-ast", code),
+    yamlDiagnostic: (code: string) => ipcRenderer.invoke("yaml-diagnostic", code),
+    yamlAST: (code: string) => ipcRenderer.invoke("yaml-ast", code),
     tsTypeCheck: (code: string, filePath: string) => ipcRenderer.invoke("ts-type-check", code, filePath),
 
     sendCodeSuggestRequest: (data: any) => ipcRenderer.send("code-suggest-request", data),
