@@ -1,77 +1,156 @@
 import { renderSeparator } from "./globals.js";
 
+const WHITESPACE = new Set([" ", "\t", "\n", "\r"]);
+const LITERAL_END = new Set([" ", "\t", "\n", "\r", ",", "{", "}", "[", "]", ":"]);
+
 export class JSONParser {
     showJSONContext(editor, contextPanel) {
         const code = editor.getValue();
         const pos = editor.getCursorPosition();
-        let data;
 
+        if (code.trim().length === 0) {
+            contextPanel.textContent = "No context";
+            return;
+        }
+
+        let valid = true;
         try {
-            data = JSON.parse(code);
-        } catch (err) {
+            JSON.parse(code);
+        } catch {
+            valid = false;
+        }
+
+        const offset = this.toOffset(code, pos);
+        const path = this.getContextChain(code, offset);
+
+        if (path.length === 0 && !valid) {
             contextPanel.textContent = "Incorrect JSON";
             return;
         }
 
-        const lines = code.split("\n");
-        const currentLine = lines[pos.row];
-        const path = this.getJSONPath(code, pos);
         this.renderContext(path, contextPanel);
     }
 
-    getJSONPath(code, pos) {
+    toOffset(code, pos) {
         const lines = code.split("\n");
-        const upToCursor = lines.slice(0, pos.row + 1).join("\n");
-        const jsonText = upToCursor.replace(/\s+/g, "");
+        const row = Math.min(pos.row, lines.length - 1);
 
-        let path = [];
-        const stack = [];
-        let key = "";
-        let buffer = "";
-        let insideString = false;
+        let offset = 0;
+        for (let i = 0; i < row; i++) offset += lines[i].length + 1;
+        return offset + Math.min(pos.column || 0, lines[row]?.length ?? 0);
+    }
 
-        for (let i = 0; i < jsonText.length; i++) {
-            const ch = jsonText[i];
-            if (ch === '"' && jsonText[i - 1] !== "\\") {
-                insideString = !insideString;
-                if (!insideString && buffer) {
-                    key = buffer;
-                    buffer = "";
-                } else {
-                    buffer = "";
-                }
-            } else if (insideString) {
-                buffer += ch;
+    getContextChain(code, offset) {
+        const frames = [];
+        let expectKey = false;
+        let captured = null;
+
+        const length = code.length;
+        let i = 0;
+
+        while (i < length) {
+            if (captured === null && i >= offset) {
+                captured = this.cloneFrames(frames);
+                break;
+            }
+
+            const ch = code[i];
+
+            if (WHITESPACE.has(ch)) {
+                i++;
             } else if (ch === "{") {
-                if (key) stack.push({ type: "object", key });
-                else stack.push({ type: "object", key: null });
-                key = "";
+                frames.push({ type: "object", key: null });
+                expectKey = true;
+                i++;
             } else if (ch === "[") {
-                if (key) stack.push({ type: "array", key });
-                else stack.push({ type: "array", key: null });
-                key = "";
+                frames.push({ type: "array", index: 0 });
+                expectKey = false;
+                i++;
             } else if (ch === "}" || ch === "]") {
-                stack.pop();
+                frames.pop();
+                const top = frames[frames.length - 1];
+                expectKey = !!top && top.type === "object";
+                i++;
+            } else if (ch === ":") {
+                expectKey = false;
+                i++;
+            } else if (ch === ",") {
+                const top = frames[frames.length - 1];
+                if (top) {
+                    if (top.type === "object") {
+                        top.key = null;
+                        expectKey = true;
+                    } else {
+                        top.index++;
+                    }
+                }
+                i++;
+            } else if (ch === '"') {
+                const start = i;
+                const value = this.readString(code, i);
+                i = value.end;
+
+                const top = frames[frames.length - 1];
+                if (top && top.type === "object" && expectKey) top.key = value.text;
+
+                if (captured === null && offset >= start && offset < value.end) {
+                    captured = this.cloneFrames(frames);
+                    break;
+                }
+            } else {
+                const start = i;
+                while (i < length && !LITERAL_END.has(code[i])) i++;
+
+                if (captured === null && offset >= start && offset < i) {
+                    captured = this.cloneFrames(frames);
+                    break;
+                }
             }
         }
 
-        path = stack.map(e => {
-            let icon = e.type === "object" ? "data_object" : "data_array";
-            let className = e.type === "object" ? "object" : "array";
-            let label = e.key ? e.key : "";
-            return { icon, label, className };
-        });
+        if (captured === null) captured = this.cloneFrames(frames);
+        return this.framesToPath(captured);
+    }
 
-        if (/\"[a-zA-Z0-9_]+\"/.test(lines[pos.row])) {
-            const match = lines[pos.row].match(/\"([a-zA-Z0-9_]+)\"/);
-            if (match) path.push({ icon: "token", label: match[1], className: "object" });
+    readString(code, start) {
+        const length = code.length;
+        let i = start + 1;
+        let text = "";
+
+        while (i < length) {
+            const ch = code[i];
+            if (ch === "\\") {
+                text += code[i + 1] ?? "";
+                i += 2;
+                continue;
+            }
+            if (ch === '"') {
+                i++;
+                break;
+            }
+            text += ch;
+            i++;
         }
 
-        return path;
+        return { text, end: i };
+    }
+
+    cloneFrames(frames) {
+        return frames.map(frame => ({ ...frame }));
+    }
+
+    framesToPath(frames) {
+        return frames.map(frame => {
+            if (frame.type === "array") {
+                return { icon: "data_array", label: `[${frame.index}]`, className: "array" };
+            }
+            return { icon: "data_object", label: frame.key ?? "", className: "object" };
+        });
     }
 
     renderContext(chain, contextPanel) {
         contextPanel.innerHTML = "";
+
         if (!chain.length) {
             contextPanel.textContent = "No context";
             return;
@@ -89,7 +168,7 @@ export class JSONParser {
             contextPanel.appendChild(el);
 
             if (i < chain.length - 1) {
-                const sep = renderSeparator()
+                const sep = renderSeparator();
                 contextPanel.appendChild(sep);
             }
         });
