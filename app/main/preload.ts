@@ -1,6 +1,6 @@
 import { EditOrgData, RunPythonPayload, SaveContentPayload } from "./payloads";
 
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 let isRegisteredCustomLanguageRegistration = false;
 
@@ -75,6 +75,8 @@ contextBridge.exposeInMainWorld('electron', {
 
     requestFile: () => ipcRenderer.invoke("request-file-open"),
     requestFolder: () => ipcRenderer.invoke("request-folder-open"),
+
+    getPathForFile: (file: File) => webUtils.getPathForFile(file),
 
     setSettings: (data: any) => ipcRenderer.invoke("set-settings", data),
     readSettings: () => ipcRenderer.invoke("read-settings"),

@@ -10,23 +10,56 @@ export class _DragDrop {
             throw new Error("HTML Element cant support draggable")
         }
 
+        this._onFile = () => {}
+        this._onFolder = () => {}
+
         el.addEventListener('dragover', (e) => {
             e.preventDefault()
         })
+
+        el.addEventListener('drop', (e) => this._handleDrop(e))
+    }
+
+    async _handleDrop(e) {
+        e.preventDefault()
+
+        const collected = []
+        const items = e.dataTransfer.items
+
+        if (items && items.length) {
+            for (const item of items) {
+                if (item.kind !== "file") continue
+
+                const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null
+                collected.push({ isDirectory: !!(entry && entry.isDirectory), file: item.getAsFile() })
+            }
+        } else {
+            for (const file of e.dataTransfer.files) {
+                collected.push({ isDirectory: false, file })
+            }
+        }
+
+        for (const { isDirectory, file } of collected) {
+            if (!file) continue
+
+            if (isDirectory) {
+                const folderPath = window.electron.getPathForFile(file)
+                if (folderPath) this._onFolder(folderPath)
+                continue
+            }
+
+            const content = await file.text()
+            const name = file.name
+
+            this._onFile({ content, name, extension: name.split(".").pop() })
+        }
     }
 
     onDrop(callback = () => {}) {
-        this.el.addEventListener('drop', async (e) => {
-            e.preventDefault();
+        this._onFile = callback
+    }
 
-            const files = e.dataTransfer.files;
-
-            for (const file of files) {
-                const text = await file.text();
-                const name = file.name
-
-                callback({ content: text, name: name, extension: name.split(".").pop() })
-            }
-        });
+    onDropFolder(callback = () => {}) {
+        this._onFolder = callback
     }
 }

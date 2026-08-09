@@ -113,6 +113,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     fileDragDrop.onDrop(({ content, name, extension }) => {
         openTab(name, content, extension, name, undefined, true, { gls: gls })
     })
+    fileDragDrop.onDropFolder((folderPath) => {
+        openFolder({
+            pathRoot: folderPath,
+            filesPanel: document.querySelector('.explorer-elements[data-tab="files"]'),
+            addToHistory: addToHistory,
+            pathContext: window.__pathContext,
+            settings: settings
+        })
+    })
 
     //
 
@@ -410,7 +419,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.querySelectorAll("#open_folder").forEach(btn => {
         btn.addEventListener("click", async () => {
-            const l = new Loader(document.querySelector(".explorer-elements[data-tab='files']"),
+            const previousContent = filesPanel.innerHTML
+
+            const l = new Loader(filesPanel,
                 {
                     size: "20px",
                     stroke: "1px",
@@ -421,6 +432,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             l.render()
 
             let openedFile = await window.electron.requestFolder()
+
+            if (!openedFile) {
+                filesPanel.innerHTML = previousContent
+                return
+            }
 
             l.remove()
 
