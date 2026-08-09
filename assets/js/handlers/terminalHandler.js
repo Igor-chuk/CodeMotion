@@ -49,7 +49,9 @@ export class Console {
             fs: "Fullscreen mode",
             "-fs": "Disable fullscreen",
             "?": "All custom CodeMotion Terminal commands",
-            "cmexit": "Alias for exit command"
+            "cmexit": "Alias for exit command",
+            "clear": "Clear the terminal screen",
+            "cls": "Alias for clear"
         }
         this.customCommands = {
             "fs": () => { 
@@ -76,6 +78,14 @@ export class Console {
                 } else {
                     this.term.writeln("\x1b[1;30mNo active process to exit\x1b[0m")
                 }
+            },
+            "clear": () => {
+                this.term.write("\x1b[2J\x1b[3J\x1b[H")
+                this.term.write(`${this.cwd} $ `)
+                return true
+            },
+            "cls": () => {
+                return this.customCommands["clear"]()
             }
         }
 
@@ -183,11 +193,11 @@ export class Console {
             const firstWord = trimmedBuffer.split(/\s+/)[0]
             
             if(this.customCommands[firstWord]) {
-                this.customCommands[firstWord]()
+                const handledPrompt = this.customCommands[firstWord]()
                 this.history.push(trimmedBuffer)
                 this.historyIndex = this.history.length
                 this.buffer = ""
-                this.prompt()
+                if(handledPrompt !== true) this.prompt()
             } else {
                 const cdMatch = trimmedBuffer.match(/^cd\s+(.*)$/i)
                 if (cdMatch) {
