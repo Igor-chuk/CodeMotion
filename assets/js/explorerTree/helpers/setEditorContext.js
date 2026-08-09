@@ -7,6 +7,7 @@ import { CSSParser } from "../../contextParsers/cssParser.js"
 import { addRuntimeError, GLS } from "../../lib.js"
 import { GoParser } from "../../contextParsers/goParser.js"
 import { YAMLParser } from "../../contextParsers/yamlParser.js"
+import { PythonParser } from "../../contextParsers/pythonParser.js"
 
 let diagnosticTimer = null
 let typeCheckTimer = null
@@ -173,6 +174,14 @@ export async function setEditorContext(properties = {}, { editor, language, upda
 
             const chain = goParser.getContextChain(ast, row)
             goParser.renderContext(chain)
+        },
+        python: async () => {
+            const pythonParser = new PythonParser()
+            const ast = await window.electron.pythonAST(editor.getValue())
+            const row = editor.getCursorPosition().row + 1
+
+            const chain = pythonParser.getContextChain(ast, row)
+            pythonParser.renderContext(chain)
         }
     }
 

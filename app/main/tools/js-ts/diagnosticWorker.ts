@@ -1,17 +1,40 @@
-const { parentPort } = require("worker_threads");
-const oxc = require("oxc-parser");
+import { parentPort } from "worker_threads";
+import * as oxc from "oxc-parser";
 
-const OXC_LANGUAGES = new Set(["js", "jsx", "ts", "tsx", "dts"]);
+type OxcLang = "js" | "jsx" | "ts" | "tsx" | "dts";
 
-function normalizeLanguage(language, fallback = "js") {
+interface Position {
+    line: number;
+    column: number;
+}
+
+interface Diagnostic {
+    message: string;
+    category: string;
+    from: number;
+    to: number;
+    line: number;
+    col: number;
+}
+
+interface DiagnosticMessage {
+    id?: any;
+    code?: string;
+    lang?: string;
+    isTS?: boolean;
+}
+
+const OXC_LANGUAGES = new Set<string>(["js", "jsx", "ts", "tsx", "dts"]);
+
+function normalizeLanguage(language: any, fallback: OxcLang = "js"): OxcLang {
     const normalized = String(language || "").trim().toLowerCase().replace(/^\./, "");
-    if (OXC_LANGUAGES.has(normalized)) return normalized;
+    if (OXC_LANGUAGES.has(normalized)) return normalized as OxcLang;
     if (["mjs", "cjs", "es6"].includes(normalized)) return "js";
     if (["mts", "cts"].includes(normalized)) return "ts";
     return fallback;
 }
 
-function getDiagnostics(code, language = "js") {
+function getDiagnostics(code: any, language: any = "js"): Diagnostic[] {
     const lang = normalizeLanguage(language);
     const source = typeof code === "string" ? code : "";
 
@@ -22,13 +45,13 @@ function getDiagnostics(code, language = "js") {
             showSemanticErrors: true,
         });
         const lineTable = buildLineTable(source);
-        return (result.errors || []).map(error => formatError(error, source, lineTable));
+        return (result.errors || []).map((error: any) => formatError(error, source, lineTable));
     } catch (error) {
         return [formatThrownError(error, source)];
     }
 }
 
-function buildLineTable(code) {
+function buildLineTable(code: string): number[] {
     const table = [0];
     for (let index = 0; index < code.length; index++) {
         if (code[index] === "\n") table.push(index + 1);
@@ -36,7 +59,7 @@ function buildLineTable(code) {
     return table;
 }
 
-function offsetToLoc(offset, lineTable) {
+function offsetToLoc(offset: number, lineTable: number[]): Position {
     let low = 0;
     let high = lineTable.length - 1;
 
@@ -49,8 +72,8 @@ function offsetToLoc(offset, lineTable) {
     return { line: low + 1, column: offset - lineTable[low] };
 }
 
-function formatError(error, code, lineTable) {
-    const label = (error.labels || []).find(candidate =>
+function formatError(error: any, code: string, lineTable: number[]): Diagnostic {
+    const label = (error.labels || []).find((candidate: any) =>
         Number.isInteger(candidate?.start) && Number.isInteger(candidate?.end)
     );
     const start = clampOffset(label?.start, code.length);
@@ -69,7 +92,7 @@ function formatError(error, code, lineTable) {
     };
 }
 
-function formatThrownError(error, code) {
+function formatThrownError(error: any, code: string): Diagnostic {
     return {
         message: error?.message || "Unable to parse source",
         category: "Error",
@@ -80,12 +103,12 @@ function formatThrownError(error, code) {
     };
 }
 
-function clampOffset(offset, length) {
+function clampOffset(offset: any, length: number): number {
     if (!Number.isInteger(offset)) return 0;
     return Math.min(Math.max(offset, 0), length);
 }
 
-function severityToCategory(severity) {
+function severityToCategory(severity: any): string {
     switch (severity) {
         case "Warning": return "Warning";
         case "Advice": return "Suggestion";
@@ -94,9 +117,9 @@ function severityToCategory(severity) {
     }
 }
 
-parentPort.on("message", ({ id, code, lang, isTS = false } = {}) => {
+parentPort?.on("message", ({ id, code, lang, isTS = false }: DiagnosticMessage = {}) => {
     const diagnostics = getDiagnostics(code, lang || (isTS ? "ts" : "js"));
-    parentPort.postMessage({ id, diagnostics });
+    parentPort?.postMessage({ id, diagnostics });
 });
 
-module.exports = { getDiagnostics, normalizeLanguage };
+export { getDiagnostics, normalizeLanguage };

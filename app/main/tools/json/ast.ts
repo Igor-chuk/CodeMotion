@@ -1,6 +1,65 @@
-const { ipcMain } = require("electron")
+import { ipcMain, IpcMainInvokeEvent } from "electron"
 
-const STRUCTURAL = {
+type Category = "Error" | "Warning" | "Suggestion"
+
+interface Diagnostic {
+    message: string
+    category: Category
+    from: number
+    to: number
+    line: number
+    col: number
+}
+
+interface LineCol {
+    line: number
+    col: number
+}
+
+interface Loc {
+    start: LineCol
+    end: LineCol
+}
+
+type TokenType =
+    | "lbrace"
+    | "rbrace"
+    | "lbracket"
+    | "rbracket"
+    | "colon"
+    | "comma"
+    | "string"
+    | "number"
+    | "true"
+    | "false"
+    | "null"
+    | "invalid"
+    | "eof"
+
+interface Token {
+    type: TokenType
+    value: string
+    start: number
+    end: number
+    terminated?: boolean
+}
+
+interface JSONNode {
+    type: "Object" | "Array" | "String" | "Number" | "Boolean" | "Null" | "Property"
+    loc: Loc
+    value?: unknown
+    key?: string
+    members?: JSONNode[]
+    elements?: JSONNode[]
+}
+
+interface Document {
+    type: "Document"
+    body: JSONNode | null
+    loc: Loc | null
+}
+
+const STRUCTURAL: Record<string, TokenType> = {
     "{": "lbrace",
     "}": "rbrace",
     "[": "lbracket",
@@ -12,7 +71,7 @@ const STRUCTURAL = {
 const WORDS = new Set(["true", "false", "null"])
 const MAX_DIAGNOSTICS = 200
 
-function buildLineTable(code) {
+function buildLineTable(code: string): number[] {
     const table = [0]
     for (let i = 0; i < code.length; i++) {
         if (code[i] === "\n") table.push(i + 1)
@@ -20,7 +79,7 @@ function buildLineTable(code) {
     return table
 }
 
-function offsetToLoc(offset, table) {
+function offsetToLoc(offset: number, table: number[]): LineCol {
     let low = 0
     let high = table.length - 1
     while (low < high) {
@@ -32,7 +91,14 @@ function offsetToLoc(offset, table) {
 }
 
 class JSONLinter {
-    constructor(code) {
+    code: string
+    length: number
+    table: number[]
+    errors: Diagnostic[]
+    tokens: Token[]
+    index: number
+
+    constructor(code: unknown) {
         this.code = typeof code === "string" ? code : ""
         this.length = this.code.length
         this.table = buildLineTable(this.code)
@@ -41,7 +107,7 @@ class JSONLinter {
         this.index = 0
     }
 
-    report(message, from, to, category = "Error") {
+    report(message: string, from: number, to: number, category: Category = "Error"): void {
         if (this.errors.length >= MAX_DIAGNOSTICS) return
         const start = Math.min(Math.max(from, 0), this.length)
         const end = Math.min(Math.max(to, start + 1), Math.max(this.length, start + 1))
@@ -49,7 +115,7 @@ class JSONLinter {
         this.errors.push({ message, category, from: start, to: end, line: loc.line, col: loc.col })
     }
 
-    tokenize() {
+    tokenize(): void {
         let i = 0
         const code = this.code
         const length = this.length
@@ -115,7 +181,7 @@ class JSONLinter {
         this.tokens.push({ type: "eof", value: "", start: length, end: length })
     }
 
-    readString(start) {
+    readString(start: number): number {
         const code = this.code
         const length = this.length
         let i = start + 1
@@ -177,7 +243,7 @@ class JSONLinter {
         return length
     }
 
-    readSingleQuoted(start) {
+    readSingleQuoted(start: number): number {
         const code = this.code
         const length = this.length
         let i = start + 1
@@ -194,7 +260,7 @@ class JSONLinter {
         return end
     }
 
-    readNumber(start) {
+    readNumber(start: number): number {
         const code = this.code
         const length = this.length
         let i = start
@@ -209,7 +275,7 @@ class JSONLinter {
         return i
     }
 
-    readWord(start) {
+    readWord(start: number): number {
         const code = this.code
         const length = this.length
         let i = start
@@ -217,7 +283,7 @@ class JSONLinter {
 
         const raw = code.slice(start, i)
         if (WORDS.has(raw)) {
-            this.tokens.push({ type: raw, value: raw, start, end: i })
+            this.tokens.push({ type: raw as TokenType, value: raw, start, end: i })
         } else {
             this.report(`Unexpected token ${JSON.stringify(raw)}`, start, i)
             this.tokens.push({ type: "invalid", value: raw, start, end: i })
@@ -225,17 +291,17 @@ class JSONLinter {
         return i
     }
 
-    peek() {
+    peek(): Token {
         return this.tokens[this.index]
     }
 
-    next() {
+    next(): Token {
         const token = this.tokens[this.index]
         if (this.index < this.tokens.length - 1) this.index++
         return token
     }
 
-    parse() {
+    parse(): JSONNode | null {
         this.tokenize()
 
         const first = this.peek()
@@ -251,7 +317,7 @@ class JSONLinter {
         return value
     }
 
-    parseValue() {
+    parseValue(): JSONNode | null {
         const token = this.peek()
 
         switch (token.type) {
@@ -282,10 +348,10 @@ class JSONLinter {
         }
     }
 
-    parseObject() {
+    parseObject(): JSONNode {
         const open = this.next()
-        const members = []
-        const seen = new Set()
+        const members: JSONNode[] = []
+        const seen = new Set<string>()
 
         if (this.peek().type === "rbrace") {
             const close = this.next()
@@ -353,9 +419,9 @@ class JSONLinter {
         }
     }
 
-    parseArray() {
+    parseArray(): JSONNode {
         const open = this.next()
-        const elements = []
+        const elements: JSONNode[] = []
 
         if (this.peek().type === "rbracket") {
             const close = this.next()
@@ -403,28 +469,32 @@ class JSONLinter {
         }
     }
 
-    locOf(token) {
+    locOf(token: Token): Loc {
         return { start: offsetToLoc(token.start, this.table), end: offsetToLoc(token.end, this.table) }
     }
 
-    locBetween(from, to) {
+    locBetween(from: Token, to: Token): Loc {
         return { start: offsetToLoc(from.start, this.table), end: offsetToLoc(to.end, this.table) }
     }
 }
 
-function diagnostics(code) {
+function diagnostics(code: unknown): Diagnostic[] {
     const linter = new JSONLinter(code)
     linter.parse()
     return linter.errors
 }
 
-function ast(code) {
+function ast(code: unknown): Document {
     const linter = new JSONLinter(code)
     const body = linter.parse()
-    return { type: "Document", body, loc: { start: { line: 1, col: 0 }, end: offsetToLoc(linter.length, linter.table) } }
+    return {
+        type: "Document",
+        body,
+        loc: { start: { line: 1, col: 0 }, end: offsetToLoc(linter.length, linter.table) },
+    }
 }
 
-ipcMain.handle("json-diagnostic", (_event, code) => {
+ipcMain.handle("json-diagnostic", (_event: IpcMainInvokeEvent, code: unknown): Diagnostic[] => {
     try {
         return diagnostics(code)
     } catch (error) {
@@ -433,7 +503,7 @@ ipcMain.handle("json-diagnostic", (_event, code) => {
     }
 })
 
-ipcMain.handle("json-ast", (_event, code) => {
+ipcMain.handle("json-ast", (_event: IpcMainInvokeEvent, code: unknown): Document => {
     try {
         return ast(code)
     } catch (error) {
@@ -442,4 +512,4 @@ ipcMain.handle("json-ast", (_event, code) => {
     }
 })
 
-module.exports = { diagnostics, ast }
+export { diagnostics, ast }

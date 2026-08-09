@@ -1,13 +1,48 @@
-const { ipcMain } = require("electron");
+import { ipcMain } from "electron";
 
-function loc(startLine, endLine) {
+interface Position {
+    line: number;
+    column: number;
+}
+
+interface Loc {
+    start: Position;
+    end: Position;
+}
+
+interface ImportPath {
+    path: string;
+    alias: string | null;
+}
+
+interface Param {
+    names: string[];
+    paramType: string;
+}
+
+interface Receiver {
+    name: string;
+    typeName: string;
+}
+
+interface Identifier {
+    name: string;
+}
+
+interface AstNode {
+    type: string;
+    loc: Loc;
+    [key: string]: any;
+}
+
+function loc(startLine: number, endLine: number): Loc {
     return {
         start: { line: startLine, column: 0 },
         end: { line: endLine, column: 0 },
     };
 }
 
-function findClosingBrace(lines, startLine) {
+function findClosingBrace(lines: string[], startLine: number): number {
     let depth = 0;
     let found = false;
     for (let i = startLine - 1; i < lines.length; i++) {
@@ -22,9 +57,9 @@ function findClosingBrace(lines, startLine) {
     return lines.length;
 }
 
-function parseParams(raw) {
+function parseParams(raw: string): Param[] {
     if (!raw || !raw.trim()) return [];
-    const params = [];
+    const params: string[] = [];
     let depth = 0, current = "";
     for (const ch of raw) {
         if (ch === "(" || ch === "[") { depth++; current += ch; continue; }
@@ -34,7 +69,7 @@ function parseParams(raw) {
     }
     if (current.trim()) params.push(current.trim());
 
-    return params.map(p => {
+    return params.map((p): Param => {
         const variadic = p.startsWith("...");
         const clean = variadic ? p.slice(3) : p;
         const parts = clean.trim().split(/\s+/);
@@ -45,7 +80,7 @@ function parseParams(raw) {
     });
 }
 
-function parseReceiver(raw) {
+function parseReceiver(raw: string): Receiver | null {
     if (!raw) return null;
     const clean = raw.trim();
     const parts = clean.split(/\s+/);
@@ -53,13 +88,13 @@ function parseReceiver(raw) {
     return { name: parts[0], typeName: parts.slice(1).join(" ") };
 }
 
-function parseReturnType(after) {
+function parseReturnType(after: string): string | null {
     if (!after) return null;
     const clean = after.trim().replace(/\{.*$/, "").trim();
     return clean || null;
 }
 
-function parseImports(lines, body) {
+function parseImports(lines: string[], body: AstNode[]): void {
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         const lineNum = i + 1;
@@ -71,7 +106,7 @@ function parseImports(lines, body) {
         }
 
         if (line.match(/^import\s*\(/)) {
-            const paths = [];
+            const paths: ImportPath[] = [];
             let j = i + 1;
             while (j < lines.length && !lines[j].trim().startsWith(")")) {
                 const l = lines[j].trim();
@@ -84,8 +119,8 @@ function parseImports(lines, body) {
     }
 }
 
-function parseStructFields(lines, startLine, endLine) {
-    const fields = [];
+function parseStructFields(lines: string[], startLine: number, endLine: number): AstNode[] {
+    const fields: AstNode[] = [];
     for (let i = startLine; i < endLine - 1; i++) {
         const line = lines[i].trim();
         if (!line || line.startsWith("//") || line === "{" || line === "}") continue;
@@ -104,8 +139,8 @@ function parseStructFields(lines, startLine, endLine) {
     return fields;
 }
 
-function parseInterfaceMethods(lines, startLine, endLine) {
-    const methods = [];
+function parseInterfaceMethods(lines: string[], startLine: number, endLine: number): AstNode[] {
+    const methods: AstNode[] = [];
     for (let i = startLine; i < endLine - 1; i++) {
         const line = lines[i].trim();
         if (!line || line.startsWith("//") || line === "{" || line === "}") continue;
@@ -128,26 +163,24 @@ function parseInterfaceMethods(lines, startLine, endLine) {
     return methods;
 }
 
-function parseBlock(lines, startLine, endLine) {
-    const stmts = [];
+function parseBlock(lines: string[], startLine: number, endLine: number): AstNode[] {
+    const stmts: AstNode[] = [];
     for (let i = startLine; i < endLine - 1; i++) {
         const line = lines[i].trim();
         const lineNum = i + 1;
         if (!line || line.startsWith("//")) continue;
 
-        // short var :=
         const shortVar = line.match(/^([\w,\s]+?)\s*:=\s*(.+)$/);
         if (shortVar) {
             const names = shortVar[1].split(",").map(s => s.trim()).filter(Boolean);
             const callMatch = shortVar[2].trim().match(/^([\w.]+)\s*\(/);
-            const values = callMatch
+            const values: AstNode[] = callMatch
                 ? [{ type: "CallExpression", calleeName: callMatch[1] + "()", args: [], loc: loc(lineNum, lineNum) }]
                 : [];
             stmts.push({ type: "ShortVarDeclaration", names, values, loc: loc(lineNum, lineNum) });
             continue;
         }
 
-        // if / for
         if (line.match(/^if\s+/)) {
             const end = findClosingBrace(lines, lineNum);
             stmts.push({ type: "IfStatement", loc: loc(lineNum, end), body: [] });
@@ -159,7 +192,6 @@ function parseBlock(lines, startLine, endLine) {
             continue;
         }
 
-        // go / defer
         const goStmt = line.match(/^go\s+([\w.]+)\s*\(/);
         if (goStmt) {
             stmts.push({ type: "GoStatement", call: { type: "CallExpression", calleeName: goStmt[1] + "()", args: [], loc: loc(lineNum, lineNum) }, loc: loc(lineNum, lineNum) });
@@ -171,7 +203,6 @@ function parseBlock(lines, startLine, endLine) {
             continue;
         }
 
-        // call expression
         const callStmt = line.match(/^([\w.]+)\s*\(/);
         if (callStmt) {
             stmts.push({ type: "CallExpression", calleeName: callStmt[1] + "()", args: [], loc: loc(lineNum, lineNum) });
@@ -180,9 +211,9 @@ function parseBlock(lines, startLine, endLine) {
     return stmts;
 }
 
-function parse(code) {
+function parse(code: string): AstNode {
     const lines = code.split("\n");
-    const body = [];
+    const body: AstNode[] = [];
 
     const pkgMatch = lines[0]?.match(/^package\s+(\w+)/);
     if (pkgMatch) {
@@ -195,7 +226,6 @@ function parse(code) {
         const lineNum = i + 1;
         const line = lines[i];
 
-        // method: func (recv) Name(params) ret {
         const methodMatch = line.match(/^func\s+\(([^)]+)\)\s+(\w+)\s*\(([^)]*)\)(.*?)\s*\{?\s*$/);
         if (methodMatch) {
             const end = findClosingBrace(lines, lineNum);
@@ -211,7 +241,6 @@ function parse(code) {
             continue;
         }
 
-        // function: func Name(params) ret {
         const funcMatch = line.match(/^func\s+(\w+)\s*\(([^)]*)\)(.*?)\s*\{?\s*$/);
         if (funcMatch) {
             const end = findClosingBrace(lines, lineNum);
@@ -226,7 +255,6 @@ function parse(code) {
             continue;
         }
 
-        // struct
         const structMatch = line.match(/^type\s+(\w+)\s+struct\s*\{/);
         if (structMatch) {
             const end = findClosingBrace(lines, lineNum);
@@ -239,7 +267,6 @@ function parse(code) {
             continue;
         }
 
-        // interface
         const ifaceMatch = line.match(/^type\s+(\w+)\s+interface\s*\{/);
         if (ifaceMatch) {
             const end = findClosingBrace(lines, lineNum);
@@ -252,7 +279,6 @@ function parse(code) {
             continue;
         }
 
-        // type alias
         const typeAliasMatch = line.match(/^type\s+(\w+)\s+(?!=)([\w\[\]*]+(?:\[[\w*]+\])?)\s*$/);
         if (typeAliasMatch && !line.includes("struct") && !line.includes("interface")) {
             body.push({
@@ -264,7 +290,6 @@ function parse(code) {
             continue;
         }
 
-        // var
         const varMatch = line.match(/^var\s+(.+)/);
         if (varMatch) {
             const names = varMatch[1].split(/\s+/)[0].split(",").map(s => s.trim()).filter(Boolean);
@@ -277,7 +302,6 @@ function parse(code) {
             continue;
         }
 
-        // const
         const constMatch = line.match(/^const\s+(.+)/);
         if (constMatch) {
             const names = constMatch[1].split(",").map(s => s.trim().split(/\s+/)[0]).filter(Boolean);
@@ -292,7 +316,7 @@ function parse(code) {
     return { type: "Program", loc: loc(1, lines.length), body };
 }
 
-ipcMain.handle("golang-ast", (_, code) => {
+ipcMain.handle("golang-ast", (_: unknown, code: string): AstNode | { type: string; loc: Loc | null; body: AstNode[] } => {
     try {
         return parse(code);
     } catch (e) {

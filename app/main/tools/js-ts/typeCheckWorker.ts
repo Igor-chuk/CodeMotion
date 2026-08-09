@@ -1,10 +1,54 @@
-const { parentPort } = require("worker_threads");
-const path = require("path");
-const ts = require("typescript");
+import { parentPort } from "worker_threads";
+import path from "path";
+import ts from "typescript";
 
-const projects = new Map();
+interface TsconfigInfo {
+    path: string;
+    parsed: ts.ParsedCommandLine;
+}
 
-const defaultCompilerOptions = {
+interface Project {
+    scriptVersions: Map<string, number>;
+    scriptContents: Map<string, string>;
+    incrementVersion: () => void;
+    languageService: ts.LanguageService;
+}
+
+interface FunctionDefinition {
+    minArguments: number;
+    maxArguments: number;
+    hasRestParameter: boolean;
+}
+
+interface Scope {
+    parent: Scope | null;
+    functions: Map<string, FunctionDefinition>;
+}
+
+interface Position {
+    line: number;
+    column: number;
+}
+
+interface Diagnostic {
+    message: string;
+    category: string;
+    from: number;
+    to: number;
+    line: number;
+    col: number;
+    code?: number;
+}
+
+interface CheckMessage {
+    id?: any;
+    fileName?: string;
+    code?: string;
+}
+
+const projects = new Map<string, Project>();
+
+const defaultCompilerOptions: ts.CompilerOptions = {
     target: ts.ScriptTarget.ESNext,
     module: ts.ModuleKind.ESNext,
     moduleResolution: ts.ModuleResolutionKind.Bundler,
@@ -17,12 +61,12 @@ const defaultCompilerOptions = {
     resolveJsonModule: true,
 };
 
-function normalizeFileName(fileName) {
+function normalizeFileName(fileName: any): string {
     const resolved = path.resolve(String(fileName || "untitled.ts"));
     return resolved.replace(/\\/g, "/");
 }
 
-function findTsconfig(startDir) {
+function findTsconfig(startDir: string): TsconfigInfo | null {
     const configPath = ts.findConfigFile(startDir, ts.sys.fileExists, "tsconfig.json");
     if (!configPath) return null;
 
@@ -35,25 +79,25 @@ function findTsconfig(startDir) {
     };
 }
 
-function createProject(config, fallbackRoot) {
+function createProject(config: TsconfigInfo | null, fallbackRoot: string): Project {
     const root = normalizeFileName(config ? path.dirname(config.path) : fallbackRoot);
-    const scriptVersions = new Map();
-    const scriptContents = new Map();
+    const scriptVersions = new Map<string, number>();
+    const scriptContents = new Map<string, string>();
     let version = 0;
 
     const rootFiles = (config?.parsed.fileNames || []).map(normalizeFileName);
-    const compilerOptions = {
+    const compilerOptions: ts.CompilerOptions = {
         ...defaultCompilerOptions,
         ...(config?.parsed.options || {}),
         allowJs: true,
         checkJs: true,
     };
 
-    const host = {
+    const host: ts.LanguageServiceHost = {
         getScriptFileNames: () => Array.from(new Set([...rootFiles, ...scriptVersions.keys()])),
-        getScriptVersion: (fileName) => String(scriptVersions.get(normalizeFileName(fileName)) || 0),
+        getScriptVersion: (fileName: string) => String(scriptVersions.get(normalizeFileName(fileName)) || 0),
         getProjectVersion: () => String(version),
-        getScriptSnapshot: (fileName) => {
+        getScriptSnapshot: (fileName: string) => {
             const normalized = normalizeFileName(fileName);
             const override = scriptContents.get(normalized);
             if (override !== undefined) return ts.ScriptSnapshot.fromString(override);
@@ -63,19 +107,19 @@ function createProject(config, fallbackRoot) {
         },
         getCurrentDirectory: () => root,
         getCompilationSettings: () => compilerOptions,
-        getDefaultLibFileName: (options) => normalizeFileName(ts.getDefaultLibFilePath(options)),
-        fileExists: (fileName) => {
+        getDefaultLibFileName: (options: ts.CompilerOptions) => normalizeFileName(ts.getDefaultLibFilePath(options)),
+        fileExists: (fileName: string) => {
             const normalized = normalizeFileName(fileName);
             return scriptContents.has(normalized) || ts.sys.fileExists(normalized);
         },
-        readFile: (fileName) => {
+        readFile: (fileName: string) => {
             const normalized = normalizeFileName(fileName);
             return scriptContents.get(normalized) ?? ts.sys.readFile(normalized);
         },
         directoryExists: ts.sys.directoryExists,
         getDirectories: ts.sys.getDirectories,
         readDirectory: ts.sys.readDirectory,
-        realpath: (fileName) => normalizeFileName(ts.sys.realpath(fileName)),
+        realpath: (fileName: string) => normalizeFileName(ts.sys.realpath!(fileName)),
     };
 
     return {
@@ -86,7 +130,7 @@ function createProject(config, fallbackRoot) {
     };
 }
 
-function getProject(fileName) {
+function getProject(fileName: string): Project {
     const directory = path.dirname(fileName);
     const config = findTsconfig(directory);
     const key = config ? `config:${config.path}` : `isolated:${normalizeFileName(directory)}`;
@@ -95,10 +139,10 @@ function getProject(fileName) {
         projects.set(key, createProject(config, directory));
     }
 
-    return projects.get(key);
+    return projects.get(key)!;
 }
 
-function buildLineTable(code) {
+function buildLineTable(code: string): number[] {
     const table = [0];
     for (let index = 0; index < code.length; index += 1) {
         if (code[index] === "\n") table.push(index + 1);
@@ -106,7 +150,7 @@ function buildLineTable(code) {
     return table;
 }
 
-function offsetToLoc(offset, lineTable) {
+function offsetToLoc(offset: number, lineTable: number[]): Position {
     let low = 0;
     let high = lineTable.length - 1;
 
@@ -119,7 +163,7 @@ function offsetToLoc(offset, lineTable) {
     return { line: low + 1, column: offset - lineTable[low] };
 }
 
-function categoryToString(category) {
+function categoryToString(category: ts.DiagnosticCategory): string {
     switch (category) {
         case ts.DiagnosticCategory.Error: return "Error";
         case ts.DiagnosticCategory.Warning: return "Warning";
@@ -127,7 +171,7 @@ function categoryToString(category) {
     }
 }
 
-function formatDiagnostic(diagnostic, lineTable) {
+function formatDiagnostic(diagnostic: ts.Diagnostic, lineTable: number[]): Diagnostic {
     const start = diagnostic.start ?? 0;
     const length = diagnostic.length ?? 1;
     const loc = offsetToLoc(start, lineTable);
@@ -143,7 +187,7 @@ function formatDiagnostic(diagnostic, lineTable) {
     };
 }
 
-function checkTypeScript(fileName, code) {
+function checkTypeScript(fileName: string, code: string): Diagnostic[] {
     const project = getProject(fileName);
     const nextVersion = (project.scriptVersions.get(fileName) || 0) + 1;
 
@@ -157,15 +201,15 @@ function checkTypeScript(fileName, code) {
         .map((diagnostic) => formatDiagnostic(diagnostic, lineTable));
 }
 
-function isJavaScriptFile(fileName) {
+function isJavaScriptFile(fileName: string): boolean {
     return /\.(?:js|jsx|mjs|cjs|es6)$/i.test(fileName);
 }
 
-function createScope(parent = null) {
-    return { parent, functions: new Map() };
+function createScope(parent: Scope | null = null): Scope {
+    return { parent, functions: new Map<string, FunctionDefinition>() };
 }
 
-function findFunction(scope, name) {
+function findFunction(scope: Scope | null, name: string): FunctionDefinition | null {
     for (let current = scope; current; current = current.parent) {
         const definition = current.functions.get(name);
         if (definition) return definition;
@@ -174,13 +218,13 @@ function findFunction(scope, name) {
     return null;
 }
 
-function getFunctionDefinition(node) {
-    const parameters = Array.from(node.parameters || []).filter((parameter) => !parameter.modifiers?.some(
-        (modifier) => modifier.kind === ts.SyntaxKind.ThisKeyword
+function getFunctionDefinition(node: any): FunctionDefinition {
+    const parameters = Array.from(node.parameters || []).filter((parameter: any) => !parameter.modifiers?.some(
+        (modifier: any) => modifier.kind === ts.SyntaxKind.ThisKeyword
     ));
-    const hasRestParameter = parameters.some((parameter) => Boolean(parameter.dotDotDotToken));
+    const hasRestParameter = parameters.some((parameter: any) => Boolean(parameter.dotDotDotToken));
     const maxArguments = parameters.length;
-    const minArguments = parameters.reduce((minimum, parameter, index) => {
+    const minArguments = parameters.reduce((minimum: number, parameter: any, index: number) => {
         const optional = Boolean(parameter.questionToken || parameter.initializer || parameter.dotDotDotToken);
         return optional ? minimum : index + 1;
     }, 0);
@@ -188,7 +232,7 @@ function getFunctionDefinition(node) {
     return { minArguments, maxArguments, hasRestParameter };
 }
 
-function registerScopeDeclarations(statements, scope) {
+function registerScopeDeclarations(statements: any, scope: Scope): void {
     for (const statement of statements) {
         if (ts.isFunctionDeclaration(statement) && statement.name) {
             scope.functions.set(statement.name.text, getFunctionDefinition(statement));
@@ -206,7 +250,7 @@ function registerScopeDeclarations(statements, scope) {
     }
 }
 
-function expectedArgumentsMessage(definition, actualArguments) {
+function expectedArgumentsMessage(definition: FunctionDefinition, actualArguments: number): string {
     const expected = definition.hasRestParameter
         ? `${definition.minArguments}+`
         : definition.minArguments === definition.maxArguments
@@ -216,13 +260,13 @@ function expectedArgumentsMessage(definition, actualArguments) {
     return `Expected ${expected} argument${expected === "1" ? "" : "s"}, but got ${actualArguments}.`;
 }
 
-function getJavaScriptArgumentDiagnostics(fileName, code) {
+function getJavaScriptArgumentDiagnostics(fileName: string, code: string): Diagnostic[] {
     const scriptKind = /\.jsx$/i.test(fileName) ? ts.ScriptKind.JSX : ts.ScriptKind.JS;
     const sourceFile = ts.createSourceFile(fileName, code, ts.ScriptTarget.Latest, true, scriptKind);
     const lineTable = buildLineTable(code);
-    const diagnostics = [];
+    const diagnostics: Diagnostic[] = [];
 
-    function addArityDiagnostic(node, scope) {
+    function addArityDiagnostic(node: any, scope: Scope): void {
         if (!ts.isIdentifier(node.expression)) return;
 
         const definition = findFunction(scope, node.expression.text);
@@ -247,13 +291,13 @@ function getJavaScriptArgumentDiagnostics(fileName, code) {
         });
     }
 
-    function visitStatementList(statements, parentScope) {
+    function visitStatementList(statements: any, parentScope: Scope | null): void {
         const scope = createScope(parentScope);
         registerScopeDeclarations(statements, scope);
-        statements.forEach((statement) => visitNode(statement, scope));
+        statements.forEach((statement: any) => visitNode(statement, scope));
     }
 
-    function visitFunctionBody(node, parentScope) {
+    function visitFunctionBody(node: any, parentScope: Scope): void {
         if (node.body && ts.isBlock(node.body)) {
             visitStatementList(node.body.statements, parentScope);
         } else if (node.body) {
@@ -261,7 +305,7 @@ function getJavaScriptArgumentDiagnostics(fileName, code) {
         }
     }
 
-    function visitNode(node, scope) {
+    function visitNode(node: any, scope: Scope): void {
         if (ts.isBlock(node) || ts.isModuleBlock(node)) {
             visitStatementList(node.statements, scope);
             return;
@@ -283,7 +327,7 @@ function getJavaScriptArgumentDiagnostics(fileName, code) {
     return diagnostics;
 }
 
-function checkFile(fileName, code) {
+function checkFile(fileName: any, code: any): Diagnostic[] {
     const normalizedFileName = normalizeFileName(fileName);
     const source = typeof code === "string" ? code : "";
 
@@ -292,10 +336,10 @@ function checkFile(fileName, code) {
         : checkTypeScript(normalizedFileName, source);
 }
 
-parentPort.on("message", ({ id, fileName, code } = {}) => {
+parentPort?.on("message", ({ id, fileName, code }: CheckMessage = {}) => {
     try {
-        parentPort.postMessage({ id, diagnostics: checkFile(fileName, code) });
+        parentPort?.postMessage({ id, diagnostics: checkFile(fileName, code) });
     } catch (error) {
-        parentPort.postMessage({ id, diagnostics: [] });
+        parentPort?.postMessage({ id, diagnostics: [] });
     }
 });

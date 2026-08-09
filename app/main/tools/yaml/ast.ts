@@ -1,9 +1,58 @@
-const { ipcMain } = require("electron")
+import { ipcMain, IpcMainInvokeEvent } from "electron"
+
+type Category = "Error" | "Warning" | "Suggestion"
+
+interface Diagnostic {
+    message: string
+    category: Category
+    from: number
+    to: number
+    line: number
+    col: number
+}
+
+interface LineCol {
+    line: number
+    col: number
+}
+
+interface Line {
+    index: number
+    line: number
+    lineStart: number
+    indent: number
+    contentStart: number
+    content: string
+    tabAbs: number
+}
+
+interface YNode {
+    type: "Document" | "Pair" | "Item" | "Scalar"
+    line: number
+    endLine: number
+    children: YNode[]
+    keys: Map<string, YNode>
+    indent: number
+    valueStart: number
+    index: number
+    key?: string
+    value?: string
+    inner?: YNode
+}
+
+interface YAst {
+    type: string
+    loc: { start: { line: number }; end: { line: number } }
+    key?: string
+    value?: string
+    index?: number
+    children: YAst[]
+}
 
 const MAX_DIAGNOSTICS = 200
 const FLOW_OPEN = new Set(["[", "{"])
 
-function buildLineTable(code) {
+function buildLineTable(code: string): number[] {
     const table = [0]
     for (let i = 0; i < code.length; i++) {
         if (code[i] === "\n") table.push(i + 1)
@@ -11,7 +60,7 @@ function buildLineTable(code) {
     return table
 }
 
-function offsetToLoc(offset, table) {
+function offsetToLoc(offset: number, table: number[]): LineCol {
     let low = 0
     let high = table.length - 1
     while (low < high) {
@@ -22,7 +71,7 @@ function offsetToLoc(offset, table) {
     return { line: low + 1, col: offset - table[low] }
 }
 
-function stripComment(text) {
+function stripComment(text: string): string {
     let inSingle = false
     let inDouble = false
     for (let i = 0; i < text.length; i++) {
@@ -36,7 +85,7 @@ function stripComment(text) {
     return text
 }
 
-function findKeyColon(content) {
+function findKeyColon(content: string): number {
     let inSingle = false
     let inDouble = false
     let depth = 0
@@ -56,7 +105,7 @@ function findKeyColon(content) {
     return -1
 }
 
-function unquote(text) {
+function unquote(text: string): string {
     const trimmed = text.trim()
     if (trimmed.length >= 2) {
         const first = trimmed[0]
@@ -68,7 +117,7 @@ function unquote(text) {
     return trimmed
 }
 
-function balanceFlow(code, start) {
+function balanceFlow(code: string, start: number): { closed: boolean; end: number } {
     let depth = 0
     let i = start
     let inSingle = false
@@ -109,14 +158,19 @@ function balanceFlow(code, start) {
 }
 
 class YAMLLinter {
-    constructor(code) {
+    code: string
+    table: number[]
+    errors: Diagnostic[]
+    lines: Line[]
+
+    constructor(code: unknown) {
         this.code = typeof code === "string" ? code : ""
         this.table = buildLineTable(this.code)
         this.errors = []
         this.lines = this.preprocess()
     }
 
-    report(message, from, to, category = "Error") {
+    report(message: string, from: number, to: number, category: Category = "Error"): void {
         if (this.errors.length >= MAX_DIAGNOSTICS) return
         const start = Math.min(Math.max(from, 0), this.code.length)
         const end = Math.min(Math.max(to, start + 1), Math.max(this.code.length, start + 1))
@@ -124,9 +178,9 @@ class YAMLLinter {
         this.errors.push({ message, category, from: start, to: end, line: loc.line, col: loc.col })
     }
 
-    preprocess() {
+    preprocess(): Line[] {
         const rawLines = this.code.split("\n")
-        const lines = []
+        const lines: Line[] = []
         let offset = 0
 
         for (let index = 0; index < rawLines.length; index++) {
@@ -154,25 +208,34 @@ class YAMLLinter {
         return lines
     }
 
-    isSkippable(content) {
+    isSkippable(content: string): boolean {
         return content.length === 0 ||
             content === "---" ||
             content === "..." ||
             content.startsWith("%")
     }
 
-    makeNode(line, content, contentStart) {
+    makeNode(line: Line, content: string, contentStart: number): YNode {
         if (content === "-" || content.startsWith("- ") || content.startsWith("-\t")) {
             const remainder = content.slice(1).replace(/^\s+/, "")
             const remainderStart = contentStart + (content.length - remainder.length)
-            const node = { type: "Item", index: 0, line: line.line, endLine: line.line, children: [], keys: new Map() }
+            const node: YNode = {
+                type: "Item",
+                index: 0,
+                line: line.line,
+                endLine: line.line,
+                children: [],
+                keys: new Map<string, YNode>(),
+                indent: 0,
+                valueStart: -1,
+            }
 
             if (remainder.length > 0) {
                 const inner = this.makeNode(line, remainder, remainderStart)
                 node.inner = inner
                 if (inner.type === "Pair") {
                     node.children.push(inner)
-                    node.keys.set(inner.key, inner)
+                    node.keys.set(inner.key ?? "", inner)
                 }
             }
             return node
@@ -190,23 +253,44 @@ class YAMLLinter {
                 line: line.line,
                 endLine: line.line,
                 children: [],
-                keys: new Map(),
+                keys: new Map<string, YNode>(),
+                indent: 0,
+                index: 0,
             }
         }
 
-        return { type: "Scalar", value: content, line: line.line, endLine: line.line, children: [], keys: new Map() }
+        return {
+            type: "Scalar",
+            value: content,
+            line: line.line,
+            endLine: line.line,
+            children: [],
+            keys: new Map<string, YNode>(),
+            indent: 0,
+            valueStart: -1,
+            index: 0,
+        }
     }
 
-    flowStart(content, colon, contentStart) {
+    flowStart(content: string, colon: number, contentStart: number): number {
         let i = colon + 1
         while (i < content.length && (content[i] === " " || content[i] === "\t")) i++
         if (FLOW_OPEN.has(content[i])) return contentStart + i
         return -1
     }
 
-    build() {
-        const root = { type: "Document", line: 1, endLine: this.lines.length || 1, children: [], keys: new Map(), indent: -1 }
-        const stack = [root]
+    build(): YNode {
+        const root: YNode = {
+            type: "Document",
+            line: 1,
+            endLine: this.lines.length || 1,
+            children: [],
+            keys: new Map<string, YNode>(),
+            indent: -1,
+            valueStart: -1,
+            index: 0,
+        }
+        const stack: YNode[] = [root]
 
         for (const line of this.lines) {
             if (line.tabAbs >= 0) {
@@ -225,10 +309,11 @@ class YAMLLinter {
             }
 
             if (node.type === "Pair") {
-                if (parent.keys.has(node.key) && node.key.length > 0) {
-                    this.report(`Duplicate key ${JSON.stringify(node.key)}`, line.contentStart, line.contentStart + node.key.length, "Warning")
+                const key = node.key ?? ""
+                if (parent.keys.has(key) && key.length > 0) {
+                    this.report(`Duplicate key ${JSON.stringify(key)}`, line.contentStart, line.contentStart + key.length, "Warning")
                 }
-                parent.keys.set(node.key, node)
+                parent.keys.set(key, node)
             }
 
             if (node.valueStart >= 0) {
@@ -246,7 +331,7 @@ class YAMLLinter {
         return root
     }
 
-    finalize(node) {
+    finalize(node: YNode): void {
         let end = node.line
         for (const child of node.children) {
             this.finalize(child)
@@ -255,33 +340,33 @@ class YAMLLinter {
         node.endLine = end
     }
 
-    toAst(node) {
-        const base = {
+    toAst(node: YNode): YAst {
+        const base: YAst = {
             type: node.type,
             loc: { start: { line: node.line }, end: { line: node.endLine } },
+            children: node.children.map(child => this.toAst(child)),
         }
         if (node.type === "Pair") base.key = node.key
         if (node.type === "Pair") base.value = node.value
         if (node.type === "Item") base.index = node.index
         if (node.type === "Scalar") base.value = node.value
-        base.children = node.children.map(child => this.toAst(child))
         return base
     }
 }
 
-function diagnostics(code) {
+function diagnostics(code: unknown): Diagnostic[] {
     const linter = new YAMLLinter(code)
     linter.build()
     return linter.errors
 }
 
-function ast(code) {
+function ast(code: unknown): YAst {
     const linter = new YAMLLinter(code)
     const root = linter.build()
     return linter.toAst(root)
 }
 
-ipcMain.handle("yaml-diagnostic", (_event, code) => {
+ipcMain.handle("yaml-diagnostic", (_event: IpcMainInvokeEvent, code: unknown): Diagnostic[] => {
     try {
         return diagnostics(code)
     } catch (error) {
@@ -290,7 +375,7 @@ ipcMain.handle("yaml-diagnostic", (_event, code) => {
     }
 })
 
-ipcMain.handle("yaml-ast", (_event, code) => {
+ipcMain.handle("yaml-ast", (_event: IpcMainInvokeEvent, code: unknown): YAst | { type: string; loc: null; children: never[] } => {
     try {
         return ast(code)
     } catch (error) {
@@ -299,4 +384,4 @@ ipcMain.handle("yaml-ast", (_event, code) => {
     }
 })
 
-module.exports = { diagnostics, ast }
+export { diagnostics, ast }
