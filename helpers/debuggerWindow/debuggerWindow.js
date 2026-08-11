@@ -4,8 +4,8 @@ const fs = require("fs")
 const { exec } = require("child_process")
 const bus = require("../eventBus.js")
 
-const { getAppIcon } = require("../../app/main/helpers/requests.js")
-const { ASSETS_PATH } = require("../../app/main/helpers/paths.js")
+const { getAppIcon } = require("../../app/dist/helpers/requests.js")
+const { ASSETS_PATH } = require("../../app/dist/helpers/paths.js")
 
 async function createDebuggerWindow(mainWindow, title = "Debugger") {
     const overlayIconPath = path.join(ASSETS_PATH, "media", "debugger_icon.png")

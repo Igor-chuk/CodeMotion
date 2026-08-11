@@ -10,7 +10,7 @@ const bus = require("../../helpers/eventBus")
 
 const { verifyToken } = require("../auth")
 
-const { HTML_PATH, JSON_PATH } = require("../main/helpers/paths.js")
+const { HTML_PATH, JSON_PATH } = require("./helpers/paths.js")
 
 let mainWindow: any
 let workSeconds: number = 0
@@ -46,7 +46,7 @@ require("../sandbox/regs/templates")
 
 console.log("APP PATH:", app.getAppPath());
 
-const { terminalManager } = require("../main/helpers/terminal.js")
+const { terminalManager } = require("./helpers/terminal.js")
 
 const { createDebuggerWindow } = require("../../helpers/debuggerWindow/debuggerWindow.js");
 const { createSplashWindow, updateSplash } = require('../splash/splash.js');
@@ -60,16 +60,16 @@ const {
     getSettingsData,
     getAppIcon,
     checkStatus,
-} = require("../main/helpers/requests.js")
+} = require("./helpers/requests.js")
 
 const { spawnNotification, notifications } = require("../notifications/notifications.js")
 
 const { 
     selectFile, 
     selectFolder,
-} = require("../main/helpers/os.js");
+} = require("./helpers/os.js");
 
-const { APP_PATH } = require('../main/helpers/paths.js');
+const { APP_PATH } = require('./helpers/paths.js');
 
 console.log(`App started on ${process.arch} system`)
 

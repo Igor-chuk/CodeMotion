@@ -1,20 +1,25 @@
-const { spawn, spawnSync } = require('child_process');
-const { ipcMain } = require('electron');
-const fs = require('fs');
-const os = require('os');
+import { spawn, spawnSync, ChildProcess } from 'child_process';
+import { ipcMain, IpcMainEvent } from 'electron';
+import fs from 'fs';
+import os from 'os';
+
+type TerminalInputHandler = (event: IpcMainEvent, input: string) => void
 
 class TerminalManager {
+    activeProcess: ChildProcess | null
+    inputHandler: TerminalInputHandler | null
+
     constructor() {
         this.activeProcess = null;
         this.inputHandler = null;
     }
 
-    getShell() {
+    getShell(): string {
         // Caused by: macOS defaults to zsh since Catalina, users may
         // configure fish, bash, or other shells. Hardcoding /bin/bash
         // breaks terminal for non-bash users. We read $SHELL and
         // validate the binary exists before using it.
-        
+
         if (process.platform === 'win32') {
             return 'cmd.exe';
         }
@@ -34,14 +39,14 @@ class TerminalManager {
         return '/bin/sh';
     }
 
-    validateWorkDir(cwd) {
+    validateWorkDir(cwd: string): string {
         if (!cwd || !fs.existsSync(cwd)) {
             console.log("[Terminal] Path does not exist, using default: " + process.cwd());
             return process.cwd();
         }
 
         const stat = fs.statSync(cwd);
-        
+
         if (stat.isFile()) {
             const path = require('path');
             const dirname = path.dirname(cwd);
@@ -57,12 +62,12 @@ class TerminalManager {
         return process.cwd();
     }
 
-    handleOutput(data, type, event) {
+    handleOutput(data: Buffer, type: 'stdout' | 'stderr', event: IpcMainEvent): void {
         const output = data.toString();
         const prefix = type === 'stderr' ? '[ERR] ' : '';
-        
+
         console.log(`[Terminal ${type}] ${output}`);
-        
+
         event.sender.send("terminal-result", {
             type: type === 'stderr' ? 'error' : 'output',
             data: prefix + output,
@@ -70,20 +75,20 @@ class TerminalManager {
         });
     }
 
-    cleanupInputHandler() {
+    cleanupInputHandler(): void {
         if (this.inputHandler) {
             ipcMain.removeListener("terminal-input", this.inputHandler);
             this.inputHandler = null;
         }
     }
 
-    terminateProcess() {
+    terminateProcess(): void {
         if (this.activeProcess && !this.activeProcess.killed) {
             this.killProcessTree(false);
         }
     }
 
-    killProcessTree(force = true) {
+    killProcessTree(force = true): void {
         if (!this.activeProcess || this.activeProcess.killed) return;
 
         const pid = this.activeProcess.pid;
@@ -100,12 +105,12 @@ class TerminalManager {
             } else {
                 this.activeProcess.kill(force ? 'SIGKILL' : 'SIGTERM');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(`[Terminal] Error killing process tree: ${err.message}`);
         }
     }
 
-    executeCommand(event, data) {
+    executeCommand(event: IpcMainEvent, data: { cmd: string; cwd: string }): void {
         const { cmd, cwd } = data;
 
         if (this.activeProcess) {
@@ -145,17 +150,17 @@ class TerminalManager {
 
             console.log(`[Terminal] Process spawned with PID: ${this.activeProcess.pid}`);
 
-            this.activeProcess.stdout.on("data", (data) => {
+            this.activeProcess.stdout?.on("data", (data: Buffer) => {
                 this.handleOutput(data, 'stdout', event);
             });
 
-            this.activeProcess.stderr.on("data", (data) => {
+            this.activeProcess.stderr?.on("data", (data: Buffer) => {
                 this.handleOutput(data, 'stderr', event);
             });
 
-            this.activeProcess.on("close", (code) => {
+            this.activeProcess.on("close", (code: number | null) => {
                 console.log(`[Terminal] Process exited with code ${code}`);
-                
+
                 event.sender.send("terminal-result", {
                     type: 'exit',
                     data: `\r\nProcess exited with code ${code}\r\n`,
@@ -166,9 +171,9 @@ class TerminalManager {
                 this.cleanupInputHandler();
             });
 
-            this.activeProcess.on("error", (err) => {
+            this.activeProcess.on("error", (err: Error) => {
                 console.error(`[Terminal] Error: ${err.message}`);
-                
+
                 event.sender.send("terminal-result", {
                     type: 'error',
                     data: `Error: ${err.message}\r\n`
@@ -180,13 +185,13 @@ class TerminalManager {
 
             this.cleanupInputHandler();
 
-            this.inputHandler = (e, input) => {
+            this.inputHandler = (e: IpcMainEvent, input: string) => {
                 if (this.activeProcess && !this.activeProcess.killed) {
                     try {
                         const inputWithNewline = input.endsWith('\n') ? input : input + '\n';
-                        this.activeProcess.stdin.write(inputWithNewline);
+                        this.activeProcess.stdin?.write(inputWithNewline);
                         console.log(`[Terminal] Sent input: ${input}`);
-                    } catch (err) {
+                    } catch (err: any) {
                         console.error("Error writing to stdin:", err.message);
                         event.sender.send("terminal-result", {
                             type: 'error',
@@ -198,9 +203,9 @@ class TerminalManager {
 
             ipcMain.on("terminal-input", this.inputHandler);
 
-        } catch (err) {
+        } catch (err: any) {
             console.error(`[Terminal] Catch error: ${err.message}`);
-            
+
             event.sender.send("terminal-result", {
                 type: 'error',
                 data: `Failed to execute command: ${err.message}\r\n`
@@ -210,7 +215,7 @@ class TerminalManager {
         }
     }
 
-    killProcess(event) {
+    killProcess(event: IpcMainEvent): void {
         if (!this.activeProcess) {
             console.log("[Terminal] No active process to kill");
             return;
@@ -237,7 +242,7 @@ class TerminalManager {
                 clearTimeout(forceKillTimeout);
             });
 
-        } catch (err) {
+        } catch (err: any) {
             console.error(`[Terminal] Error killing process: ${err.message}`);
             event.sender.send("terminal-result", {
                 type: 'error',
@@ -249,18 +254,18 @@ class TerminalManager {
 
 const terminalManager = new TerminalManager();
 
-ipcMain.on("terminal-command", (event, data) => {
+ipcMain.on("terminal-command", (event: IpcMainEvent, data: { cmd: string; cwd: string }) => {
     terminalManager.executeCommand(event, data);
 });
 
-ipcMain.on("terminal-kill", (event) => {
+ipcMain.on("terminal-kill", (event: IpcMainEvent) => {
     terminalManager.killProcess(event);
 });
 
-ipcMain.on("terminal-cleanup", (event) => {
+ipcMain.on("terminal-cleanup", (event: IpcMainEvent) => {
     console.log("[Terminal] Cleanup requested");
     terminalManager.killProcessTree(true);
     terminalManager.cleanupInputHandler();
 });
 
-module.exports = { TerminalManager, terminalManager };
+export { TerminalManager, terminalManager };

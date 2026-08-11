@@ -1,9 +1,10 @@
-const { app } = require("electron")
-const fs = require("fs")
-const path = require("path")
-const fsPromise = require('fs/promises');
-const https = require("https")
-const {
+import { app } from "electron"
+import fs from "fs"
+import path from "path"
+import fsPromise from "fs/promises"
+import https from "https"
+import type { IncomingMessage } from "http"
+import {
     SETTINGS_PATH,
     LOCAL_BUGS_PATH,
     LOCAL_FILE_PATH,
@@ -12,9 +13,9 @@ const {
     ASSETS_PATH,
     LANGUAGES_PATH,
     API
-} = require("./paths.js")
+} from "./paths"
 
-function deepMerge(target, source) {
+function deepMerge(target: any, source: any): any {
     if (!source || typeof source !== "object") return target;
 
     for (const key of Object.keys(source)) {
@@ -37,7 +38,7 @@ function deepMerge(target, source) {
 
     return target;
 }
-function readSettings() {
+function readSettings(): any {
     try {
         if (!fs.existsSync(SETTINGS_PATH)) {
             return {};
@@ -52,7 +53,7 @@ function readSettings() {
         return {};
     }
 }
-function writeLocalBugs(data) {
+function writeLocalBugs(data: any): void {
     try {
         fs.writeFileSync(LOCAL_BUGS_PATH, JSON.stringify(data, null, 4), "utf-8")
     } catch (e) {
@@ -60,7 +61,7 @@ function writeLocalBugs(data) {
     }
 }
 
-function writeSettings(data) {
+function writeSettings(data: any): any {
     const current = readSettings() || {};
 
     const merged = deepMerge({ ...current }, data);
@@ -73,7 +74,7 @@ function writeSettings(data) {
 
     return merged;
 }
-function writeLocal(data) {
+function writeLocal(data: any): any {
     const current = getLocalAppData() || {};
 
     const merged = deepMerge({ ...current }, data);
@@ -87,7 +88,7 @@ function writeLocal(data) {
 
     return merged;
 }
-function ensureLocalJson() {
+function ensureLocalJson(): void {
     if (!fs.existsSync(LOCAL_FILE_PATH)) {
         const defaultData = {
             user: false,
@@ -96,7 +97,7 @@ function ensureLocalJson() {
         fs.writeFileSync(LOCAL_FILE_PATH, JSON.stringify(defaultData, null, 4), "utf-8");
     }
 }
-function ensureSettingsJson() {
+function ensureSettingsJson(): void {
     if (!fs.existsSync(SETTINGS_PATH)) {
         const defaultData = {
             "app": {
@@ -117,12 +118,12 @@ function ensureSettingsJson() {
         fs.writeFileSync(SETTINGS_PATH, JSON.stringify(defaultData, null, 4), "utf-8");
     }
 }
-function ensureLocalBugs() {
+function ensureLocalBugs(): void {
     if (!fs.existsSync(LOCAL_BUGS_PATH)) {
         fs.writeFileSync(LOCAL_BUGS_PATH, "[]", "utf-8");
     }
 }
-function getLocalAppData() {
+function getLocalAppData(): any {
     try {
         const data = fs.readFileSync(LOCAL_FILE_PATH, "utf-8");
         return JSON.parse(data);
@@ -131,7 +132,7 @@ function getLocalAppData() {
         return { user: false, password: false };
     }
 }
-function getSettingsData() {
+function getSettingsData(): any {
     try {
         const data = fs.readFileSync(SETTINGS_PATH, "utf-8");
         return JSON.parse(data);
@@ -140,7 +141,7 @@ function getSettingsData() {
         return {};
     }
 }
-function getLocalBugsData() {
+function getLocalBugsData(): any {
     try {
         const data = fs.readFileSync(LOCAL_BUGS_PATH, "utf-8");
         return JSON.parse(data);
@@ -149,7 +150,7 @@ function getLocalBugsData() {
         return {};
     }
 }
-function getPackageData() {
+function getPackageData(): any {
     try {
         const data = fs.readFileSync(PACKAGE_FILE_PATH, "utf-8");
         return JSON.parse(data);
@@ -158,7 +159,7 @@ function getPackageData() {
         return {};
     }
 }
-async function getAppIcon() {
+async function getAppIcon(): Promise<string> {
     const settings = await readSettings()
 
     if ("app" in settings) {
@@ -177,7 +178,7 @@ async function getAppIcon() {
         return DEFAULT_ICON
     }
 }
-function readFilesInFolder(folderPath) {
+function readFilesInFolder(folderPath: string): any[] {
     const base = path.isAbsolute(folderPath)
         ? folderPath
         : path.join(app.getAppPath(), folderPath);
@@ -197,7 +198,7 @@ function readFilesInFolder(folderPath) {
         };
     });
 }
-async function readFileContent(filePath, encoding = 'utf8') {
+async function readFileContent(filePath: string, encoding: BufferEncoding | null = 'utf8'): Promise<string | Buffer> {
     const base = path.isAbsolute(filePath)
         ? filePath
         : path.join(app.getAppPath(), filePath);
@@ -206,10 +207,10 @@ async function readFileContent(filePath, encoding = 'utf8') {
     const data = await fsPromise.readFile(abs, { encoding: encoding === null ? undefined : encoding });
     return data;
 }
-function updateLocalAppData(newData) {
+function updateLocalAppData(newData: any): void {
     const filePath = LOCAL_FILE_PATH;
 
-    let currentData = {};
+    let currentData: any = {};
     if (fs.existsSync(filePath)) {
         try {
             const raw = fs.readFileSync(filePath, "utf-8");
@@ -228,11 +229,11 @@ function updateLocalAppData(newData) {
         console.error("Error while updating local.json:", e);
     }
 }
-async function checkStatus({ updateSplash }) {
-    function checkURL(url, stepName) {
+async function checkStatus({ updateSplash }: { updateSplash: (message: string, isError?: boolean) => void }): Promise<boolean> {
+    function checkURL(url: string, stepName: string): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            const req = https.get(url, (res) => {
-                if (res.statusCode >= 200 && res.statusCode < 400) {
+            const req = https.get(url, (res: IncomingMessage) => {
+                if (res.statusCode !== undefined && res.statusCode >= 200 && res.statusCode < 400) {
                     updateSplash(`${stepName}: OK (${res.statusCode})`)
                     res.resume();
                     resolve(true);
@@ -256,7 +257,7 @@ async function checkStatus({ updateSplash }) {
 
     try {
         await checkURL("https://www.gstatic.com/generate_204", "Internet");
-    } catch (err) {
+    } catch (err: any) {
         updateSplash(`Error: ${err.message}`, true)
 
         throw new Error("Error: " + err.message);
@@ -273,7 +274,7 @@ async function checkStatus({ updateSplash }) {
 
         try {
             await checkURL(url, name);
-        } catch (err) {
+        } catch (err: any) {
             throw new Error(`${name} not aviable: ${err.message}`);
         }
     }
@@ -282,11 +283,11 @@ async function checkStatus({ updateSplash }) {
 
     return true;
 }
-async function getAllLanguages() {
+async function getAllLanguages(): Promise<string[] | Record<string, never>> {
     if(fs.existsSync(LANGUAGES_PATH)) {
         try {
             const files = await fs.promises.readdir(LANGUAGES_PATH)
-            const result = []
+            const result: string[] = []
 
             for (const file of files) {
                 const fullPath = path.join(LANGUAGES_PATH, file)
@@ -309,11 +310,11 @@ async function getAllLanguages() {
     }
 }
 
-async function getAllLanguagesJSON() {
+async function getAllLanguagesJSON(): Promise<Record<string, any>> {
     const languages = await getAllLanguages()
-    let result = {}
+    let result: Record<string, any> = {}
 
-    if(languages.length > 0) {
+    if(Array.isArray(languages) && languages.length > 0) {
         languages.forEach(language => {
             try {
                 const data = fs.readFileSync(path.join(LANGUAGES_PATH, language + ".json"), 'utf8');
@@ -324,10 +325,10 @@ async function getAllLanguagesJSON() {
 
     return result
 }
-async function getUserToken() {
+async function getUserToken(): Promise<any> {
     if(fs.existsSync(LOCAL_FILE_PATH)) {
         try {
-            let data = fs.readFileSync(LOCAL_FILE_PATH, 'utf8');
+            let data: any = fs.readFileSync(LOCAL_FILE_PATH, 'utf8');
             data = JSON.parse(data)
 
             if("token" in data) {
@@ -343,17 +344,17 @@ async function getUserToken() {
     }
 }
 
-async function requestAddBug({ title = "Unnamed", description = "No description provided", priority = 0, isPrivate = 0, assignTo = 0 }) {
+async function requestAddBug({ title = "Unnamed", description = "No description provided", priority = 0, isPrivate = 0, assignTo = 0 }: { title?: string; description?: string; priority?: number; isPrivate?: number; assignTo?: number }): Promise<{ success: boolean; msg: any }> {
     const userToken = await getUserToken()
 
     const formData = new FormData();
     formData.append('name', title);
     formData.append('description',  description);
-    formData.append('priority', priority);
-    formData.append('private', isPrivate);
-    
+    formData.append('priority', String(priority));
+    formData.append('private', String(isPrivate));
+
     if(assignTo != 0) {
-        formData.append('touserid', assignTo);
+        formData.append('touserid', String(assignTo));
     }
 
     console.log(`Request bug creation. assign to: ${assignTo} (allowed: ${assignTo != 0})`)
@@ -367,7 +368,7 @@ async function requestAddBug({ title = "Unnamed", description = "No description 
             body: formData
         });
 
-        const data = await response.json();
+        const data: any = await response.json();
 
         if (data.success) {
             return { success: true, msg: data.result }
@@ -379,11 +380,11 @@ async function requestAddBug({ title = "Unnamed", description = "No description 
     }
 }
 
-async function requestMakeVerifyBug({ bugid }) {
+async function requestMakeVerifyBug({ bugid }: { bugid: any }): Promise<{ success: boolean; msg: any }> {
     const userToken = await getUserToken()
 
     const formData = new FormData();
-    formData.append('bugid', bugid);
+    formData.append('bugid', String(bugid));
 
     try {
         const response = await fetch(`${API}/bug/makeVerify`, {
@@ -394,7 +395,7 @@ async function requestMakeVerifyBug({ bugid }) {
             body: formData
         });
 
-        const data = await response.json();
+        const data: any = await response.json();
 
         if (data.success) {
             return { success: true, msg: data.result }
@@ -406,7 +407,7 @@ async function requestMakeVerifyBug({ bugid }) {
     }
 }
 
-async function requestGetYourOrgColleagues() {
+async function requestGetYourOrgColleagues(): Promise<{ success: boolean; msg: any }> {
     const userToken = await getUserToken()
 
     try {
@@ -415,10 +416,10 @@ async function requestGetYourOrgColleagues() {
             headers: {
                 'Authorization': `Bearer ${userToken}`
             },
-            body: {}
+            body: {} as any
         });
 
-        const data = await response.json();
+        const data: any = await response.json();
 
         if (data.success) {
             return { success: true, msg: data.result }
@@ -430,7 +431,7 @@ async function requestGetYourOrgColleagues() {
     }
 }
 
-async function requestCreateOrganization({ name, description, website }) {
+async function requestCreateOrganization({ name, description, website }: { name: string; description: string; website: string }): Promise<{ success: boolean; msg: any }> {
     const userToken = await getUserToken()
 
     const formData = new FormData();
@@ -447,7 +448,7 @@ async function requestCreateOrganization({ name, description, website }) {
             body: formData
         });
 
-        const data = await response.json()
+        const data: any = await response.json()
 
         if (data.success) {
             return { success: true, msg: data.result }
@@ -459,7 +460,7 @@ async function requestCreateOrganization({ name, description, website }) {
     }
 }
 
-async function requestExploreOrganizations() {
+async function requestExploreOrganizations(): Promise<{ success: boolean; msg: any }> {
     const userToken = await getUserToken()
 
     try {
@@ -468,10 +469,10 @@ async function requestExploreOrganizations() {
             headers: {
                 'Authorization': `Bearer ${userToken}`
             },
-            body: {}
+            body: {} as any
         });
 
-        const data = await response.json()
+        const data: any = await response.json()
 
         if (data.success) {
             return { success: true, msg: data.result }
@@ -483,8 +484,8 @@ async function requestExploreOrganizations() {
     }
 }
 
-async function getUsedLanguagesByPath(targetPath) {
-    const languages = {
+async function getUsedLanguagesByPath(targetPath: string): Promise<any> {
+    const languages: Record<string, { name: string; extensions: string[]; color: string }> = {
         js: {
             name: "JavaScript",
             extensions: [
@@ -562,7 +563,7 @@ async function getUsedLanguagesByPath(targetPath) {
         }
     }
 
-    const extensionMap = Object.entries(languages).reduce((acc, [key, lang]) => {
+    const extensionMap = Object.entries(languages).reduce((acc: Record<string, string>, [key, lang]) => {
         for (const ext of lang.extensions) {
             acc[ext] = key
         }
@@ -587,11 +588,11 @@ async function getUsedLanguagesByPath(targetPath) {
         throw new Error("Path must be absolute")
     }
 
-    const counts = {}
+    const counts: Record<string, number> = {}
     let knownFiles = 0
     let unknownFiles = 0
 
-    async function scan(dir) {
+    async function scan(dir: string): Promise<void> {
         let entries
 
         try {
@@ -600,7 +601,7 @@ async function getUsedLanguagesByPath(targetPath) {
             return
         }
 
-        const tasks = []
+        const tasks: Promise<void>[] = []
 
         for (const entry of entries) {
             const fullPath = path.join(dir, entry.name)
@@ -660,7 +661,7 @@ async function getUsedLanguagesByPath(targetPath) {
     }
 }
 
-module.exports = {
+export {
     readSettings,
     deepMerge,
     writeLocalBugs,

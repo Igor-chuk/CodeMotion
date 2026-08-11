@@ -6,7 +6,7 @@ import test from "node:test"
 import { createRequire } from "node:module"
 
 const require = createRequire(import.meta.url)
-const { loadGitignore, isIgnored } = require("../../app/main/helpers/gitignore.js")
+const { loadGitignore, isIgnored } = require("../../app/dist/helpers/gitignore.js")
 
 function loadOsHelper() {
     const electronPath = require.resolve("electron")
@@ -14,7 +14,7 @@ function loadOsHelper() {
     require.cache[electronPath] = { exports: { dialog: {} } }
 
     try {
-        return require("../../app/main/helpers/os.js")
+        return require("../../app/dist/helpers/os.js")
     } finally {
         if (electronModule) require.cache[electronPath] = electronModule
         else delete require.cache[electronPath]

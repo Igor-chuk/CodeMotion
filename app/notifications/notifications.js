@@ -1,5 +1,5 @@
 const { BrowserWindow, screen, ipcMain, app } = require("electron")
-const { HTML_PATH, APP_PATH } = require("../main/helpers/paths.js")
+const { HTML_PATH, APP_PATH } = require("../dist/helpers/paths.js")
 
 const path = require("path")
 

@@ -1,5 +1,5 @@
-const { app } = require("electron")
-const path = require("path")
+import { app } from "electron"
+import path from "path"
 
 const appPath = app.getAppPath()
 
@@ -30,7 +30,7 @@ const DEFAULT_ICON = path.join(ASSETS_PATH, "media", "codemotion_icon.png")
 // const API = "https://dev.yurba.one/api/pcode"
 const API = "https://codemotion.yurba.one/api"
 
-module.exports = { 
+export {
     APP_PATH,
     SETTINGS_PATH,
     LOCAL_BUGS_PATH,
