@@ -750,6 +750,27 @@ body.explorer-resizing {
     height: 15px;
     border-radius: 3px;
 }
+.code-tab .tab-info:empty {
+    display: none;
+}
+.code-tab .tab-info {
+	font-weight: 700;
+    font-size: smaller;
+}
+.code-tab .tab-info.tab-info__error {
+	color: var(--danger);
+    opacity: .5;
+}
+.code-tab .tab-info.tab-info__warn {
+	color: var(--warning);
+    opacity: .5;
+}
+.code-tab.error .file-name {
+	color: var(--danger)!important;
+}
+.code-tab.warn .file-name {
+	color: var(--warning)!important;
+}
 .code-tab.not-saved .file-name::before {
     content: '';
     position: relative;

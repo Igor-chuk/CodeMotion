@@ -272,6 +272,22 @@ function setTabColor(tab, color) {
     }
 }
 
+function updateTabDiagnostics(tab, state) {
+    if (!tab) return;
+
+    const errorCount = state?.errorCount || 0;
+    const warnCount = state?.warnCount || 0;
+
+    tab.classList.toggle("error", errorCount > 0);
+    tab.classList.toggle("warn", errorCount === 0 && warnCount > 0);
+
+    const errEl = tab.querySelector(".tab-info__error");
+    const warnEl = tab.querySelector(".tab-info__warn");
+
+    if (errEl) errEl.textContent = errorCount > 0 ? String(errorCount) : "";
+    if (warnEl) warnEl.textContent = warnCount > 0 ? String(warnCount) : "";
+}
+
 let settingsObject = {}
 
 export function updateTabPath(oldPath, newPath, newName) {
@@ -910,9 +926,15 @@ export async function openTab(path, content, extension, name, pathContext, isNew
     tab.innerHTML = `
             ${tabIcon}
             <span class="file-name">${escapeHtml(name)}</span>
+            <span class="tab-info tab-info__error"></span>
+            <span class="tab-info tab-info__warn"></span>
             <span class="material-symbols-rounded" id="tab-close">close</span>
         `;
     tabsBar.appendChild(tab);
+
+    if (typeof editor.onDiagnosticsChange === "function") {
+        editor.onDiagnosticsChange((state) => updateTabDiagnostics(tab, state));
+    }
 
     tab.draggable = true
 

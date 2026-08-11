@@ -33,6 +33,7 @@ export class _EditorAdapter {
 
         this.filePath = null;
         this._diagnosticsBySource = {};
+        this._onDiagnosticsChange = null;
 
         this._cleanups = [];
         this._destroyed = false;
@@ -300,9 +301,40 @@ export class _EditorAdapter {
         this._diagnosticsBySource = this._diagnosticsBySource || {};
         this._diagnosticsBySource[source] = list || [];
         this.setDiagnosticsInternal(Object.values(this._diagnosticsBySource).flat());
+        this._emitDiagnosticsChange();
     }
     setDiagnostics(list) {
         this.setDiagnosticsFor("manual", list);
+    }
+
+    _computeDiagnosticsState() {
+        const all = Object.values(this._diagnosticsBySource || {}).flat();
+        let errorCount = 0;
+        let warnCount = 0;
+
+        for (const d of all) {
+            if (!d) continue;
+            if (d.severity === "error") errorCount++;
+            else if (d.severity === "warning") warnCount++;
+        }
+
+        return {
+            errorCount,
+            warnCount,
+            hasError: errorCount > 0,
+            hasWarn: warnCount > 0,
+        };
+    }
+
+    _emitDiagnosticsChange() {
+        if (typeof this._onDiagnosticsChange === "function") {
+            this._onDiagnosticsChange(this._computeDiagnosticsState());
+        }
+    }
+
+    onDiagnosticsChange(fn) {
+        this._onDiagnosticsChange = fn;
+        this._emitDiagnosticsChange();
     }
 
     setFilePath(filePath) {
