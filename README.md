@@ -1,6 +1,5 @@
-
 <div align="center">
-    <img width="100" height="100" alt="cdmtn-ide-logo" src="https://github.com/user-attachments/assets/76c08ac4-45ac-4f9a-966e-e577d288dd44" />
+    <img width="100%" height="100%" alt="github-codemotion-prev-rc" src="https://github.com/user-attachments/assets/2fdb8ebf-13be-4d75-83cc-939b7426fdf6" />
 </div>
 <h1 align="center">CodeMotion IDE<br>
 (Early-Development Alpha)</h1>
@@ -8,6 +7,18 @@
 <p align="center">CodeMotion is a web-focused, advanced 
 open-source code editor (IDE) 
 with native tools for web developers</p>
+
+<div align="center">
+    <a href="https://codemotion.yurba.one">Website</a>
+    ⋅
+    <a href="https://codemotion.yurba.one/docs">Documentation</a>
+    ⋅
+    <a href="https://codemotion.yurba.one/discord">CodeMotion Discord</a>
+    ⋅
+    <a href="https://codemotion.yurba.one/slim">Slim Language</a>
+    ⋅
+    <a href="https://codemotion.yurba.one/telegram">Telegram</a>
+</div>
 
 > [!IMPORTANT]
 > If you download a pre-compiled build (exe), Windows may flag it as a keylogger, and VirusTotal may flag it for random viruses—and that’s NORMAL; I honestly don’t know why this happens. The project is in alpha development. If you don’t trust the build, you can compile the project [yourself](https://github.com/cdmtn-dev/codemotion-ide/wiki/%5BFOR-BEGINNERS%5D-How-do-I-build-an-app%3F)
@@ -36,8 +47,7 @@ with native tools for web developers</p>
 - **Extensible**: Easily customize and extend with own easy plugins engine
 
 ## 🎯 Quick Start
-
-[If you're new here, check out our beginner's guide](https://github.com/cdmtn-dev/codemotion-ide/wiki/%5BFOR-BEGINNERS%5D-How-do-I-build-an-app%3F)
+[If you're new here, check out our beginner's guide](https://codemotion.yurba.one/docs#for-beginners/FOR_BEGINNERS_BUILD_APP)
 
 Prerequisites:
 - Node.js (v20 or higher)
@@ -45,7 +55,7 @@ Prerequisites:
 
 ```
 # Clone the repository
-git clone https://github.com/cdmtn-dev/codemotion-ide.git
+git clone https://github.com/cdmtn/CodeMotion.git
 
 # Navigate to the project
 cd codemotion-ide
@@ -63,12 +73,12 @@ npm start -- --d
 
 ```
 codemotion-ide/
-├── ace/                 # Ace code editor builds
 ├── app/                 # App functions
 ├── assets/              # App assets
-├── extensions/          # Path for extensions (Optional)
-├── helpers/             # Renderer helpers
-└── html/                # HTML templates
+├── codemirror/          # Editor core
+├── helpers/             # Different helpers
+├── html/                # HTML Templates
+└── languages/           # App languages in JSON
 ```
 ## 🛠️ Stack
 
@@ -96,3 +106,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Special thanks
 - [@noxy](https://github.com/noxygalaxy) (Super contributor)
+- [@nihmadev](https://github.com/nihmadev) (Super contributor)
+- [@NotKiwy](https://github.com/NotKiwy) (Triage)
