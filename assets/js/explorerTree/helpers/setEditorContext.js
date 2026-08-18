@@ -79,6 +79,8 @@ function clamp(value, max, min = 0) {
 }
 
 export async function setEditorContext(properties = {}, { editor, language, updateEditorData, path, settings }) {
+	const codeStructureEl = document.querySelector(".code-structure")
+
     const gls = GLS.initLocal()
     const isErrorsUpdate = properties.errorsUpdate !== false
 
@@ -145,7 +147,7 @@ export async function setEditorContext(properties = {}, { editor, language, upda
             setDataDiagnostics(window.electron.jsonDiagnostic)
 
             const jsonParser = new JSONParser()
-            jsonParser.showJSONContext(editor, document.querySelector(".code-structure"))
+            jsonParser.showJSONContext(editor, codeStructureEl)
         },
         yaml: async () => {
             setDataDiagnostics(window.electron.yamlDiagnostic)
@@ -158,7 +160,7 @@ export async function setEditorContext(properties = {}, { editor, language, upda
         },
         html: () => {
             const htmlParser = new HTMLParser()
-            htmlParser.showHTMLContext(editor, document.querySelector(".code-structure"))
+            htmlParser.showHTMLContext(editor, codeStructureEl)
         },
         css: () => {
             const cssParser = new CSSParser()
@@ -194,12 +196,11 @@ export async function setEditorContext(properties = {}, { editor, language, upda
     updateEditorData()
 
     if (language.mode in contextMap) {
-        contextMap[language.mode]()
+		contextMap[language.mode]()
     }
     else {
-        const codeStructure = document.querySelector(".code-structure")
-        if (codeStructure) {
-            codeStructure.textContent = gls.get("editor.nocontextFor", { name: language.name })
+        if (codeStructureEl) {
+            codeStructureEl.textContent = gls.get("editor.nocontextFor", { name: language.name })
         }
-    }
+	}
 }

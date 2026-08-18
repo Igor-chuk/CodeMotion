@@ -138,6 +138,19 @@
 	animation-iteration-count: infinite;
 }
 
+.chat-tool p {
+	display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.chat-tool p::before {
+	content: '\f866';
+    font-family: 'Material Symbols Rounded';
+    opacity: .5;
+    font-size: 15px;
+    margin-right: 5px;
+}
+
 .chat-element .emoji {
 	width: 15px;
     vertical-align: -0.15em;

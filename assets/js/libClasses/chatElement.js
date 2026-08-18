@@ -220,6 +220,10 @@ export class _ChatElement {
 			replyEl.classList.add("chat-thinking")
 			textEl.textContent = "Thinking..."
 		}
+		if (type == "tool_run") {
+			replyEl.classList.add("chat-tool")
+			textEl.textContent = content
+		}
 
 		textEl.innerHTML = parseTwemojiString(textEl.textContent)
 		textEl.innerHTML = mdParse(textEl.textContent)

@@ -12,7 +12,8 @@ const RISKY_PERMISSIONS = [
     "shell.exec",
     "shell.kill",
     "window.create",
-    "window.close"
+	"window.close",
+    "window.reload"
 ]
 
 function hasRiskyPermissions(permissions) {

@@ -4,20 +4,21 @@ async function callback(data) {
 	const extName = data.extensionName
 
 	const result = await dialog.showMessageBox(null, {
-		title: "Close application?",
+		title: "Reload application?",
 		type: "question",
-		message: `${extName} want to close application`,
-		detail: `The "${extName}"" extension is causing the app to close`,
+		message: `${extName} want to reload application`,
+		detail: `The "${extName}"" extension is causing the app to reload`,
 		buttons: [
 			"Cancel",
-			"Close"
+			"Reload"
 		]
 	})
 
 	const response = result.response
 
 	if (response == 1) {
-		app.quit()
+		app.relaunch();
+  		app.exit(0);
 	}
 }
 

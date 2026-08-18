@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let image = document.querySelector(".image")
     let r = Math.floor(Math.random() * 12) + 1;
-    let randomImage = `../assets/media/splash/splash_${r}.svg`
+    let randomImage = `../assets/media/splash/splash_${r}.png`
     let splashImage = new Image()
     splashImage.src = randomImage
     splashImage.decoding = "async"
