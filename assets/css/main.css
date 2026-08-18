@@ -270,8 +270,8 @@ input~span {
 }
 
 .topbar-section__item-logo {
-    width: 15px;
-    margin: -2px 5px;
+    width: 18px;
+    margin: -3px 5px;
 }
 .topbar-section__item-logo.blurred {
     position: absolute;
@@ -904,6 +904,12 @@ body.explorer-resizing {
     white-space: nowrap;
     position: relative;
 }
+.explorer-elements .file.error {
+	color: var(--danger);
+}
+.explorer-elements .file.warn {
+	color: var(--warning)
+}
 .explorer-elements .file::after {
     content: "";
     position: absolute;
@@ -970,13 +976,6 @@ body.explorer-resizing {
     border-top-left-radius: 5px;
     margin-top: 10px;
 }
-.explorer-elements .file i {
-    font-size: 10px;
-    padding: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 .explorer-elements .file:hover {
     background: #ffffff12;
     cursor: pointer;
@@ -998,6 +997,23 @@ body.explorer-resizing {
     font-size: 13px;
     opacity: 1;
     margin-top: 0;
+}
+.explorer-elements .file-info:empty {
+    display: none;
+}
+.explorer-elements .file-info {
+    font-weight: 700;
+    font-size: smaller;
+    position: relative;
+    z-index: 1;
+}
+.explorer-elements .file-info.file-info__error {
+    color: var(--danger);
+    opacity: .5;
+}
+.explorer-elements .file-info.file-info__warn {
+    color: var(--warning);
+    opacity: .5;
 }
 .explorer-elements .file.ignored,
 .explorer-elements .dir.ignored > .dir-title,

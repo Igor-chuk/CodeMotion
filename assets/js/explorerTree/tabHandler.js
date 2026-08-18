@@ -48,6 +48,7 @@ import { renderPyMsgSuccess, renderPyMsgErr } from "../terminalRenderer/PyRuntim
 import { triggerEditorChanged, triggerEditorClicked } from "./triggers.js"
 import { TopWindowList, destroyAllTopWindowLists } from "../topWindowHandler/topWindowList.js"
 import { setEditorContext } from "./helpers/setEditorContext.js"
+import { setFileDiagnostics } from "./explorerDiagnostics.js"
 import { Modal } from "../modalsHandler/engine.js"
 import { electronAPI } from "../global.js"
 import { closeConfirmModal } from "../modals/closeConfirm.js"
@@ -933,7 +934,10 @@ export async function openTab(path, content, extension, name, pathContext, isNew
     tabsBar.appendChild(tab);
 
     if (typeof editor.onDiagnosticsChange === "function") {
-        editor.onDiagnosticsChange((state) => updateTabDiagnostics(tab, state));
+        editor.onDiagnosticsChange((state) => {
+            updateTabDiagnostics(tab, state);
+            setFileDiagnostics(tab.getAttribute("data-path"), state);
+        });
     }
 
     tab.draggable = true
@@ -1177,6 +1181,7 @@ export function closeTab(path) {
 
     tabEl.remove();
     tabsByPath.delete(path);
+    setFileDiagnostics(path, null);
     codeContextMenuPerTab.delete(path);
     if (previewTabPath === path) previewTabPath = null;
 

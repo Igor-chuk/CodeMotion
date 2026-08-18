@@ -1,4 +1,5 @@
 import { openTab, activateTab, closeTab, previewTabPath, promotePreview } from "../tabHandler.js";
+import { applyExplorerDiagnostics } from "../explorerDiagnostics.js";
 
 export function bindFileClicks({ scopeEl, tabsByPath, recentlyClosed, pathContext, settings }) {
     scopeEl.querySelectorAll(".file[data-path]").forEach(fileEl => {
@@ -57,4 +58,6 @@ export function bindFileClicks({ scopeEl, tabsByPath, recentlyClosed, pathContex
             }
         });
     });
+
+    applyExplorerDiagnostics(scopeEl);
 }
