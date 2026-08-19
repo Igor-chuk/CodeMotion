@@ -11,6 +11,9 @@ const RISKY_PERMISSIONS = [
     "shell.run",
     "shell.exec",
     "shell.kill",
+    "shell.win",
+    "shell.linux",
+    "shell.mac",
     "window.create",
 	"window.close",
     "window.reload"
