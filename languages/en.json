@@ -418,6 +418,11 @@
                     "description": "Automatically reopen the last opened folder when the app starts"
                 },
 
+                "useSystemNotifications": {
+                    "title": "System notifications",
+                    "description": "Use native OS notifications instead of in-app popups"
+                },
+
                 "theme": {
                     "title": "Theme",
                     "description": "Change application theme"

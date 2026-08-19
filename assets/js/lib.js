@@ -673,7 +673,7 @@ export function truncateString(str, maxLength) {
     return str.slice(0, maxLength) + '...';
 }
 
-export function createNotify(properties = {}) {
+export async function createNotify(properties = {}) {
     const timeDefault = 3000
 
     const type = valid(properties.type) ?? "info_i"
@@ -689,6 +689,21 @@ export function createNotify(properties = {}) {
     if(time > 10000) {
         time = timeDefault
     }
+
+    try {
+        const settings = await window.electron.readSettings()
+        let useSystem = settings?.app?.useSystemNotifications
+
+        if (useSystem === undefined) {
+            const platform = await window.electron.getPlatform()
+            useSystem = platform !== "win32"
+        }
+
+        if (useSystem) {
+            window.electron.createSystemNotification({ title, body: content })
+            return
+        }
+    } catch (e) {}
 
     const notifyObject = {
         title: title,

@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('electron', {
     resetPassword: (recoveryToken: string, newPassword: string) => ipcRenderer.invoke("reset-password", recoveryToken, newPassword),
 
     createNotification: (data: any) => ipcRenderer.send("spawn-notification", data),
+    createSystemNotification: (data: any) => ipcRenderer.send("spawn-system-notification", data),
 
     saveFile: (path: string, content: string) => ipcRenderer.invoke("save-file", path, content),
 

@@ -67,6 +67,7 @@ export async function handleSettings(settingsObject) {
             goContextParser: get("go_context_parser"),
 
             disableRiskyPermissionWarning: get("disableRiskyPermissionWarning"),
+            useSystemNotifications: get("useSystemNotifications"),
 
             gitGithubTokenInput: get("githubAccessKey"),
             gitGithubTokenSave: get("githubAccessKeySave"),
@@ -121,6 +122,11 @@ export async function handleSettings(settingsObject) {
     settingsSelectors.disableRiskyPermissionWarning.addEventListener("click", (e) => {
         let t = e.target
         Setting.disableRiskyPermissionWarning(t.checked)
+    })
+
+    settingsSelectors.useSystemNotifications.addEventListener("click", (e) => {
+        let t = e.target
+        Setting.useSystemNotifications(t.checked)
     })
 
     // 
@@ -268,6 +274,7 @@ export async function handleSettings(settingsObject) {
         if ("uiScale" in settingsObject.app) Setting.uiScale(settingsObject.app.uiScale, false, false)
         if ("language" in settingsObject.app) Setting.language(settingsObject.app.language, false)
         if ("restoreFolder" in settingsObject.app) Setting.restoreFolder(settingsObject.app.restoreFolder, false)
+        if ("useSystemNotifications" in settingsObject.app) Setting.useSystemNotifications(settingsObject.app.useSystemNotifications, false)
     }
     if (settingsObject.extensions) {
         if ("disableRiskyPermissionWarning" in settingsObject.extensions) Setting.disableRiskyPermissionWarning(settingsObject.extensions.disableRiskyPermissionWarning, false)
@@ -437,6 +444,13 @@ export class Setting {
 
         if (set) {
             await window.electron.setSettings({ app: { restoreFolder: value } })
+        }
+    }
+    static async useSystemNotifications(value, set = true) {
+        settingsSelectors.useSystemNotifications.checked = value
+
+        if (set) {
+            await window.electron.setSettings({ app: { useSystemNotifications: value } })
         }
     }
     static async confirmCloseTab(value, set = true) {

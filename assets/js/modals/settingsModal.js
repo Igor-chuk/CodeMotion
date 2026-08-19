@@ -77,6 +77,12 @@ export async function getSettingsModal({ platform }) {
                                 id: "setting_restoreFolder"
                             },
                             {
+                                type: "switch",
+                                title: lgls("application.useSystemNotifications.title"),
+                                description: lgls("application.useSystemNotifications.description"),
+                                id: "setting_useSystemNotifications"
+                            },
+                            {
                                 type: "placeholder",
                                 title: lgls("application.theme.title"),
                                 description: lgls("application.theme.description"),
