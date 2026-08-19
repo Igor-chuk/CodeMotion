@@ -1,6 +1,6 @@
 import type { IpcMainEvent } from "electron"
 
-import { app, BrowserWindow, screen, ipcMain, shell } from "electron"
+import { app, BrowserWindow, screen, ipcMain, shell, Notification } from "electron"
 import path from "node:path"
 import fs from "node:fs"
 import { GlobalKeyboardListener } from "node-global-key-listener";
@@ -228,6 +228,20 @@ async function createWindow() {
 
 ipcMain.on("spawn-notification", (_: IpcMainEvent, data: any) => {
     spawnNotification(data)
+})
+
+ipcMain.on("spawn-system-notification", async (_: IpcMainEvent, data: any) => {
+    if (!Notification.isSupported()) return
+
+    const icon = await getAppIcon()
+
+    const notif = new Notification({
+        title: data.title || "CodeMotion",
+        body: data.body || "",
+        icon,
+        silent: true
+    })
+    notif.show()
 })
 
 app.whenReady().then(createWindow);

@@ -108,7 +108,8 @@ function ensureSettingsJson(): void {
                 "splashScreen": true,
                 "uiScale": 1,
                 "language": "en",
-                "restoreFolder": true
+                "restoreFolder": true,
+                "useSystemNotifications": process.platform !== "win32"
             },
             "editor": {
                 "smoothScroll": true
