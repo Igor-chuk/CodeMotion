@@ -54,7 +54,7 @@
     "devDependencies": {
         "@types/electron": "^1.4.38",
         "@types/node": "^25.9.1",
-        "electron": "^39.2.3",
+        "electron": "^39.8.10",
         "electron-builder": "^26.15.3"
     },
     "dependencies": {
@@ -72,5 +72,9 @@
         "tar": "^7.5.19",
         "typescript": "^6.0.3",
         "ws": "^8.19.0"
+    },
+    "allowScripts": {
+        "electron-winstaller@5.4.0": true,
+        "electron@39.8.10": true
     }
 }
