@@ -109,7 +109,7 @@ export async function openFolder({ pathRoot, filesPanel, addToHistory, pathConte
 }
 
 function updatePathContext({ pathRoot, pathContext }) {
-    const parts = pathRoot.split(/\\/g);
+    const parts = pathRoot.split(/[\\/]/g).filter(Boolean);
     pathContext["rootPath"] = parts.join("/");
     pathContext["root"] = parts.pop();
 }
