@@ -10,7 +10,8 @@
         "cdbuild": "cd codemirror && npm i && npm run build",
         "start": "npm run cdbuild && npm run build && electron .",
         "dist": "npm run cdbuild && npm run build && electron-builder",
-        "dist-linux": "npm run cdbuild && npm run build && electron-builder --linux"
+        "dist-linux": "npm run cdbuild && npm run build && electron-builder --linux",
+        "dist-linux-portable": "npm run cdbuild && npm run build && electron-builder --linux tar.gz"
     },
     "build": {
         "appId": "com.codemotion",
