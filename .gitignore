@@ -1,6 +1,7 @@
 node_modules/
 /json/
 /extensions/
+extensions
 dist/
 build/
 codemirror/node_modules

@@ -11,6 +11,7 @@ const bus = require("../../helpers/eventBus")
 const { verifyToken } = require("../auth")
 
 const { HTML_PATH, JSON_PATH } = require("./helpers/paths.js")
+import { isUrlSafe } from "./helpers/urlValidator"
 
 let mainWindow: any
 let workSeconds: number = 0
@@ -112,7 +113,9 @@ async function createWindow() {
     });
 
     mainWindow.webContents.setWindowOpenHandler(({ url }: { url: string }) => {
-        shell.openExternal(url);
+        if (isUrlSafe(url)) {
+            shell.openExternal(url);
+        }
         return { action: 'deny' };
     });
     mainWindow.webContents.on('did-finish-load', () => {
