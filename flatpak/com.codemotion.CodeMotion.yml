@@ -1,0 +1,55 @@
+app-id: com.codemotion.CodeMotion
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: codemotion
+
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --share=network
+  - --device=dri
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --talk-name=org.freedesktop.Notifications
+  - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+
+modules:
+  - name: nodejs
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/bin /app/nodejs
+      - cp -r ./* /app/nodejs/
+      - ln -s /app/nodejs/bin/node /app/bin/node
+      - ln -s /app/nodejs/bin/npm /app/bin/npm
+      - ln -s /app/nodejs/bin/npx /app/bin/npx
+    sources:
+      - type: archive
+        url: https://nodejs.org/dist/v22.16.0/node-v22.16.0-linux-x64.tar.xz
+        sha256: f4cb75bb036f0d0eddf6b79d9596df1aaab9ddccd6a20bf489be5abe9467e84e
+
+  - name: codemotion
+    buildsystem: simple
+    build-options:
+      build-args:
+        - --share=network
+      env:
+        XDG_CACHE_HOME: /run/build/codemotion/flatpak-node/cache
+        npm_config_cache: /run/build/codemotion/flatpak-node/npm-cache
+    build-commands:
+      - npm install
+      - cd codemirror && npm install && cd ..
+      - npm run build
+      - npx electron-builder --linux dir --publish never
+      - mkdir -p /app/bin
+      - mkdir -p /app/share/codemotion
+      - cp -r dist/linux-unpacked/* /app/share/codemotion/
+      - printf '#!/bin/sh\nexec /app/share/codemotion/CodeMotion "$@"\n' > /app/bin/codemotion
+      - chmod +x /app/bin/codemotion
+      - install -Dm644 flatpak/com.codemotion.CodeMotion.desktop /app/share/applications/com.codemotion.CodeMotion.desktop
+      - install -Dm644 assets/media/builder-icons/app.png /app/share/icons/hicolor/512x512/apps/com.codemotion.CodeMotion.png
+      - install -Dm644 flatpak/com.codemotion.CodeMotion.metainfo.xml /app/share/metainfo/com.codemotion.CodeMotion.metainfo.xml
+    sources:
+      - type: dir
+        path: ..

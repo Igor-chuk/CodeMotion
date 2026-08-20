@@ -88,9 +88,65 @@ jobs:
           path: dist/*.AppImage
           retention-days: 1
 
+  build-flatpak:
+    name: Linux (Flatpak)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install flatpak tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder ccache
+
+      - name: Cache Flatpak build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/flatpak
+            ~/.cache/flatpak-builder
+            ~/.cache/ccache
+          key: flatpak-${{ runner.os }}-24.08-${{ hashFiles('flatpak/com.codemotion.CodeMotion.yml') }}
+          restore-keys: |
+            flatpak-${{ runner.os }}-24.08-
+
+      - name: Add flathub remote
+        run: flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Install runtime and SDK
+        run: |
+          flatpak install --user --noninteractive flathub \
+            org.freedesktop.Platform//24.08 \
+            org.freedesktop.Sdk//24.08
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder --user --ccache --install-deps-from=flathub --force-clean \
+            --repo=flatpak-repo \
+            build-flatpak \
+            flatpak/com.codemotion.CodeMotion.yml
+
+      - name: Bundle Flatpak
+        run: |
+          flatpak build-bundle \
+            --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
+            flatpak-repo \
+            codemotion.flatpak \
+            com.codemotion.CodeMotion
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-build
+          path: codemotion.flatpak
+          retention-days: 1
+
   release:
     name: Publish Release
-    needs: [build-windows, build-mac, build-linux]
+    needs: [build-windows, build-mac, build-linux, build-flatpak]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts

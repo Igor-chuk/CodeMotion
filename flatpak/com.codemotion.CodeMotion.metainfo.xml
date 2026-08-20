@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.codemotion.CodeMotion</id>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <name>CodeMotion</name>
+  <summary>Web-First Code Editor</summary>
+  <description>
+    <p>
+      A code editor made for frontend and full-stack web development.
+      Built-in preview, hot reload, and framework support - so you spend less time configuring and more time building.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/cdmtn/CodeMotion</url>
+  <url type="bugtracker">https://github.com/cdmtn/CodeMotion/issues</url>
+  <launchable type="desktop-id">com.codemotion.CodeMotion.desktop</launchable>
+  <provides>
+    <binary>codemotion</binary>
+  </provides>
+  <categories>
+    <category>Development</category>
+    <category>IDE</category>
+    <category>TextEditor</category>
+  </categories>
+  <keywords>
+    <keyword>code</keyword>
+    <keyword>editor</keyword>
+    <keyword>ide</keyword>
+    <keyword>development</keyword>
+    <keyword>programming</keyword>
+  </keywords>
+  <releases>
+    <release version="0.0.9" date="2026-01-01">
+      <description>
+        <p>Development release.</p>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1" />
+  <developer id="com.codemotion">
+    <name>Yurba.Developers</name>
+  </developer>
+</component>
