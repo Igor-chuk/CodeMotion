@@ -74,6 +74,11 @@ contextBridge.exposeInMainWorld('electron', {
     setLocal: (data: any) => ipcRenderer.invoke("set-local", data),
     getLocal: () => ipcRenderer.invoke("get-app-local"),
 
+    githubOAuthStart: () => ipcRenderer.invoke("github-oauth-start"),
+    githubOAuthPoll: (deviceCode: string) => ipcRenderer.invoke("github-oauth-poll", deviceCode),
+    githubOAuthGetUser: () => ipcRenderer.invoke("github-oauth-get-user"),
+    githubOAuthDisconnect: () => ipcRenderer.invoke("github-oauth-disconnect"),
+
     requestFile: () => ipcRenderer.invoke("request-file-open"),
     requestFolder: () => ipcRenderer.invoke("request-folder-open"),
 

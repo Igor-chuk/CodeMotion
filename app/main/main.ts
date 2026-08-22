@@ -37,6 +37,7 @@ require("./ipc/misc")
 require("./ipc/organizations")
 require("./ipc/bugs")
 require("./ipc/suggest")
+require("./ipc/github-oauth")
 
 // ext
 require("../sandbox/regs/language")
