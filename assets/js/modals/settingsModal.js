@@ -306,13 +306,47 @@ export async function getSettingsModal({ platform }) {
                 icon: "commit",
                 content: [
                     {
+                        type: "category",
+                        label: lgls("gitGithub.oauth.category"),
+                        items: []
+                    },
+                    {
+                        type: "row-clear",
+                        gap: 10,
+                        items: [
+                            {
+                                type: "container",
+                                id: "githubOAuthUserInfo"
+                            },
+                            {
+                                type: "container",
+                                id: "githubOAuthPending"
+                            },
+                            {
+                                type: "button",
+                                title: lgls("gitGithub.oauth.buttons.login"),
+                                id: "setting_githubOAuthLogin"
+                            },
+                            {
+                                type: "button",
+                                title: lgls("gitGithub.oauth.buttons.disconnect"),
+                                id: "setting_githubOAuthDisconnect",
+                                class: "danger"
+                            }
+                        ]
+                    },
+                    {
+                        type: "category",
+                        label: lgls("gitGithub.integration.title"),
+                        items: []
+                    },
+                    {
                         type: "row-clear",
                         gap: 10,
                         items: [
                             {
                                 type: "placeholder",
-                                title: lgls("gitGithub.integration.title"),
-                                description: lgls("gitGithub.integration.description")
+                                title: lgls("gitGithub.integration.description")
                             },
                             {
                                 type: "divider"

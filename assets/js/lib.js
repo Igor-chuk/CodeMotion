@@ -975,6 +975,35 @@ export async function getGithubToken() {
     return false
 }
 
+export async function getGithubOAuthToken() {
+    const localData = await window.electron.getLocal()
+
+    if (
+        localData &&
+        typeof localData === "object" &&
+        typeof localData.githubOAuthToken === "string" &&
+        localData.githubOAuthToken.length > 0
+    ) {
+        return localData.githubOAuthToken
+    }
+
+    return false
+}
+
+export async function getGithubOAuthUser() {
+    const localData = await window.electron.getLocal()
+
+    if (
+        localData &&
+        typeof localData === "object" &&
+        localData.githubOAuthUser
+    ) {
+        return localData.githubOAuthUser
+    }
+
+    return null
+}
+
 export function debounce(fn, ms = 400) {
     let t;
     return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };

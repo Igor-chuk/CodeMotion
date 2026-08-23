@@ -72,6 +72,11 @@ export async function handleSettings(settingsObject) {
             gitGithubTokenInput: get("githubAccessKey"),
             gitGithubTokenSave: get("githubAccessKeySave"),
             gitGithubTokenView: get("githubAccessKeyView"),
+
+            githubOAuthLogin: get("githubOAuthLogin"),
+            githubOAuthDisconnect: get("githubOAuthDisconnect"),
+            githubOAuthUserInfo: document.querySelector("#githubOAuthUserInfo"),
+            githubOAuthPending: document.querySelector("#githubOAuthPending"),
         }
     )
 
@@ -189,6 +194,15 @@ export async function handleSettings(settingsObject) {
 
         e.target.remove()
     }, { once: true })
+
+    settingsSelectors.githubOAuthLogin.addEventListener("click", () => {
+        Setting.githubOAuthStart()
+    })
+    settingsSelectors.githubOAuthDisconnect.addEventListener("click", () => {
+        Setting.githubOAuthDisconnect()
+    })
+
+    Setting.githubOAuthRender(localObject)
 
     themeSelect.appendTo(document.querySelector("#setting_theme"))
 
@@ -504,5 +518,151 @@ export class Setting {
                 })
             }
         }
+    }
+
+    static githubOAuthRender(localObject) {
+        const gls = GLS.initLocal()
+        const userInfoContainer = settingsSelectors.githubOAuthUserInfo
+        const pendingContainer = settingsSelectors.githubOAuthPending
+        const loginBtn = settingsSelectors.githubOAuthLogin
+        const disconnectBtn = settingsSelectors.githubOAuthDisconnect
+
+        if (!userInfoContainer || !pendingContainer || !loginBtn || !disconnectBtn) return
+
+        userInfoContainer.innerHTML = ""
+        pendingContainer.innerHTML = ""
+
+        if (localObject.githubOAuthUser) {
+            const user = localObject.githubOAuthUser
+            const displayName = user.name || user.login
+
+            userInfoContainer.innerHTML = `
+                <div class="github-oauth-user">
+                    <img class="github-oauth-avatar" src="${user.avatar_url}" alt="${user.login}" />
+                    <div class="github-oauth-info">
+                        <span class="github-oauth-name">${displayName} (${user.login})</span>
+                    </div>
+                </div>
+            `
+            loginBtn.style.display = "none"
+            disconnectBtn.style.display = ""
+        } else {
+            loginBtn.style.display = ""
+            disconnectBtn.style.display = "none"
+        }
+    }
+
+    static async githubOAuthStart() {
+        const gls = GLS.initLocal()
+        const loginBtn = settingsSelectors.githubOAuthLogin
+        const pendingContainer = settingsSelectors.githubOAuthPending
+
+        loginBtn.disabled = true
+        loginBtn.textContent = gls.get("modals.appearance.gitGithub.oauth.buttons.connecting")
+
+        const res = await window.electron.githubOAuthStart()
+
+        if (!res.success) {
+            loginBtn.disabled = false
+            loginBtn.textContent = gls.get("modals.appearance.gitGithub.oauth.buttons.login")
+
+            createNotify({
+                type: "danger",
+                icon: "cancel",
+                title: "GitHub OAuth error",
+                content: res.error || "Failed to start device flow"
+            })
+            return
+        }
+
+        pendingContainer.innerHTML = `
+            <div class="github-oauth-pending">
+                <span class="github-oauth-code">${res.userCode}</span>
+                <span class="github-oauth-hint">${gls.get("modals.appearance.gitGithub.oauth.pending.hint", { url: res.verificationUri })}</span>
+            </div>
+        `
+        loginBtn.textContent = gls.get("modals.appearance.gitGithub.oauth.buttons.waiting")
+
+        let interval = (res.interval || 5) * 1000
+        let expired = false
+
+        const poll = async () => {
+            if (expired) return
+
+            const pollRes = await window.electron.githubOAuthPoll(res.deviceCode)
+
+            if (pollRes.success) {
+                loginBtn.textContent = gls.get("modals.appearance.gitGithub.oauth.buttons.login")
+                loginBtn.disabled = false
+                pendingContainer.innerHTML = ""
+
+                const localObject = await window.electron.getLocal()
+                Setting.githubOAuthRender(localObject)
+
+                createNotify({
+                    type: "success",
+                    icon: "check",
+                    title: gls.get("modals.appearance.gitGithub.oauth.notifications.success.title"),
+                    content: gls.get("modals.appearance.gitGithub.oauth.notifications.success.description")
+                })
+                return
+            }
+
+            if (pollRes.status === "pending") {
+                setTimeout(poll, interval)
+                return
+            }
+            if (pollRes.status === "slow_down") {
+                interval += 5000
+                setTimeout(poll, interval)
+                return
+            }
+
+            expired = true
+            loginBtn.textContent = gls.get("modals.appearance.gitGithub.oauth.buttons.login")
+            loginBtn.disabled = false
+            pendingContainer.innerHTML = ""
+
+            if (pollRes.status === "denied") {
+                createNotify({
+                    type: "danger",
+                    icon: "cancel",
+                    title: "GitHub OAuth",
+                    content: gls.get("modals.appearance.gitGithub.oauth.notifications.denied")
+                })
+            } else if (pollRes.status === "expired") {
+                createNotify({
+                    type: "danger",
+                    icon: "cancel",
+                    title: "GitHub OAuth",
+                    content: gls.get("modals.appearance.gitGithub.oauth.notifications.expired")
+                })
+            } else {
+                createNotify({
+                    type: "danger",
+                    icon: "cancel",
+                    title: "GitHub OAuth error",
+                    content: pollRes.error || "Authentication failed"
+                })
+            }
+        }
+
+        setTimeout(poll, interval)
+    }
+
+    static async githubOAuthDisconnect() {
+        const gls = GLS.initLocal()
+
+        await window.electron.githubOAuthDisconnect()
+
+        const localObject = await window.electron.getLocal()
+        Setting.githubOAuthRender(localObject)
+
+        createNotify({
+            type: "success",
+            icon: "check",
+            title: gls.get("modals.appearance.gitGithub.oauth.notifications.disconnected.title"),
+            content: gls.get("modals.appearance.gitGithub.oauth.notifications.disconnected.description")
+        })
     }
 }
