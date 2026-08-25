@@ -347,19 +347,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // Save active tab (Ctrl+S / Cmd+S while the editor window is focused)
     window.addEventListener("keydown", (event) => {
         if ((event.ctrlKey || event.metaKey) && event.code === "KeyS") {
             event.preventDefault();
             saveActiveTab();
         }
     });
-
-    // Save active tab
-    window.electron.keyboardAction(async (data) => {
-        if (data.type === "saved") {
-            await saveActiveTab();
-        }
-    })
 
     window.addEventListener("blur", () => {
         const modifiers = [
