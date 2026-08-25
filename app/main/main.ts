@@ -3,9 +3,7 @@ import type { IpcMainEvent } from "electron"
 import { app, BrowserWindow, screen, ipcMain, shell, Notification } from "electron"
 import path from "node:path"
 import fs from "node:fs"
-import { GlobalKeyboardListener } from "node-global-key-listener";
 
-const v = new GlobalKeyboardListener();
 const bus = require("../../helpers/eventBus")
 
 const { verifyToken } = require("../auth")
@@ -153,14 +151,6 @@ async function createWindow() {
                         mainWindow.webContents.send("auth-msg", { type: "error", content: userCheckLogin.result })
                     }
                 }
-
-                v.addListener(function (e: any, down: any) {
-                    if (mainWindow && mainWindow.isFocused() && e.state == "DOWN" && e.name == "S" && down["LEFT CTRL"]) {
-                        mainWindow.webContents.send("keyboard_action", {
-                            type: "saved"
-                        });
-                    }
-                });
             })
             .catch((err: TypeError) => {
                 updateSplash(`Error: ${err.message}. Please report this error to the developer and try again later`, true)

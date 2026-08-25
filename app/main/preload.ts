@@ -37,8 +37,6 @@ contextBridge.exposeInMainWorld('electron', {
 
     askToSaveNewFile: (properties: SaveContentPayload) => ipcRenderer.invoke("ask-to-save-content", properties),
 
-    keyboardAction: (callback: any) => ipcRenderer.on("keyboard_action", (_: any, data: any) => callback(data)),
-
     getCurrentUserDataFromAPI: () => ipcRenderer.invoke("get-user-data-from-api"),
     getUser: (userid: number) => ipcRenderer.invoke("get-user", userid),
     getOrgDataFromAPI: (orgid: number) => ipcRenderer.invoke("get-org-data-from-api", orgid),
