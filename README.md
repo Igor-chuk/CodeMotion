@@ -106,5 +106,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Special thanks
 - [@noxy](https://github.com/noxygalaxy) (Super contributor)
-- [@nihmadev](https://github.com/nihmadev) (Super contributor)
 - [@NotKiwy](https://github.com/NotKiwy) (Triage)
