@@ -812,8 +812,13 @@ body.explorer-resizing {
     right: 0;
     bottom: 0;
 }
-.code-tab.active.no-color {
-    border-bottom: 2px solid var(--link-color)!important;
+.code-tab.active.no-color:after {
+    content: "";
+    --tab-color: var(--link-color);
+}
+.code-tab.active.no-color:before {
+    content: "";
+    --tab-color: var(--link-color);
 }
 .code-tab.active .file-name {
     color: var(--text-color);

@@ -960,21 +960,6 @@ export function setAppTitle(title) {
     window.electron.setAppTitle(title)
 }
 
-export async function getGithubToken() {
-    const localData = await window.electron.getLocal()
-
-    if (
-        localData &&
-        typeof localData === "object" &&
-        typeof localData.githubToken === "string" &&
-        localData.githubToken.length > 0
-    ) {
-        return localData.githubToken
-    }
-
-    return false
-}
-
 export async function getGithubOAuthToken() {
     const localData = await window.electron.getLocal()
 

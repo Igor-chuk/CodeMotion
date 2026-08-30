@@ -9,8 +9,7 @@
     "help": "Help",
 
     "splash": {
-        "createdBy": "Created by %{name}",
-        "description": "Web development environment",
+        "description": "Web-focused, advanced open-source code editor (IDE) with native tools for web developers. By Yurba Developers",
         "closeBtn": "Close",
         "offlineBtn": "Sign in without an account",
         "offlineMode": "Offline mode"
@@ -516,31 +515,6 @@
                             "title": "GitHub disconnected",
                             "description": "Your GitHub account has been unlinked"
                         }
-                    }
-                },
-
-                "integration": {
-                    "title": "Git & Github Integration",
-                    "description": "Set up and enable access to Git features to unlock more capabilities",
-                    "inputs": {
-                        "token": {
-                            "placeholder": "GitHub Personal Access Token"
-                        }
-                    },
-                    "buttons": {
-                        "save": "Save",
-                        "view": "View",
-                        "getToken": "Get Github token"
-                    }
-                },
-                "notifications": {
-                    "success": {
-                        "title": "Github token saved locally",
-                        "description": "Your GitHub key has been successfully saved locally. It will be used for GitHub API requests"
-                    },
-                    "error": {
-                        "title": "Github token save error",
-                        "description": "An error occurred while saving the key locally. Please try logging back into your account"
                     }
                 }
             }

@@ -1,7 +1,6 @@
 import { Notificator, Options, showNeedReloadTopBar, GLS, createNotify } from "./lib.js"
 import { optionsThemeButtonHandler } from "./handlers/themesHandler.js"
 
-import { Modal } from "../js/modalsHandler/engine.js"
 import { getDirname, readSettings } from "../../assets/js/global.js"
 import { capitilize } from "./lib.js"
 
@@ -29,6 +28,19 @@ function updateThemeSelectDefault(settingsObject) {
         const instance = themeSelect.get(settingsObject.ui.theme)
 
         if (instance) instance.default()
+    }
+}
+
+function setupListener(property, callback) {
+    if (property in settingsSelectors) {
+        settingsSelectors[property].addEventListener("click", (e) => {
+            let target = false;
+
+            if(e.target instanceof HTMLInputElement) target = e.target.value
+            if(e.target instanceof HTMLInputElement && e.target.type == "checkbox") target = e.target.checked
+
+            callback({ target: target })
+        })
     }
 }
 
@@ -69,14 +81,10 @@ export async function handleSettings(settingsObject) {
             disableRiskyPermissionWarning: get("disableRiskyPermissionWarning"),
             useSystemNotifications: get("useSystemNotifications"),
 
-            gitGithubTokenInput: get("githubAccessKey"),
-            gitGithubTokenSave: get("githubAccessKeySave"),
-            gitGithubTokenView: get("githubAccessKeyView"),
-
             githubOAuthLogin: get("githubOAuthLogin"),
             githubOAuthDisconnect: get("githubOAuthDisconnect"),
-            githubOAuthUserInfo: document.querySelector("#githubOAuthUserInfo"),
-            githubOAuthPending: document.querySelector("#githubOAuthPending"),
+            githubOAuthUserInfo: get("githubOAuthUserInfo"),
+            githubOAuthPending: get("githubOAuthPending"),
         }
     )
 
@@ -119,87 +127,66 @@ export async function handleSettings(settingsObject) {
     // 
 
     // context parsers
-    settingsSelectors.goContextParser.addEventListener("click", (e) => {
-        let t = e.target
-        Setting.goContextParser(t.checked)
+    setupListener("goContextParser", ({ target }) => {
+        Setting.goContextParser(target)
     })
 
-    settingsSelectors.disableRiskyPermissionWarning.addEventListener("click", (e) => {
-        let t = e.target
-        Setting.disableRiskyPermissionWarning(t.checked)
+    setupListener("disableRiskyPermissionWarning", ({ target }) => {
+        Setting.disableRiskyPermissionWarning(target)
     })
 
-    settingsSelectors.useSystemNotifications.addEventListener("click", (e) => {
-        let t = e.target
-        Setting.useSystemNotifications(t.checked)
+    setupListener("useSystemNotifications", ({ target }) => {
+        Setting.useSystemNotifications(target)
     })
 
-    // 
+    //
 
-    settingsSelectors.coloredTabs.addEventListener("click", (e) => {
-        let t = e.target
-        Setting.coloredTabs(t.checked)
+    setupListener("coloredTabs", ({ target }) => {
+        Setting.coloredTabs(target)
     })
 
-    settingsSelectors.confirmCloseTab.addEventListener("click", (e) => {
-        let t = e.target
-        Setting.confirmCloseTab(t.checked)
+    setupListener("confirmCloseTab", ({ target }) => {
+        Setting.confirmCloseTab(target)
     })
 
-    settingsSelectors.restoreFolder.addEventListener("click", (e) => {
-        let t = e.target
-        Setting.restoreFolder(t.checked)
+    setupListener("restoreFolder", ({ target }) => {
+        Setting.restoreFolder(target)
     })
 
-    settingsSelectors.editorTextSize.addEventListener("change", (e) => {
-        Setting.editorTextSize(e.target.value)
+    setupListener("editorTextSize", ({ target }) => {
+        Setting.editorTextSize(target)
     })
 
-    settingsSelectors.useSystemFonts.addEventListener("click", (e) => {
-        let t = e.target
-        Setting.useSystemFonts(t.checked)
+    setupListener("useSystemFonts", ({ target }) => {
+        Setting.useSystemFonts(target)
     })
 
-    settingsSelectors.boldFont.addEventListener("click", (e) => {
-        let t = e.target
-        Setting.boldFont(t.checked)
+    setupListener("boldFont", ({ target }) => {
+        Setting.boldFont(target)
     })
 
-    settingsSelectors.devMode.addEventListener("click", (e) => {
-        let t = e.target
-        Setting.devMode(t.checked)
+    setupListener("devMode", ({ target }) => {
+        Setting.devMode(target)
     })
 
-    settingsSelectors.splash.addEventListener("click", (e) => {
-        let t = e.target
-        Setting.splash(t.checked)
+    setupListener("splash", ({ target }) => {
+        Setting.splash(target)
     })
 
-    settingsSelectors.reduceMotion.addEventListener("click", (e) => {
-        let t = e.target
-        Setting.reduceMotion(t.checked)
+    setupListener("reduceMotion", ({ target }) => {
+        Setting.reduceMotion(target)
     })
 
-    settingsSelectors.uiScale.addEventListener("change", (e) => {
-        Setting.uiScale(e.target.value)
+    setupListener("uiScale", ({ target }) => {
+        Setting.uiScale(target)
     })
 
-    settingsSelectors.gitGithubTokenSave.addEventListener("click", () => {
-        const token = settingsSelectors.gitGithubTokenInput.value
-
-        Setting.githubToken(token)
+    setupListener("githubOAuthLogin", ({ target }) => {
+        Setting.githubOAuthStart(target)
     })
-    settingsSelectors.gitGithubTokenView.addEventListener("click", (e) => {
-        settingsSelectors.gitGithubTokenInput.type = "text"
 
-        e.target.remove()
-    }, { once: true })
-
-    settingsSelectors.githubOAuthLogin.addEventListener("click", () => {
-        Setting.githubOAuthStart()
-    })
-    settingsSelectors.githubOAuthDisconnect.addEventListener("click", () => {
-        Setting.githubOAuthDisconnect()
+    setupListener("githubOAuthDisconnect", ({ target }) => {
+        Setting.githubOAuthDisconnect(target)
     })
 
     Setting.githubOAuthRender(localObject)
@@ -222,8 +209,6 @@ export async function handleSettings(settingsObject) {
             Setting.pythonRunnerMethod(ID)
         })
     }
-
-    const aviableExtensionLanguages = []
 
     if (aviableLanguages) {
         for (const index in aviableLanguages) {
@@ -263,8 +248,6 @@ export async function handleSettings(settingsObject) {
     updateThemeSelectDefault(settingsObject)
 
     bus.addEventListener("new-theme-register", (data) => {
-        const themeData = data.detail
-
         updateThemeSelectDefault(settingsObject)
     })
 
@@ -292,10 +275,6 @@ export async function handleSettings(settingsObject) {
     }
     if (settingsObject.extensions) {
         if ("disableRiskyPermissionWarning" in settingsObject.extensions) Setting.disableRiskyPermissionWarning(settingsObject.extensions.disableRiskyPermissionWarning, false)
-    }
-
-    if (localObject.githubToken) {
-        Setting.githubToken(localObject.githubToken, false)
     }
 }
 
@@ -489,39 +468,7 @@ export class Setting {
         }
     }
 
-    static async githubToken(value, set = true) {
-        const gls = GLS.initLocal()
-
-        settingsSelectors.gitGithubTokenInput.value = value
-
-        if (value.length > 0) {
-            settingsSelectors.gitGithubTokenInput.classList.add("focused")
-        }
-
-        if (set) {
-            const res = window.electron.setLocal({ "githubToken": value })
-
-            if (res) {
-                createNotify({
-                    type: "success",
-                    icon: "check",
-                    title: gls.get("modals.appearance.gitGithub.notifications.success.title"),
-                    content: gls.get("modals.appearance.gitGithub.notifications.success.description")
-                })
-            }
-            else {
-                createNotify({
-                    type: "danger",
-                    icon: "cancel",
-                    title: gls.get("modals.appearance.gitGithub.notifications.error.title"),
-                    content: gls.get("modals.appearance.gitGithub.notifications.error.description")
-                })
-            }
-        }
-    }
-
     static githubOAuthRender(localObject) {
-        const gls = GLS.initLocal()
         const userInfoContainer = settingsSelectors.githubOAuthUserInfo
         const pendingContainer = settingsSelectors.githubOAuthPending
         const loginBtn = settingsSelectors.githubOAuthLogin

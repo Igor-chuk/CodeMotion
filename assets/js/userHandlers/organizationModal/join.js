@@ -1,6 +1,5 @@
 import { sendEvent } from "../../bus.js"
 import { createNotify, truncateString, Options, formatUnix } from "../../lib.js"
-import { Modal } from "../../modalsHandler/engine.js"
 
 export function joinModalObject({ lgls }) {
     return {

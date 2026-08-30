@@ -1,4 +1,4 @@
-import { createNotify, getGithubToken, GLS, Task, linkify } from "../../lib.js";
+import { createNotify, getGithubOAuthToken, GLS, Task } from "../../lib.js";
 import { Modal } from "../engine.js";
 import { createDIV, createIcon, createLink, createParagraph, svgToElement } from "../handlers/helpers.js";
 
@@ -36,7 +36,7 @@ export function renderGithubRepos(properties = {}) {
 
         wrapper.appendChild(itemWrapper)
 
-        const githubToken = await getGithubToken()
+        const githubToken = await getGithubOAuthToken()
 
         if(forkable && githubToken) {
             const forkBtn = document.createElement("button")
@@ -62,8 +62,8 @@ export function renderGithubRepos(properties = {}) {
                         {
                             type: "danger",
                             icon: "cancel",
-                            title: lgls("error.title", { name: repo }),
-                            content: `Github: ${data.message}`
+                            title: title == undefined ? lgls("error.title", { name: repo }) : title,
+                            content: desc == undefined ? `Github: ${data.message}` : desc
                         }
                     )
 
@@ -72,6 +72,9 @@ export function renderGithubRepos(properties = {}) {
 
                     currentModal.open()
                 }
+
+                console.log(`https://api.github.com/repos/${repo}/forks`)
+                console.log(githubToken)
                 
                 const response = await fetch(
                     `https://api.github.com/repos/${repo}/forks`,

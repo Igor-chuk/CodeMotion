@@ -316,11 +316,11 @@ export async function getSettingsModal({ platform }) {
                         items: [
                             {
                                 type: "container",
-                                id: "githubOAuthUserInfo"
+                                id: "setting_githubOAuthUserInfo"
                             },
                             {
                                 type: "container",
-                                id: "githubOAuthPending"
+                                id: "setting_githubOAuthPending"
                             },
                             {
                                 type: "button",
@@ -334,71 +334,11 @@ export async function getSettingsModal({ platform }) {
                                 class: "danger"
                             }
                         ]
-                    },
-                    {
-                        type: "category",
-                        label: lgls("gitGithub.integration.title"),
-                        items: []
-                    },
-                    {
-                        type: "row-clear",
-                        gap: 10,
-                        items: [
-                            {
-                                type: "placeholder",
-                                title: lgls("gitGithub.integration.description")
-                            },
-                            {
-                                type: "divider"
-                            },
-                            {
-                                type: "input",
-                                inputType: "password",
-                                placeholder: lgls("gitGithub.integration.inputs.token.placeholder"),
-                                id: "setting_githubAccessKey"
-                            },
-                            {
-                                type: "container",
-                                id: "githubAccessKeyButtonsContainer"
-                            },
-
-                            {
-                                type: "button",
-                                title: lgls("gitGithub.integration.buttons.save"),
-                                id: "setting_githubAccessKeySave",
-                                container: "#githubAccessKeyButtonsContainer"
-                            },
-                            {
-                                type: "button",
-                                title: lgls("gitGithub.integration.buttons.view"),
-                                id: "setting_githubAccessKeyView",
-                                class: "secondary",
-                                container: "#githubAccessKeyButtonsContainer"
-                            },
-                            {
-                                type: "button",
-                                title: lgls("gitGithub.integration.buttons.getToken"),
-                                id: "setting_githubAccessKeyGet",
-                                class: "secondary",
-                                container: "#githubAccessKeyButtonsContainer"
-                            }
-                        ]
                     }
                 ]
             }
         ]
     })
-
-    const element = appearanceModal.el
-
-    element.querySelector("#setting_githubAccessKeyGet").onclick = () => {
-        const a = document.createElement("a")
-        a.href = "https://github.com/settings/personal-access-tokens"
-        a.target = "_blank"
-
-        a.click()
-        a.remove()
-    }
 
     return appearanceModal
 }

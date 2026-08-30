@@ -1,7 +1,7 @@
 import { ipcMain, IpcMainInvokeEvent, shell } from "electron"
 import { getLocalAppData, writeLocal } from "../helpers/requests"
 
-const CLIENT_ID = "Ov23liWZVOp46G8YT9ft" // can be replaced
+const CLIENT_ID = "Ov23limFNnXEgt4UxRRt"
 
 const DEVICE_CODE_URL = "https://github.com/login/device/code"
 const TOKEN_URL = "https://github.com/login/oauth/access_token"
@@ -67,7 +67,7 @@ ipcMain.handle("github-oauth-start", async (_: IpcMainInvokeEvent) => {
     try {
         const data: DeviceCodeResponse = await postForm(DEVICE_CODE_URL, {
             client_id: CLIENT_ID,
-            scope: "read:user"
+            scope: "read:user public_repo"
         })
 
         if (!data.device_code || !data.user_code) {

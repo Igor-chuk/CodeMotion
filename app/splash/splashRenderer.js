@@ -9,8 +9,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let packageData = await window.electron.getPackageData()
     let version = packageData.version
-    let author = packageData.author
-    let desc = packageData.description
 
     let image = document.querySelector(".image")
     let r = Math.floor(Math.random() * 12) + 1;
@@ -21,7 +19,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     image.replaceChildren(splashImage)
 
     document.querySelector(".version").innerText = `v${version}`
-    document.querySelector(".author").innerText = gls.get("splash.createdBy", { name: author })
     document.querySelector(".description").innerText = gls.get("splash.description")
 
     window.electron.onStatusUpdate((_event, data) => {
