@@ -9,3 +9,4 @@ codemirror/node_modules
 .env
 package-lock.json
 pnpm-lock.yaml
+dist-esm/

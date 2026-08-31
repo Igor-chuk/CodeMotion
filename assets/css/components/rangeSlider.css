@@ -83,11 +83,10 @@ input[type="range"] {
 }
 
 input[type="range"] {
-    color: #2373ef;
+    color: var(--link-color);
     --thumb-height: 15px;
-    --track-height: 1px;
-    --track-color: rgba(0, 0, 0, 0.2);
-    --brightness-hover: 120%;
+    --track-height: 2px;
+    --track-color: var(--body-color);
     --brightness-down: 80%;
     --clip-edges: 1px;
     outline: none;
