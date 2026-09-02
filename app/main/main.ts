@@ -36,6 +36,7 @@ require("./ipc/organizations")
 require("./ipc/bugs")
 require("./ipc/suggest")
 require("./ipc/github-oauth")
+require("./ipc/gitlab-oauth")
 
 // ext
 require("../sandbox/regs/language")
@@ -92,16 +93,17 @@ async function createWindow() {
     let dev = false
     let splash: InstanceType<typeof BrowserWindow> | null = null
 
-    if("app" in settingsData && settingsData.app.splashScreen) {
-        splash = await createSplashWindow()
-    }
+    // Disable splash for now
+    // if("app" in settingsData && settingsData.app.splashScreen) {
+    //     splash = await createSplashWindow()
+    // }
 
 	if(process.argv.includes('--d')) dev = true
 
     mainWindow = new BrowserWindow({
         width,
         height,
-        show: false,
+        show: true,
         frame: dev,
         backgroundColor: "#0a0a0a",
         webPreferences: {
@@ -117,45 +119,38 @@ async function createWindow() {
         }
         return { action: 'deny' };
     });
-    mainWindow.webContents.on('did-finish-load', () => {
-        if(splash) splash.destroy();
-        mainWindow.maximize()
-        mainWindow.show();
-    })
+    mainWindow.maximize()
     mainWindow.on("closed", () => {
         for (const win of notifications) {
             if (win && !win.isDestroyed()) win.close()
         }
     })
 
-    if(splash) updateSplash("Waiting for connect...")
+    if(splash) updateSplash("Ready")
 
-    // if offline mode (w/o account) then dont check status
+    // Load UI immediately - don't block on status check
     if (localData.nonAccountMode) {
         await mainWindow.loadFile(path.join(HTML_PATH, "index.html"));
     }
-    else {
-        checkStatus({ updateSplash: updateSplash })
-            .then(async () => {
-                if (!localData.token) {
-                    await mainWindow.loadFile(path.join(HTML_PATH, "login.html"));
-                }
-                else {
-                    let userCheckLogin = await verifyToken(localData.token);
-
-                    if (userCheckLogin.success) {
-                        await mainWindow.loadFile(path.join(HTML_PATH, "index.html"));
-                    }
-                    else {
-                        await mainWindow.loadFile(path.join(HTML_PATH, "login.html"));
-                        mainWindow.webContents.send("auth-msg", { type: "error", content: userCheckLogin.result })
-                    }
-                }
-            })
-            .catch((err: TypeError) => {
-                updateSplash(`Error: ${err.message}. Please report this error to the developer and try again later`, true)
-            });
+    else if (!localData.token) {
+        await mainWindow.loadFile(path.join(HTML_PATH, "login.html"));
     }
+    else {
+        // Verify token but don't block on status check
+        let userCheckLogin = await verifyToken(localData.token);
+        if (userCheckLogin.success) {
+            await mainWindow.loadFile(path.join(HTML_PATH, "index.html"));
+        }
+        else {
+            await mainWindow.loadFile(path.join(HTML_PATH, "login.html"));
+            mainWindow.webContents.send("auth-msg", { type: "error", content: userCheckLogin.result })
+        }
+    }
+
+    // Check status in background (non-blocking)
+    checkStatus({ updateSplash: updateSplash }).catch((err: TypeError) => {
+        console.log("Status check failed (non-blocking):", err.message);
+    });
 
     ipcMain.handle("request-file-open", () => {
         return selectFile(mainWindow)

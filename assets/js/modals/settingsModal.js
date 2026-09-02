@@ -336,6 +336,43 @@ export async function getSettingsModal({ platform }) {
                         ]
                     }
                 ]
+            },
+
+            {
+                name: "GitLab",
+                icon: "gitlab",
+                content: [
+                    {
+                        type: "category",
+                        label: "GitLab OAuth",
+                        items: []
+                    },
+                    {
+                        type: "row-clear",
+                        gap: 10,
+                        items: [
+                            {
+                                type: "container",
+                                id: "setting_gitlabOAuthUserInfo"
+                            },
+                            {
+                                type: "container",
+                                id: "setting_gitlabOAuthPending"
+                            },
+                            {
+                                type: "button",
+                                title: "Connect",
+                                id: "setting_gitlabOAuthLogin"
+                            },
+                            {
+                                type: "button",
+                                title: "Disconnect",
+                                id: "setting_gitlabOAuthDisconnect",
+                                class: "danger"
+                            }
+                        ]
+                    }
+                ]
             }
         ]
     })

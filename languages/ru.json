@@ -517,6 +517,35 @@
                         }
                     }
                 }
+            },
+
+            "gitlab": {
+                "title": "GitLab",
+
+                "oauth": {
+                    "category": "Аккаунт GitLab",
+                    "buttons": {
+                        "login": "Войти через GitLab",
+                        "connecting": "Подключение...",
+                        "waiting": "Ожидание авторизации...",
+                        "disconnect": "Отключить"
+                    },
+                    "pending": {
+                        "hint": "Откройте %{url} и введите код выше"
+                    },
+                    "notifications": {
+                        "success": {
+                            "title": "GitLab подключён!",
+                            "description": "Ваш аккаунт GitLab успешно привязан"
+                        },
+                        "denied": "Авторизация была отклонена пользователем",
+                        "expired": "Срок действия кода авторизации истёк. Попробуйте ещё раз",
+                        "disconnected": {
+                            "title": "GitLab отключён",
+                            "description": "Ваш аккаунт GitLab отвязан"
+                        }
+                    }
+                }
             }
         },
 

@@ -517,6 +517,35 @@
                         }
                     }
                 }
+            },
+
+            "gitlab": {
+                "title": "GitLab",
+
+                "oauth": {
+                    "category": "GitLab Account",
+                    "buttons": {
+                        "login": "Login with GitLab",
+                        "connecting": "Connecting...",
+                        "waiting": "Waiting for authorization...",
+                        "disconnect": "Disconnect"
+                    },
+                    "pending": {
+                        "hint": "Open %{url} and enter the code above"
+                    },
+                    "notifications": {
+                        "success": {
+                            "title": "GitLab connected!",
+                            "description": "Your GitLab account has been linked successfully"
+                        },
+                        "denied": "Authorization was denied by the user",
+                        "expired": "The authorization code has expired. Please try again",
+                        "disconnected": {
+                            "title": "GitLab disconnected",
+                            "description": "Your GitLab account has been unlinked"
+                        }
+                    }
+                }
             }
         },
 

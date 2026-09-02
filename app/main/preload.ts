@@ -77,6 +77,11 @@ contextBridge.exposeInMainWorld('electron', {
     githubOAuthGetUser: () => ipcRenderer.invoke("github-oauth-get-user"),
     githubOAuthDisconnect: () => ipcRenderer.invoke("github-oauth-disconnect"),
 
+    gitlabOAuthStart: () => ipcRenderer.invoke("gitlab-oauth-start"),
+    gitlabOAuthPoll: (deviceCode: string) => ipcRenderer.invoke("gitlab-oauth-poll", deviceCode),
+    gitlabOAuthGetUser: () => ipcRenderer.invoke("gitlab-oauth-get-user"),
+    gitlabOAuthDisconnect: () => ipcRenderer.invoke("gitlab-oauth-disconnect"),
+
     requestFile: () => ipcRenderer.invoke("request-file-open"),
     requestFolder: () => ipcRenderer.invoke("request-folder-open"),
 
