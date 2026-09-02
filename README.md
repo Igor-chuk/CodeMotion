@@ -58,7 +58,7 @@ Prerequisites:
 git clone https://github.com/cdmtn/CodeMotion.git
 
 # Navigate to the project
-cd codemotion-ide
+cd CodeMotion
 
 # Install dependencies
 npm install
