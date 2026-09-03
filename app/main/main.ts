@@ -129,7 +129,7 @@ async function createWindow() {
         }
     })
 
-    if(splash) updateSplash("Ready")
+        if(splash) updateSplash("Waiting for connect...")
 
     if (localData.nonAccountMode) {
         await mainWindow.loadFile(path.join(HTML_PATH, "index.html"));
