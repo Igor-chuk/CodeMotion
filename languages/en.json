@@ -491,7 +491,7 @@
             },
 
             "gitGithub": {
-                "title": "Git & Integrations",
+                "title": "Git & Providers",
 
                 "oauth": {
                     "category": "GitHub Account",

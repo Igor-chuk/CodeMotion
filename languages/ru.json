@@ -491,7 +491,7 @@
             },
 
             "gitGithub": {
-                "title": "Git и интеграции",
+                "title": "Git и провайдеры",
 
                 "oauth": {
                     "category": "Аккаунт GitHub",
