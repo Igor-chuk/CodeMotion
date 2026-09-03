@@ -671,14 +671,11 @@ export class Setting {
     }
 
     static async gitlabOAuthStart() {
-        console.log("[SETTINGS] gitlabOAuthStart called")
-        console.log("[SETTINGS] gitlab selectors in start:", settingsSelectors.gitlabOAuthLogin)
         const gls = GLS.initLocal()
         const loginBtn = settingsSelectors.gitlabOAuthLogin
         const pendingContainer = settingsSelectors.gitlabOAuthPending
 
         if (!loginBtn) {
-            console.error("[SETTINGS] loginBtn is null!")
             return
         }
 

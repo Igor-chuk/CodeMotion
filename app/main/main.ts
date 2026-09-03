@@ -93,7 +93,6 @@ async function createWindow() {
     let dev = false
     let splash: InstanceType<typeof BrowserWindow> | null = null
 
-    //Disable splash for now
     if("app" in settingsData && settingsData.app.splashScreen) {
         splash = await createSplashWindow()
     }
@@ -132,7 +131,6 @@ async function createWindow() {
 
     if(splash) updateSplash("Ready")
 
-    // Load UI immediately - don't block on status check
     if (localData.nonAccountMode) {
         await mainWindow.loadFile(path.join(HTML_PATH, "index.html"));
     }
@@ -140,7 +138,6 @@ async function createWindow() {
         await mainWindow.loadFile(path.join(HTML_PATH, "login.html"));
     }
     else {
-        // Verify token but don't block on status check
         let userCheckLogin = await verifyToken(localData.token);
         if (userCheckLogin.success) {
             await mainWindow.loadFile(path.join(HTML_PATH, "index.html"));
@@ -151,7 +148,6 @@ async function createWindow() {
         }
     }
 
-    // Check status in background (non-blocking)
     checkStatus({ updateSplash: updateSplash }).catch((err: TypeError) => {
         console.log("Status check failed (non-blocking):", err.message);
     });

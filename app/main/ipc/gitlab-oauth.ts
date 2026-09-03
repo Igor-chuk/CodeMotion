@@ -74,7 +74,6 @@ ipcMain.handle("gitlab-oauth-start", async (_: IpcMainInvokeEvent) => {
         })
 
         if (!data.device_code || !data.user_code) {
-            console.log('gitlab start error')
             return { success: false, error: "Failed to start device flow" }
         }
 
@@ -134,8 +133,6 @@ ipcMain.handle("gitlab-oauth-poll", async (_: IpcMainInvokeEvent, deviceCode: st
 
 ipcMain.handle("gitlab-oauth-get-user", async (_: IpcMainInvokeEvent) => {
     const local = getLocalAppData()
-
-    console.log(local)
 
     if (local.gitlabOAuthToken && local.gitlabOAuthUser) {
         return { success: true, user: local.gitlabOAuthUser }
