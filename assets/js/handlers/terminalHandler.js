@@ -37,6 +37,7 @@ export class Console {
         this.console.win.addEventListener("bottom-window-resize-end", this.handlePanelResizeEnd)
         
         this.buffer = ""
+        this.cursor = 0
         this.history = []
         this.historyIndex = -1
         this.cwd = this.toDir(startPath) || ""
@@ -132,8 +133,12 @@ export class Console {
                 navigator.clipboard.readText().then(text => {
                     if (text) {
                         const clean = text.replace(/[\r\n]+/g, " ")
-                        this.buffer += clean
-                        this.term.write(clean)
+                        if (this.isWaitingForOutput) {
+                            this.buffer += clean
+                            this.term.write(clean)
+                        } else {
+                            this.insertAtCursor(clean)
+                        }
                     }
                 }).catch(() => {})
                 return false
@@ -154,6 +159,7 @@ export class Console {
             } else if(this.buffer.length > 0) {
                 this.term.write("^C\r\n")
                 this.buffer = ""
+                this.cursor = 0
             }
             this.prompt()
             return
@@ -163,8 +169,12 @@ export class Console {
             navigator.clipboard.readText().then(text => {
                 if (text) {
                     const clean = text.replace(/[\r\n]+/g, " ")
-                    this.buffer += clean
-                    this.term.write(clean)
+                    if (this.isWaitingForOutput) {
+                        this.buffer += clean
+                        this.term.write(clean)
+                    } else {
+                        this.insertAtCursor(clean)
+                    }
                 }
             }).catch(() => {})
             return
@@ -174,6 +184,7 @@ export class Console {
             this.term.write("\r\n")
             this.tabMatches = []
             this.tabIndex = -1
+            this.cursor = 0
 
             if(this.isWaitingForOutput) {
                 const input = this.buffer + "\n"
@@ -241,53 +252,117 @@ export class Console {
                     window.electron?.sendCommand?.({ cmd: trimmedBuffer, cwd: this.cwd })
                 }
             }
-        }
-
-        if (code === 127) {
-            if (this.buffer.length > 0) {
-                this.buffer = this.buffer.slice(0, -1)
-                this.term.write("\b \b")
-            }
             return
         }
 
-        if (!this.isWaitingForOutput) {
-            if (data === '\x1B[A') {
-                if(this.historyIndex > 0) this.replaceBuffer(this.history[--this.historyIndex])
+        if (this.isWaitingForOutput) {
+            if (code === 127) {
+                if (this.buffer.length > 0) {
+                    this.buffer = this.buffer.slice(0, -1)
+                    this.term.write("\b \b")
+                }
                 return
             }
-            if (data === '\x1B[B') {
-                if(this.historyIndex < this.history.length - 1) this.replaceBuffer(this.history[++this.historyIndex])
-                else { this.historyIndex = this.history.length; this.replaceBuffer("") }
-                return
-            }
+            this.buffer += data
+            this.term.write(data)
+            window.electron?.sendInput?.(data)
+            return
         }
 
-        if (data === '\t' && !this.isWaitingForOutput) {
+        if (code === 127) {
+            this.backspaceAtCursor()
+            return
+        }
+
+        if (data === '\x1B[A') {
+            if(this.historyIndex > 0) this.replaceBuffer(this.history[--this.historyIndex])
+            return
+        }
+        if (data === '\x1B[B') {
+            if(this.historyIndex < this.history.length - 1) this.replaceBuffer(this.history[++this.historyIndex])
+            else { this.historyIndex = this.history.length; this.replaceBuffer("") }
+            return
+        }
+        if (data === '\x1B[D') { this.moveLeft(); return }
+        if (data === '\x1B[C') { this.moveRight(); return }
+        if (data === '\x1B[H' || data === '\x1B[1~') { this.moveToStart(); return }
+        if (data === '\x1B[F' || data === '\x1B[4~') { this.moveToEnd(); return }
+        if (data === '\x1B[3~') { this.deleteAtCursor(); return }
+        if (code === 1) { this.moveToStart(); return }
+        if (code === 5) { this.moveToEnd(); return }
+
+        if (data === '\t') {
             this.autocomplete()
             return
         }
 
-        if (!this.isWaitingForOutput && code < 32) return
+        if (code === 27 || code < 32) return
 
-        this.buffer += data
-        this.term.write(data)
-        if (data !== '\t') {
-            this.tabMatches = []
-            this.tabIndex = -1
-        }
+        this.insertAtCursor(data)
+        this.tabMatches = []
+        this.tabIndex = -1
+    }
 
-        if(this.isWaitingForOutput) {
-            window.electron?.sendInput?.(data)
+    moveLeft() {
+        if (this.cursor > 0) {
+            this.cursor--
+            this.term.write('\x1b[D')
         }
     }
 
+    moveRight() {
+        if (this.cursor < this.buffer.length) {
+            this.cursor++
+            this.term.write('\x1b[C')
+        }
+    }
+
+    moveToStart() {
+        if (this.cursor > 0) {
+            this.term.write(`\x1b[${this.cursor}D`)
+            this.cursor = 0
+        }
+    }
+
+    moveToEnd() {
+        const diff = this.buffer.length - this.cursor
+        if (diff > 0) {
+            this.term.write(`\x1b[${diff}C`)
+            this.cursor = this.buffer.length
+        }
+    }
+
+    insertAtCursor(text) {
+        const after = this.buffer.slice(this.cursor)
+        this.buffer = this.buffer.slice(0, this.cursor) + text + after
+        this.cursor += text.length
+        this.term.write(text + after)
+        if (after.length) this.term.write(`\x1b[${after.length}D`)
+    }
+
+    backspaceAtCursor() {
+        if (this.cursor === 0) return
+        const after = this.buffer.slice(this.cursor)
+        this.buffer = this.buffer.slice(0, this.cursor - 1) + after
+        this.cursor--
+        this.term.write('\b' + after + ' ' + `\x1b[${after.length + 1}D`)
+    }
+
+    deleteAtCursor() {
+        if (this.cursor >= this.buffer.length) return
+        const after = this.buffer.slice(this.cursor + 1)
+        this.buffer = this.buffer.slice(0, this.cursor) + after
+        this.term.write(after + ' ' + `\x1b[${after.length + 1}D`)
+    }
+
     replaceBuffer(str) {
+        this.moveToEnd()
         while(this.buffer.length) {
             this.term.write('\b \b')
             this.buffer = this.buffer.slice(0, -1)
         }
         this.buffer = str
+        this.cursor = str.length
         this.term.write(str)
     }
 
