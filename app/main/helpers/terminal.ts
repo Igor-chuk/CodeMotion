@@ -15,11 +15,6 @@ class TerminalManager {
     }
 
     getShell(): string {
-        // Caused by: macOS defaults to zsh since Catalina, users may
-        // configure fish, bash, or other shells. Hardcoding /bin/bash
-        // breaks terminal for non-bash users. We read $SHELL and
-        // validate the binary exists before using it.
-
         if (process.platform === 'win32') {
             return 'cmd.exe';
         }
@@ -40,9 +35,6 @@ class TerminalManager {
     }
 
     validateWorkDir(cwd: string): string {
-        // Fall back to the user's home directory, never process.cwd(): the latter
-        // is the app's own install directory, so an invalid cwd made `ls` list the
-        // CodeMotion files instead of the user's directory.
         const fallback = os.homedir();
 
         if (!cwd || !fs.existsSync(cwd)) {
