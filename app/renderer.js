@@ -54,7 +54,6 @@ export function enableSave() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("[START] DOMContentLoaded")
     const gls = await GLS.init()
 
     localStorage.setItem("gls.current", gls.currentLang)
@@ -64,8 +63,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         e.textContent = gls.get(e.getAttribute("gls"))
         e.removeAttribute("gls")
     })
-
-    console.log("[STEP 1] GLS initialized")
 
     const addBugModal = await getAddBugModal()
     addBugModal.bind(document.querySelector("#add_bug"))
@@ -78,10 +75,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const appIcon = await window.electron.getAppIcon()
     const localData = await window.electron.getLocal()
 
-    console.log("[STEP 2] Before handleSettings")
     try {
         await handleSettings(settings)
-        console.log("[STEP 3] After handleSettings - SUCCESS")
     } catch (err) {
         console.error("[ERROR] handleSettings failed:", err)
     }
