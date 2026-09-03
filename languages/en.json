@@ -491,7 +491,7 @@
             },
 
             "gitGithub": {
-                "title": "Git & Github",
+                "title": "Git & Integrations",
 
                 "oauth": {
                     "category": "GitHub Account",

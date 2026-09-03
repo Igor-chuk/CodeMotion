@@ -656,9 +656,9 @@ export class Setting {
 
             userInfoContainer.innerHTML = `
                 <div class="github-oauth-user">
-                    <img class="github-oauth-avatar" src="${user.avatar_url}" alt="${user.login}" />
+                    <img class="github-oauth-avatar" src="${user.avatar_url}" alt="${user.username}" />
                     <div class="github-oauth-info">
-                        <span class="github-oauth-name">${displayName} (${user.login})</span>
+                        <span class="github-oauth-name">${displayName} (${user.username})</span>
                     </div>
                 </div>
             `

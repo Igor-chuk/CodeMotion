@@ -334,17 +334,11 @@ export async function getSettingsModal({ platform }) {
                                 class: "danger"
                             }
                         ]
-                    }
-                ]
-            },
+                    },
 
-            {
-                name: "GitLab",
-                icon: "gitlab",
-                content: [
                     {
                         type: "category",
-                        label: "GitLab OAuth",
+                        label: lgls("gitlab.oauth.category"),
                         items: []
                     },
                     {
@@ -361,19 +355,27 @@ export async function getSettingsModal({ platform }) {
                             },
                             {
                                 type: "button",
-                                title: "Connect",
+                                title: lgls("gitlab.oauth.buttons.login"),
                                 id: "setting_gitlabOAuthLogin"
                             },
                             {
                                 type: "button",
-                                title: "Disconnect",
+                                title: lgls("gitlab.oauth.buttons.disconnect"),
                                 id: "setting_gitlabOAuthDisconnect",
                                 class: "danger"
                             }
                         ]
                     }
                 ]
-            }
+            },
+
+            // {
+            //     name: lgls("gitlab.title"),
+            //     icon: "gitlab",
+            //     content: [
+            //
+            //     ]
+            // }
         ]
     })
 

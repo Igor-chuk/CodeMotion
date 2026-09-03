@@ -101,8 +101,6 @@ ipcMain.handle("gitlab-oauth-poll", async (_: IpcMainInvokeEvent, deviceCode: st
             grant_type: "urn:ietf:params:oauth:grant-type:device_code"
         })
 
-        console.log('gitlab poll', data)
-
         if (data.access_token) {
             const user = await fetchUser(data.access_token)
 
@@ -136,6 +134,8 @@ ipcMain.handle("gitlab-oauth-poll", async (_: IpcMainInvokeEvent, deviceCode: st
 
 ipcMain.handle("gitlab-oauth-get-user", async (_: IpcMainInvokeEvent) => {
     const local = getLocalAppData()
+
+    console.log(local)
 
     if (local.gitlabOAuthToken && local.gitlabOAuthUser) {
         return { success: true, user: local.gitlabOAuthUser }
