@@ -149,7 +149,7 @@ async function createWindow() {
     }
 
     checkStatus({ updateSplash: updateSplash }).catch((err: TypeError) => {
-        console.log("Status check failed (non-blocking):", err.message);
+        console.error("Status check failed (non-blocking):", err.message);
     });
 
     ipcMain.handle("request-file-open", () => {

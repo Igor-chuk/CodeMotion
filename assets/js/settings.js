@@ -47,9 +47,7 @@ function setupListener(property, callback) {
 // creating options
 
 export async function handleSettings(settingsObject) {
-    console.log("[SETTINGS] handleSettings START")
     const localObject = await window.electron.getLocal()
-    console.log("[SETTINGS] got localObject")
     const settings = await readSettings()
     const platform = await window.electron.getPlatform()
     const aviableLanguages = await window.electron.getAllLanguages()
@@ -64,7 +62,6 @@ export async function handleSettings(settingsObject) {
         return appearanceModal.el.querySelector(`#setting_${id}`)
     }
 
-    console.log("[SETTINGS] Before updateSettingSelectors")
     updateSettingSelectors(
         {
             editorTextSize: get("editorTextSize"),
@@ -198,22 +195,16 @@ export async function handleSettings(settingsObject) {
     })
 
     Setting.githubOAuthRender(localObject)
-    console.log("[SETTINGS] githubOAuthRender done")
 
     setupListener("gitlabOAuthLogin", ({ target }) => {
-        console.log("[SETTINGS] gitlabOAuthLogin clicked")
         Setting.gitlabOAuthStart(target)
     })
 
     setupListener("gitlabOAuthDisconnect", ({ target }) => {
-        console.log("[SETTINGS] gitlabOAuthDisconnect clicked")
         Setting.gitlabOAuthDisconnect(target)
     })
 
-    console.log("[SETTINGS] Before gitlabOAuthRender")
     Setting.gitlabOAuthRender(localObject)
-    console.log("[SETTINGS] gitlabOAuthRender done")
-    console.log("[SETTINGS] gitlab selectors:", settingsSelectors.gitlabOAuthLogin, settingsSelectors.gitlabOAuthDisconnect)
 
     themeSelect.appendTo(document.querySelector("#setting_theme"))
 
