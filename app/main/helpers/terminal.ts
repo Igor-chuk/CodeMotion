@@ -40,9 +40,14 @@ class TerminalManager {
     }
 
     validateWorkDir(cwd: string): string {
+        // Fall back to the user's home directory, never process.cwd(): the latter
+        // is the app's own install directory, so an invalid cwd made `ls` list the
+        // CodeMotion files instead of the user's directory.
+        const fallback = os.homedir();
+
         if (!cwd || !fs.existsSync(cwd)) {
-            console.log("[Terminal] Path does not exist, using default: " + process.cwd());
-            return process.cwd();
+            console.log("[Terminal] Path does not exist, using home directory: " + fallback);
+            return fallback;
         }
 
         const stat = fs.statSync(cwd);
@@ -58,8 +63,8 @@ class TerminalManager {
             return cwd;
         }
 
-        console.log("[Terminal] Path is neither file nor directory, using default: " + process.cwd());
-        return process.cwd();
+        console.log("[Terminal] Path is neither file nor directory, using home directory: " + fallback);
+        return fallback;
     }
 
     handleOutput(data: Buffer, type: 'stdout' | 'stderr', event: IpcMainEvent): void {

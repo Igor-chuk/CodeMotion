@@ -201,18 +201,23 @@ export class Console {
             } else {
                 const cdMatch = trimmedBuffer.match(/^cd\s+(.*)$/i)
                 if (cdMatch) {
-                    const target = cdMatch[1].trim().replace(/\/$/, "")
+                    const isWin = /^[a-zA-Z]:/.test(this.cwd) || this.cwd.includes("\\")
+                    const sep = isWin ? "\\" : "/"
+                    const root = isWin ? "C:\\" : "/"
+                    const rawTarget = cdMatch[1].trim()
+                    const isAbsolute = /^[a-zA-Z]:[\\/]/.test(rawTarget) || rawTarget.startsWith("/") || rawTarget.startsWith("\\")
+                    const target = rawTarget.replace(/[\\/]+$/, "")
                     let newPath = this.cwd
                     if (target === "..") {
                         const parts = this.cwd.replace(/[\\/]+$/, "").split(/[\\/]/)
                         parts.pop()
-                        newPath = parts.join("\\") || "C:\\"
-                    } else if (target === ".") {
+                        newPath = parts.join(sep) || root
+                    } else if (isAbsolute) {
+                        newPath = target || root
+                    } else if (target === "" || target === ".") {
                         newPath = this.cwd
-                    } else if (target.includes(":\\") || target.startsWith("/")) {
-                        newPath = target
                     } else {
-                        newPath = this.cwd + "\\" + target
+                        newPath = this.cwd.replace(/[\\/]+$/, "") + sep + target
                     }
                     this.history.push(trimmedBuffer)
                     this.historyIndex = this.history.length
@@ -262,6 +267,8 @@ export class Console {
             this.autocomplete()
             return
         }
+
+        if (!this.isWaitingForOutput && code < 32) return
 
         this.buffer += data
         this.term.write(data)
