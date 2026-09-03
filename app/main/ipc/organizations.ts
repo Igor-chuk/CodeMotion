@@ -1,9 +1,7 @@
 import { dialog, ipcMain, IpcMainInvokeEvent } from "electron"
-import { getUserToken, requestCreateOrganization, requestExploreOrganizations, requestGetYourOrgColleagues } from "../helpers/requests"
+import { getLocalAppData, getUserToken, requestCreateOrganization, requestExploreOrganizations, requestGetYourOrgColleagues } from "../helpers/requests"
 import { API } from "../helpers/paths"
 import { readFile } from "fs/promises";
-import fs from "node:fs"
-import path from "node:path";
 import { EditOrgData } from "../payloads";
 
 ipcMain.handle("create-organization", async (_: IpcMainInvokeEvent, params: any) => {
@@ -174,6 +172,16 @@ ipcMain.handle("upload-org-avatar", async (_: IpcMainInvokeEvent, orgid: number)
 });
 ipcMain.handle('set-github-repos', async (_: IpcMainInvokeEvent, orgid: number, repos: object) => {
     const userToken = await getUserToken()
+    const localData = await getLocalAppData()
+
+    let githubToken = null;
+
+    if("githubOAuthToken" in localData && localData.githubOAuthToken.startsWith("gho_")) {
+        githubToken = localData.githubOAuthToken
+    }
+    else {
+        return { success: false, msg: "Github OAuth Token invalid" }
+    }
 
     try {
         const response = await fetch(`${API}/org/setGithubRepos`, {
@@ -183,7 +191,8 @@ ipcMain.handle('set-github-repos', async (_: IpcMainInvokeEvent, orgid: number, 
             },
             body: JSON.stringify({
                 orgid: orgid,
-                repos: repos
+                repos: repos,
+                githubToken: githubToken
             })
         });
 
