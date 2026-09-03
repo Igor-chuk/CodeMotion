@@ -93,17 +93,17 @@ async function createWindow() {
     let dev = false
     let splash: InstanceType<typeof BrowserWindow> | null = null
 
-    // Disable splash for now
-    // if("app" in settingsData && settingsData.app.splashScreen) {
-    //     splash = await createSplashWindow()
-    // }
+    //Disable splash for now
+    if("app" in settingsData && settingsData.app.splashScreen) {
+        splash = await createSplashWindow()
+    }
 
 	if(process.argv.includes('--d')) dev = true
 
     mainWindow = new BrowserWindow({
         width,
         height,
-        show: true,
+        show: false,
         frame: dev,
         backgroundColor: "#0a0a0a",
         webPreferences: {
@@ -119,7 +119,11 @@ async function createWindow() {
         }
         return { action: 'deny' };
     });
-    mainWindow.maximize()
+    mainWindow.webContents.on('did-finish-load', () => {
+        if(splash) splash.destroy();
+        mainWindow.maximize()
+        mainWindow.show();
+    })
     mainWindow.on("closed", () => {
         for (const win of notifications) {
             if (win && !win.isDestroyed()) win.close()
