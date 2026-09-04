@@ -1,7 +1,7 @@
 import { ipcMain, IpcMainInvokeEvent, shell } from "electron"
 import { getLocalAppData, writeLocal } from "../helpers/requests"
 
-const CLIENT_ID = "f2c1987f7927b191dd347e4754f0ab5e52a633083b9994476a29cdb0b91eb145"
+const CLIENT_ID = "0db7adcfb70fb7f03ad727db00cb49f534aba85ebb564119f9d4463493de97f8"
 
 const GITLAB_BASE_URL = "https://gitlab.com"
 
