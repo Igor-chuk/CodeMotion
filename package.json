@@ -76,5 +76,8 @@
     "allowScripts": {
         "electron-winstaller@5.4.0": true,
         "electron@39.8.10": true
+    },
+    "overrides": {
+    	"yauzl": "^3.3.1"
     }
 }

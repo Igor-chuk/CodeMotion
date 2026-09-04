@@ -334,9 +334,48 @@ export async function getSettingsModal({ platform }) {
                                 class: "danger"
                             }
                         ]
+                    },
+
+                    {
+                        type: "category",
+                        label: lgls("gitlab.oauth.category"),
+                        items: []
+                    },
+                    {
+                        type: "row-clear",
+                        gap: 10,
+                        items: [
+                            {
+                                type: "container",
+                                id: "setting_gitlabOAuthUserInfo"
+                            },
+                            {
+                                type: "container",
+                                id: "setting_gitlabOAuthPending"
+                            },
+                            {
+                                type: "button",
+                                title: lgls("gitlab.oauth.buttons.login"),
+                                id: "setting_gitlabOAuthLogin"
+                            },
+                            {
+                                type: "button",
+                                title: lgls("gitlab.oauth.buttons.disconnect"),
+                                id: "setting_gitlabOAuthDisconnect",
+                                class: "danger"
+                            }
+                        ]
                     }
                 ]
-            }
+            },
+
+            // {
+            //     name: lgls("gitlab.title"),
+            //     icon: "gitlab",
+            //     content: [
+            //
+            //     ]
+            // }
         ]
     })
 

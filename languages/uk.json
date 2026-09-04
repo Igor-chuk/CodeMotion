@@ -491,7 +491,7 @@
             },
 
             "gitGithub": {
-                "title": "Git і GitHub",
+                "title": "Git і провайдери",
 
                 "oauth": {
                     "category": "Обліковий запис GitHub",
@@ -514,6 +514,35 @@
                         "disconnected": {
                             "title": "GitHub відключено",
                             "description": "Ваш обліковий запис GitHub відв’язано"
+                        }
+                    }
+                }
+            },
+
+            "gitlab": {
+                "title": "GitLab",
+
+                "oauth": {
+                    "category": "Обліковий запис GitLab",
+                    "buttons": {
+                        "login": "Увійти через GitLab",
+                        "connecting": "Підключення...",
+                        "waiting": "Очікування авторизації...",
+                        "disconnect": "Відключити"
+                    },
+                    "pending": {
+                        "hint": "Відкрийте %{url} та введіть код вище"
+                    },
+                    "notifications": {
+                        "success": {
+                            "title": "GitLab підключено!",
+                            "description": "Ваш обліковий запис GitLab успішно прив’язано"
+                        },
+                        "denied": "Авторизацію було відхилено користувачем",
+                        "expired": "Термін дії коду авторизації минув. Спробуйте ще раз",
+                        "disconnected": {
+                            "title": "GitLab відключено",
+                            "description": "Ваш обліковий запис GitLab відв’язано"
                         }
                     }
                 }

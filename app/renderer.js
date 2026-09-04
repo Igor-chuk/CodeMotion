@@ -75,7 +75,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const appIcon = await window.electron.getAppIcon()
     const localData = await window.electron.getLocal()
 
-    await handleSettings(settings)
+    try {
+        await handleSettings(settings)
+    } catch (err) {
+        console.error("[ERROR] handleSettings failed:", err)
+    }
 
     if ("app" in settings) {
         if ("devMode" in settings.app) {

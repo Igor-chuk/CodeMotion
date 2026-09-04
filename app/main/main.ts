@@ -36,6 +36,7 @@ require("./ipc/organizations")
 require("./ipc/bugs")
 require("./ipc/suggest")
 require("./ipc/github-oauth")
+require("./ipc/gitlab-oauth")
 
 // ext
 require("../sandbox/regs/language")
@@ -130,32 +131,26 @@ async function createWindow() {
 
     if(splash) updateSplash("Waiting for connect...")
 
-    // if offline mode (w/o account) then dont check status
     if (localData.nonAccountMode) {
         await mainWindow.loadFile(path.join(HTML_PATH, "index.html"));
     }
-    else {
-        checkStatus({ updateSplash: updateSplash })
-            .then(async () => {
-                if (!localData.token) {
-                    await mainWindow.loadFile(path.join(HTML_PATH, "login.html"));
-                }
-                else {
-                    let userCheckLogin = await verifyToken(localData.token);
-
-                    if (userCheckLogin.success) {
-                        await mainWindow.loadFile(path.join(HTML_PATH, "index.html"));
-                    }
-                    else {
-                        await mainWindow.loadFile(path.join(HTML_PATH, "login.html"));
-                        mainWindow.webContents.send("auth-msg", { type: "error", content: userCheckLogin.result })
-                    }
-                }
-            })
-            .catch((err: TypeError) => {
-                updateSplash(`Error: ${err.message}. Please report this error to the developer and try again later`, true)
-            });
+    else if (!localData.token) {
+        await mainWindow.loadFile(path.join(HTML_PATH, "login.html"));
     }
+    else {
+        let userCheckLogin = await verifyToken(localData.token);
+        if (userCheckLogin.success) {
+            await mainWindow.loadFile(path.join(HTML_PATH, "index.html"));
+        }
+        else {
+            await mainWindow.loadFile(path.join(HTML_PATH, "login.html"));
+            mainWindow.webContents.send("auth-msg", { type: "error", content: userCheckLogin.result })
+        }
+    }
+
+    checkStatus({ updateSplash: updateSplash }).catch((err: TypeError) => {
+        console.error("Status check failed (non-blocking):", err.message);
+    });
 
     ipcMain.handle("request-file-open", () => {
         return selectFile(mainWindow)
