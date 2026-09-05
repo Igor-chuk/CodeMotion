@@ -1,9 +1,8 @@
-import { closeAllTabs } from "../tabHandler.js";
-import { buildTreeHtml, renderNodes } from "../render.js";
-import { bindFileClicks } from "./bindFileClicksHandler.js";
-import { tabsByPath, recentlyClosed } from "../tabHandler.js";
-import { initializeExplorerContextMenu } from "./contextMenuHandler.js";
-import { getFolderIconUrl } from "../../iconRegistry.js";
+import {closeAllTabs, recentlyClosed, tabsByPath} from "../tabHandler.js";
+import {buildTreeHtml, renderNodes} from "../render.js";
+import {bindFileClicks} from "./bindFileClicksHandler.js";
+import {initializeExplorerContextMenu} from "./contextMenuHandler.js";
+import {getFolderIconUrl} from "../../iconRegistry.js";
 
 async function setProjectDataUsedLanguages(path) {
     const usedLanguages = await window.electron.getUsedLanguagesByPath(path)
@@ -110,7 +109,8 @@ export async function openFolder({ pathRoot, filesPanel, addToHistory, pathConte
 
 function updatePathContext({ pathRoot, pathContext }) {
     const parts = pathRoot.split(/[\\/]/g).filter(Boolean);
-    pathContext["rootPath"] = parts.join("/");
+    const isAbsolute = pathRoot.startsWith("/") || /^[a-zA-Z]:[\\/]/.test(pathRoot);
+    pathContext["rootPath"] = isAbsolute ? "/" + parts.join("/") : parts.join("/");
     pathContext["root"] = parts.pop();
 }
 

@@ -1,5 +1,5 @@
 import { spawn, spawnSync, ChildProcess } from 'child_process';
-import { ipcMain, IpcMainEvent } from 'electron';
+import {ipcMain, IpcMainEvent, shell} from 'electron';
 import fs from 'fs';
 import os from 'os';
 
@@ -38,7 +38,7 @@ class TerminalManager {
         const fallback = os.homedir();
 
         if (!cwd || !fs.existsSync(cwd)) {
-            console.log("[Terminal] Path does not exist, using home directory: " + fallback);
+            console.log("[Terminal] Path does notenv. exist, using home directory: " + fallback);
             return fallback;
         }
 
