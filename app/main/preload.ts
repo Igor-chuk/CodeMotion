@@ -97,6 +97,8 @@ contextBridge.exposeInMainWorld('electron', {
 
     onStatusUpdate: (callback: any) => ipcRenderer.on("status-update", callback),
 
+    initTerminal: (data: any) => ipcRenderer.send("terminal-init", data),
+    resizeTerminal: (data: { cols: number; rows: number }) => ipcRenderer.send("terminal-resize", data),
     sendCommand: (data: any) => ipcRenderer.send("terminal-command", data),
     sendInput: (input: any) => ipcRenderer.send("terminal-input", input),
     killProcess: () => ipcRenderer.send("terminal-kill"),
@@ -144,6 +146,8 @@ contextBridge.exposeInMainWorld('electron', {
     yamlDiagnostic: (code: string) => ipcRenderer.invoke("yaml-diagnostic", code),
     yamlAST: (code: string) => ipcRenderer.invoke("yaml-ast", code),
     tsTypeCheck: (code: string, filePath: string) => ipcRenderer.invoke("ts-type-check", code, filePath),
+    tsQuickInfo: (code: string, filePath: string, offset: number) => ipcRenderer.invoke("ts-quick-info", code, filePath, offset),
+    tsUnused: (code: string, filePath: string) => ipcRenderer.invoke("ts-unused", code, filePath),
 
     sendCodeSuggestRequest: (data: any) => ipcRenderer.send("code-suggest-request", data),
     onCodeSuggestResult: (callback: any) => {

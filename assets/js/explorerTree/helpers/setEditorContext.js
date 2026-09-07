@@ -4,13 +4,14 @@ import { JSONParser } from "../../contextParsers/jsonParser.js"
 import { HTMLParser } from "../../contextParsers/htmlParser.js"
 import { CSSParser } from "../../contextParsers/cssParser.js"
 
-import { addRuntimeError, GLS } from "../../lib.js"
+import { setRuntimeErrors, GLS } from "../../lib.js"
 import { GoParser } from "../../contextParsers/goParser.js"
 import { YAMLParser } from "../../contextParsers/yamlParser.js"
 import { PythonParser } from "../../contextParsers/pythonParser.js"
 
 let diagnosticTimer = null
 let typeCheckTimer = null
+let unusedTimer = null
 let generation = 0
 
 const SEVERITY_MAP = {
@@ -64,13 +65,15 @@ function showDiagnostics(diagnostics, { editor, path, source }) {
 
     editor.setDiagnosticsFor(source, list)
 
-    diagnostics.forEach(item => {
-        addRuntimeError({
+    setRuntimeErrors({
+        source,
+        path,
+        errors: diagnostics.map(item => ({
             msg: item.message,
             line: Math.max(1, Number(item.line) || 1),
             col: Math.max(0, Number(item.col) || 0),
             time: Math.floor(Date.now() / 1000),
-        })
+        })),
     })
 }
 
@@ -87,6 +90,7 @@ export async function setEditorContext(properties = {}, { editor, language, upda
     if (isErrorsUpdate) {
         clearTimeout(diagnosticTimer)
         clearTimeout(typeCheckTimer)
+        clearTimeout(unusedTimer)
     }
     const currentGen = isErrorsUpdate ? ++generation : generation
 
@@ -130,6 +134,15 @@ export async function setEditorContext(properties = {}, { editor, language, upda
                 if (currentGen !== generation) return
                 showDiagnostics(typeDiagnostics, { editor, path, source: "types" })
             }, 400)
+
+            unusedTimer = setTimeout(async () => {
+                if (typeof window.electron.tsUnused !== "function") return
+                try {
+                    const ranges = await window.electron.tsUnused(editor.getValue(), filePath)
+                    if (currentGen !== generation) return
+                    editor.setUnusedRanges(ranges)
+                } catch (_) {}
+            }, 500)
         }
 
         const ast = await getAst(editor.getValue(), oxcLanguage)

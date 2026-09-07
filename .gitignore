@@ -10,3 +10,6 @@ codemirror/node_modules
 package-lock.json
 pnpm-lock.yaml
 dist-esm/
+dist-esm/
+bun.lock
+bun.lockb
