@@ -129,7 +129,9 @@
         "file": {
             "title": "Файл",
             "openFolder": "Открыть папку",
-            "closeFolder": "Закрыть папку"
+            "closeFolder": "Закрыть папку",
+            "enableAutosave": "Включить автосохранение",
+            "enabledAutosave": "Автосохранение включено"
         },
         "tools": {
             "title": "Инструменты",
