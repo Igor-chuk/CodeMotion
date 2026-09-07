@@ -2,12 +2,16 @@
     "name": "codemotion-app",
     "version": "0.0.9-alpha.dev",
     "description": "Web-focused, advanced open-source code editor (IDE) with native tools for web developers",
-    "author": "Yurba.Developers",
+    "author": {
+        "name": "Yurba Developers",
+        "email": "dev@yurba.one"
+    },
     "main": "app/dist/main.js",
     "scripts": {
         "build": "tsc && tsc -p tsconfig.esm.json",
         "test": "node --test tests/unit/*.test.mjs",
-        "cdbuild": "cd codemirror && npm i && npm run build",
+        "install": "cd codemirror && npm i",
+        "cdbuild": "cd codemirror && npm run build",
         "start": "npm run cdbuild && npm run build && electron .",
         "dist": "npm run cdbuild && npm run build && electron-builder",
         "dist-linux": "npm run cdbuild && npm run build && electron-builder --linux",
@@ -16,6 +20,7 @@
     "build": {
         "appId": "com.codemotion",
         "productName": "CodeMotion",
+        "artifactName": "codemotion-${version}.${ext}",
         "files": [
             "ace/**/*",
             "codemirror/**/*",
@@ -32,7 +37,11 @@
             }
         ],
         "win": {
-            "target": "nsis",
+            "target": [
+                "nsis",
+                "portable",
+                "zip"
+            ],
             "icon": "assets/media/builder-icons/app.ico"
         },
         "nsis": {
@@ -42,14 +51,25 @@
             "uninstallerIcon": "assets/media/builder-icons/app.ico"
         },
         "mac": {
-            "target": "dmg",
+            "target": [
+                "dmg",
+                "zip"
+            ],
             "icon": "assets/media/builder-icons/app.png"
         },
         "linux": {
             "category": "Development",
-            "target": "AppImage",
-            "syncDesktopName": true,
+            "target": [
+                "AppImage",
+                "deb",
+                "rpm",
+                "pacman",
+                "tar.gz"
+            ],
             "icon": "assets/media/builder-icons/app.png"
+        },
+        "deb": {
+            "maintainer": "Yurba Developers <dev@yurba.one>"
         }
     },
     "devDependencies": {
@@ -68,6 +88,7 @@
         "flashot": "^1.4.1",
         "ignore": "^7.0.6",
         "node-gyp": "^12.4.0",
+        "node-pty": "^1.1.0",
         "oxc-parser": "^0.140.0",
         "tar": "^7.5.21",
         "typescript": "^6.0.3",
@@ -78,6 +99,6 @@
         "electron@39.8.10": true
     },
     "overrides": {
-    	"yauzl": "^3.3.1"
+        "yauzl": "^3.3.1"
     }
 }

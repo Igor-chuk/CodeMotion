@@ -11,3 +11,5 @@ package-lock.json
 pnpm-lock.yaml
 dist-esm/
 .gigacode
+bun.lock
+bun.lockb
