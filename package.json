@@ -10,6 +10,9 @@
     "scripts": {
         "build": "tsc && tsc -p tsconfig.esm.json",
         "test": "node --test tests/unit/*.test.mjs",
+        "lint": "biome check .",
+        "lint:fix": "biome check --write .",
+        "format": "biome format --write .",
         "install": "cd codemirror && npm i",
         "cdbuild": "cd codemirror && npm run build",
         "start": "npm run cdbuild && npm run build && electron .",
@@ -73,6 +76,7 @@
         }
     },
     "devDependencies": {
+        "@biomejs/biome": "^2.5.12",
         "@types/electron": "^1.4.38",
         "@types/node": "^25.9.1",
         "electron": "^39.8.10",

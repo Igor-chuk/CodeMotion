@@ -99,6 +99,12 @@ We love contributions! Whether it's bug reports, feature requests, or pull reque
 
 - Fork the repository
 - Create your feature branch ```git checkout -b feature/AmazingFeature```
+- Ensure code quality and formatting:
+  ```bash
+  npm run lint       # Run linter checks
+  npm run format     # Format code with Biome
+  npm test           # Run tests
+  ```
 - Commit your changes ```git commit -m 'Add some AmazingFeature'```
 - Push to the branch ```git push origin feature/AmazingFeature```
 - Open a Pull Request
