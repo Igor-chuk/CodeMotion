@@ -25,16 +25,15 @@ with native tools for web developers</p>
 
 > [!IMPORTANT]
 > **macOS: "CodeMotion is damaged and can't be opened"** — this is NOT corruption. The build isn't signed with a paid Apple Developer certificate, so macOS Gatekeeper quarantines it. To fix, drag the app to `/Applications`, then run this once in Terminal:
+>
 > ```bash
 > xattr -cr /Applications/CodeMotion.app
 > ```
+>
 > The app will open normally afterwards.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-
-
-
 
 ## ✨ Features
 
@@ -47,9 +46,11 @@ with native tools for web developers</p>
 - **Extensible**: Easily customize and extend with own easy plugins engine
 
 ## 🎯 Quick Start
+
 [If you're new here, check out our beginner's guide](https://codemotion.yurba.one/docs#for-beginners/FOR_BEGINNERS_BUILD_APP)
 
 Prerequisites:
+
 - Node.js (v20 or higher)
 - npm
 
@@ -69,6 +70,7 @@ npm start
 # Or with dev mode
 npm start -- --d
 ```
+
 ## 🏗️ Project Structure
 
 ```
@@ -80,6 +82,7 @@ codemotion-ide/
 ├── html/                # HTML Templates
 └── languages/           # App languages in JSON
 ```
+
 ## 🛠️ Stack
 
 - **Backend**: TypeScript
@@ -87,23 +90,34 @@ codemotion-ide/
 - **Styling**: Pure CSS
 - **Markup**: HTML
 - **Architecture**: Modular & Component-based
+
 ## 🤝 Contributing
 
 We love contributions! Whether it's bug reports, feature requests, or pull requests, we welcome your involvement.
 
 #### Contributing Guidelines
+
 - Fork the repository
 - Create your feature branch ```git checkout -b feature/AmazingFeature```
+- Ensure code quality and formatting:
+  ```bash
+  npm run lint       # Run linter checks
+  npm run format     # Format code with Biome
+  npm test           # Run tests
+  ```
 - Commit your changes ```git commit -m 'Add some AmazingFeature'```
 - Push to the branch ```git push origin feature/AmazingFeature```
 - Open a Pull Request
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
 ## Authors
 
 - [@cdmtn-dev](https://github.com/cdmtn-dev)
 
 ## Special thanks
+
 - [@noxy](https://github.com/noxygalaxy) (Super contributor)
 - [@NotKiwy](https://github.com/NotKiwy) (Triage)

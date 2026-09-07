@@ -1,0 +1,52 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.5.12/schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "files": {
+        "maxSize": 5242880,
+        "includes": [
+            "app/**/*",
+            "assets/js/**/*",
+            "assets/css/**/*",
+            "helpers/**/*",
+            "tests/**/*",
+            "html/**/*",
+            "languages/**/*",
+            "package.json",
+            "tsconfig*.json"
+        ]
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 120
+    },
+    "assist": {
+        "actions": {
+            "source": {
+                "organizeImports": "off"
+            }
+        }
+    },
+    "linter": {
+        "enabled": false
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "double",
+            "semicolons": "asNeeded"
+        }
+    },
+    "overrides": [
+        {
+            "includes": ["assets/js/external/**", "codemirror/**", "ace/**", "dist/**", "build/**"],
+            "formatter": {
+                "enabled": false
+            }
+        }
+    ]
+}
