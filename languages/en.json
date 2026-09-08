@@ -443,6 +443,7 @@
             "editor": {
                 "editorLabel": "Editor",
                 "contextsLabel": "Contexts",
+                "autosaves": "Autosaves",
 
                 "builtInPythonCausePlatformNote": "{{platformNotSupported}}. Built-in Python environment will be used",
 
@@ -466,6 +467,11 @@
                         "title": "GOLang Context Parser",
                         "description": "Should the context parser be enabled for GO?"
                     }
+                },
+
+                "autosave": {
+                    "title": "Autosave files",
+                    "description": "Enable autosave files?"
                 }
             },
 

@@ -44,11 +44,15 @@ import { getAddBugModal } from "../assets/js/modals/addBugModal.js"
 import { getLogoutModal } from "../assets/js/modals/logoutModal.js"
 import { ExplorerSidebar } from "../assets/js/sidebar/ExplorerSidebar.js"
 
-
 let isSaveAviable = true
 let useAutosave = localStorage.getItem('isAutosave') === 'true'
 
 export function isAutosaveEnabled() { return useAutosave }
+
+export function setAutosave(value){
+    useAutosave = value;
+    localStorage.setItem('isAutosave', `${value}`)
+}
 
 export function disableSave() {
     isSaveAviable = false
@@ -78,14 +82,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const settings = await readSettings()
     const appIcon = await window.electron.getAppIcon()
     const localData = await window.electron.getLocal()
-
-    const autosaver = document.getElementById('enable_autosave')
-    autosaver.textContent = useAutosave? gls.get('popups.file.enabledAutosave') : gls.get('popups.file.enableAutosave')
-    autosaver.addEventListener('click', () => {
-        useAutosave = !useAutosave
-        localStorage.setItem('isAutosave', `${useAutosave}`)
-        autosaver.textContent = useAutosave? gls.get('popups.file.enabledAutosave') : gls.get('popups.file.enableAutosave')
-    })
 
     try {
         await handleSettings(settings)
